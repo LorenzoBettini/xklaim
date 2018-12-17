@@ -11,3 +11,4 @@ Export-Package: klava,
  klava.topology
 Bundle-Vendor: Lorenzo Bettini
 Automatic-Module-Name: klava
+Require-Bundle: imc;bundle-version="2.0.0";visibility:=reexport
