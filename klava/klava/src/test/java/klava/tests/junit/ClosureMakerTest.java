@@ -127,12 +127,12 @@ public class ClosureMakerTest extends ClientServerBase {
         System.out.println("closed tuple: " + tuple);
 
         /* check the tuple fields */
-        assertTrue(tuple.getItem(0) == string);
+        assertEquals(string, tuple.getItem(0));
         assertTrue(tuple.getItem(1) == internal);
         assertTrue(tuple.getItem(2) == simpleProcess);
 
         /* this should still be not closed */
-        assertTrue(tuple.getItem(3) == logicalLocality);
+        assertEquals(logicalLocality, tuple.getItem(3));
 
         assertEquals(simpleProcess.getSelf(), serverLoc);
 
@@ -164,7 +164,7 @@ public class ClosureMakerTest extends ClientServerBase {
             LogicalLocality logicalLocality, LogicalLocality logicalLocality1,
             Tuple internal, Tuple tuple) {
         /* check the tuple fields */
-        assertTrue(tuple.getItem(0) == string);
+        assertEquals(string, tuple.getItem(0));
         assertTrue(tuple.getItem(1) == internal);
         assertTrue(tuple.getItem(2) == simpleProcess);
         assertTrue(tuple.getItem(3) != logicalLocality);
