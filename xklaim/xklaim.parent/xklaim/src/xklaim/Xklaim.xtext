@@ -1,4 +1,4 @@
-grammar xklaim.Xklaim with org.eclipse.xtext.common.Terminals
+grammar xklaim.Xklaim with org.eclipse.xtext.xbase.annotations.XbaseWithAnnotations
 
 generate xklaim "http://www.Xklaim.xklaim"
 
