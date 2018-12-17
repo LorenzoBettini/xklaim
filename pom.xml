@@ -9,6 +9,7 @@
 
   <modules>
     <module>imc/imc</module>
+    <module>klava/klava</module>
   </modules>
   
 </project>
