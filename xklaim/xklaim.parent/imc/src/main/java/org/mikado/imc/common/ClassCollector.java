@@ -138,6 +138,8 @@ public class ClassCollector {
     protected void inspectDirEntry(File dir) throws IOException {
         System.out.println("Inspecting dir entry: " + dir);
         String[] files = dir.list();
+        if (files == null)
+            return;
         for (int i = 0; i < files.length; i++) {
             File file = new File(files[i]);
             inspectDirEntry(dir, new File(""), file);
