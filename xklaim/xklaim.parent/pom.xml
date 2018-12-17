@@ -25,6 +25,7 @@
     <module>imc.tests</module>
     <module>klava</module>
     <module>klava.tests</module>
+    <module>xklaim.runtime</module>
     <module>xklaim</module>
     <module>xklaim.ide</module>
     <module>xklaim.ui</module>

@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: xklaim.runtime
+Bundle-SymbolicName: xklaim.runtime
+Bundle-Version: 2.0.0.qualifier
+Bundle-Vendor: Lorenzo Bettini
+Automatic-Module-Name: xklaim.runtime
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: klava;bundle-version="2.0.0";visibility:=reexport
