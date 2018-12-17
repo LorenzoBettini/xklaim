@@ -1,0 +1,9 @@
+grammar xklaim.Xklaim with org.eclipse.xtext.common.Terminals
+
+generate xklaim "http://www.Xklaim.xklaim"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID '!';
