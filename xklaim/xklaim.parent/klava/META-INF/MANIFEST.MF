@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: klava
+Bundle-SymbolicName: klava
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: junit.runner,
+ klava,
+ klava.events,
+ klava.examples.chat,
+ klava.examples.db,
+ klava.examples.gui,
+ klava.examples.loadbalancing,
+ klava.examples.mobility,
+ klava.examples.newsgatherer,
+ klava.examples.process,
+ klava.examples.topology,
+ klava.gui,
+ klava.proto,
+ klava.tests.examples.chat,
+ klava.tests.junit,
+ klava.tests.junit.gui,
+ klava.topology
+Bundle-Vendor: Lorenzo Bettini
+Automatic-Module-Name: klava
