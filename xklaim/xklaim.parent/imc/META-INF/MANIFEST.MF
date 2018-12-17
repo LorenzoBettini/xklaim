@@ -16,3 +16,4 @@ Export-Package: org.mikado.imc.common,
  org.mikado.imc.topology,
  org.mikado.imc.ts
 Automatic-Module-Name: imc
+Require-Bundle: org.junit;bundle-version="4.12.0"
