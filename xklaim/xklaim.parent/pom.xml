@@ -22,6 +22,7 @@
   </properties>
   <modules>
     <module>imc</module>
+    <module>imc.tests</module>
     <module>xklaim</module>
     <module>xklaim.ide</module>
     <module>xklaim.ui</module>
