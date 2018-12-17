@@ -3,6 +3,8 @@ grammar xklaim.Xklaim with org.eclipse.xtext.xbase.annotations.XbaseWithAnnotati
 generate xklaim "http://www.Xklaim.xklaim"
 
 XklaimModel:
+	importSection=XImportSection?
+	('package' name=QualifiedName ';'?)?
 	nodes+=XklaimNode*;
 	
 XklaimNode:
