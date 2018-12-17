@@ -10,18 +10,18 @@ import org.eclipse.xtext.testing.util.ParseHelper
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
-import xklaim.xklaim.Model
+import xklaim.xklaim.XklaimModel
 
 @RunWith(XtextRunner)
 @InjectWith(XklaimInjectorProvider)
 class XklaimParsingTest {
 	@Inject
-	ParseHelper<Model> parseHelper
+	ParseHelper<XklaimModel> parseHelper
 	
 	@Test
 	def void loadModel() {
 		val result = parseHelper.parse('''
-			Hello Xtext!
+			node test {}
 		''')
 		Assert.assertNotNull(result)
 		val errors = result.eResource.errors

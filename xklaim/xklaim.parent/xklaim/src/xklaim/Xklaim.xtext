@@ -2,8 +2,9 @@ grammar xklaim.Xklaim with org.eclipse.xtext.xbase.annotations.XbaseWithAnnotati
 
 generate xklaim "http://www.Xklaim.xklaim"
 
-Model:
-	greetings+=Greeting*;
+XklaimModel:
+	nodes+=XklaimNode*;
 	
-Greeting:
-	'Hello' name=ID '!';
+XklaimNode:
+	'node' name=ID body=XBlockExpression
+;
