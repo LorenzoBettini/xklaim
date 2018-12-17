@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature id="xklaim.feature"
 	label="Xklaim Feature "
-	version="1.0.0.qualifier">
+	version="2.0.0.qualifier">
 	<plugin
 			id="xklaim"
 			download-size="0"
