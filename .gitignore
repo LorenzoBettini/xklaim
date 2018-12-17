@@ -8,8 +8,7 @@ logs.zip
 *.smap
 *.log
 
-# src-gen is excluded on a per project basis
-#src-gen/
+src-gen/
 
 xtend-gen/
 emf-gen/
