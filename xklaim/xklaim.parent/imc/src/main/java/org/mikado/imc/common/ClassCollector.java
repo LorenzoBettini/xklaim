@@ -136,6 +136,7 @@ public class ClassCollector {
     }
 
     protected void inspectDirEntry(File dir) throws IOException {
+        System.out.println("Inspecting dir entry: " + dir);
         String[] files = dir.list();
         for (int i = 0; i < files.length; i++) {
             File file = new File(files[i]);
