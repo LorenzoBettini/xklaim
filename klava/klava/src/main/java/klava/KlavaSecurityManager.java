@@ -58,8 +58,6 @@ import org.mikado.imc.mobility.NodeClassLoader;
  * methods is to assume that the caller does <i>not</i> have permission to
  * perform the requested operation.
  * 
- * @author Arthur van Hoff
- * @version 1.48, 03/10/97
  * @see java.lang.ClassLoader
  * @see java.lang.SecurityException
  * @see java.lang.SecurityManager#checkTopLevelWindow(java.lang.Object)

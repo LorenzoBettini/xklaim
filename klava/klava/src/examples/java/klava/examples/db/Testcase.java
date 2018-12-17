@@ -14,7 +14,6 @@ import klava.topology.LogicalNet;
  * Place class description here
  * 
  * @version 1.0
- * @author Fan Yang
  * 
  */
 public class Testcase {

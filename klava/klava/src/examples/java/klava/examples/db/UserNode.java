@@ -12,7 +12,6 @@ import klava.topology.ClientNode;
  * Place class description here
  * 
  * @version 1.0
- * @author Fan Yang
  * 
  */
 public class UserNode extends ClientNode {
