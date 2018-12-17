@@ -1,0 +1,23 @@
+ReceiverMigratingCode: loadClassBytes : org.mikado.imc.mobility.MigratingCodeRecoverImpl
+ReceiverMigratingCode: Reading data of class org/mikado/imc/mobility/MigratingCodeRecoverImpl.class
+ReceiverMigratingCode:  >>>>>> Fetching the bytes of org.mikado.imc.mobility.MigratingCodeRecoverImpl
+ReceiverMigratingCode:  >>>>>> Returning newly loaded class.
+ReceiverMigratingCode: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Recovering code ...
+ReceiverMigratingCode: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.FooClassImpl
+ReceiverMigratingCode: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.BarPar
+ReceiverMigratingCode: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.FooClass
+ReceiverMigratingCode: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.BarClass
+ReceiverMigratingCode: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.MyMigratingCodeImpl
+ReceiverMigratingCode: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.BarException
+ReceiverMigratingCode:  >>>>>> Fetching the bytes of mikadotest.mobility.MyMigratingCodeImpl
+ReceiverMigratingCode:  >>>>>> Returning newly loaded class.
+ReceiverMigratingCode:  >>>>>> Fetching the bytes of mikadotest.mobility.BarException
+ReceiverMigratingCode:  >>>>>> Returning newly loaded class.
+ReceiverMigratingCode:  >>>>>> Fetching the bytes of mikadotest.mobility.FooClassImpl
+ReceiverMigratingCode:   >>>>>> Fetching the bytes of mikadotest.mobility.FooClass
+ReceiverMigratingCode:   >>>>>> Returning newly loaded class.
+ReceiverMigratingCode:  >>>>>> Returning newly loaded class.
+ReceiverMigratingCode:  >>>>>> Fetching the bytes of mikadotest.mobility.BarClass
+ReceiverMigratingCode:  >>>>>> Returning newly loaded class.
+ReceiverMigratingCode:  >>>>>> Fetching the bytes of mikadotest.mobility.BarPar
+ReceiverMigratingCode:  >>>>>> Returning newly loaded class.

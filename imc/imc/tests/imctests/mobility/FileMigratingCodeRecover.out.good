@@ -1,0 +1,26 @@
+FileMessagePrinter: loadClassBytes : org.mikado.imc.mobility.MigratingCodeRecoverImpl
+FileMessagePrinter: Reading data of class org/mikado/imc/mobility/MigratingCodeRecoverImpl.class
+FileMessagePrinter:  >>>>>> Fetching the bytes of org.mikado.imc.mobility.MigratingCodeRecoverImpl
+FileMessagePrinter:  >>>>>> Returning newly loaded class.
+FileMessagePrinter: loadClassBytes : org.mikado.imc.mobility.MigratingCodeRecoverImpl
+FileMessagePrinter: Reading data of class org/mikado/imc/mobility/MigratingCodeRecoverImpl.class
+FileMessagePrinter: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Recovering code ...
+FileMessagePrinter: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.FooClassImpl
+FileMessagePrinter: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.BarPar
+FileMessagePrinter: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.FooClass
+FileMessagePrinter: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.BarClass
+FileMessagePrinter: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.MyMigratingCodeImpl
+FileMessagePrinter: org.mikado.imc.mobility.MigratingCodeRecoverImpl: Added class : mikadotest.mobility.BarException
+FileMessagePrinter:  >>>>>> Fetching the bytes of mikadotest.mobility.MyMigratingCodeImpl
+FileMessagePrinter:  >>>>>> Returning newly loaded class.
+FileMessagePrinter:  >>>>>> Fetching the bytes of mikadotest.mobility.BarException
+FileMessagePrinter:  >>>>>> Returning newly loaded class.
+FileMessagePrinter:  >>>>>> Fetching the bytes of mikadotest.mobility.FooClassImpl
+FileMessagePrinter:   >>>>>> Fetching the bytes of mikadotest.mobility.FooClass
+FileMessagePrinter:   >>>>>> Returning newly loaded class.
+FileMessagePrinter:  >>>>>> Returning newly loaded class.
+FileMessagePrinter:  >>>>>> Fetching the bytes of mikadotest.mobility.BarClass
+FileMessagePrinter:  >>>>>> Returning newly loaded class.
+FileMessagePrinter:  >>>>>> Fetching the bytes of mikadotest.mobility.BarPar
+FileMessagePrinter:  >>>>>> Returning newly loaded class.
+FileMessagePrinter: calling bar method, result: BarClass.bar - BarParString
