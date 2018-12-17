@@ -35,8 +35,13 @@ public class NodeProcessTest extends TestCase {
 
         @Override
         public void execute() throws IMCException {
-            while (true)
-                ;
+            while (true) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    
+                }                
+            }
         }
 
     }
