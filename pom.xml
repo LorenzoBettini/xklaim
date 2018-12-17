@@ -9,7 +9,6 @@
 
   <modules>
     <module>xklaim/xklaim.parent</module>
-    <module>klava/klava</module>
   </modules>
   
 </project>
