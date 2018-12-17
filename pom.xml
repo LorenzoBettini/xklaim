@@ -10,6 +10,7 @@
   <modules>
     <module>imc/imc</module>
     <module>klava/klava</module>
+    <module>xklaim/xklaim.parent</module>
   </modules>
   
 </project>
