@@ -9,7 +9,7 @@
   </parent>
   <groupId>imc</groupId>
   <artifactId>imc.tests</artifactId>
-  <packaging>eclipse-test-plugin</packaging>
+  <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
