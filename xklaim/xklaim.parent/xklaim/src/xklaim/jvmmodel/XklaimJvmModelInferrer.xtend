@@ -66,6 +66,7 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 				members += program.toMethod('main', typeRef(Void.TYPE)) [
 					parameters += program.toParameter("args", typeRef(String).addArrayTypeDimension)
 					static = true
+					exceptions += Exception.typeRef()
 					// Associate the script as the body of the main method
 					body = '''
 					'''

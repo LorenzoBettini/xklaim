@@ -40,7 +40,7 @@ class XklaimCompilerTest {
 			
 			@SuppressWarnings("all")
 			public class MyFile {
-			  public static void main(final String[] args) {
+			  public static void main(final String[] args) throws Exception {
 			    
 			  }
 			}
