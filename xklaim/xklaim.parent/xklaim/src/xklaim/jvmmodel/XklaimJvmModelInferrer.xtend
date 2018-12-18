@@ -4,6 +4,8 @@
 package xklaim.jvmmodel
 
 import com.google.inject.Inject
+import org.eclipse.xtext.common.types.JvmDeclaredType
+import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.xbase.jvmmodel.AbstractModelInferrer
 import org.eclipse.xtext.xbase.jvmmodel.IJvmDeclaredTypeAcceptor
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder
@@ -22,17 +24,19 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 	 */
 	@Inject extension JvmTypesBuilder
 
+	@Inject extension IQualifiedNameProvider
+
 	/**
 	 * The dispatch method {@code infer} is called for each instance of the
 	 * given element's type that is contained in a resource.
 	 * 
 	 * @param element
 	 *            the model to create one or more
-	 *            {@link org.eclipse.xtext.common.types.JvmDeclaredType declared
+	 *            {@link JvmDeclaredType declared
 	 *            types} from.
 	 * @param acceptor
 	 *            each created
-	 *            {@link org.eclipse.xtext.common.types.JvmDeclaredType type}
+	 *            {@link JvmDeclaredType type}
 	 *            without a container should be passed to the acceptor in order
 	 *            get attached to the current resource. The acceptor's
 	 *            {@link IJvmDeclaredTypeAcceptor#accept(org.eclipse.xtext.common.types.JvmDeclaredType)
@@ -45,18 +49,14 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 	 *            rely on linking using the index if isPreIndexingPhase is
 	 *            <code>true</code>.
 	 */
-	def dispatch void infer(XklaimModel element, IJvmDeclaredTypeAcceptor acceptor, boolean isPreIndexingPhase) {
-		// Here you explain how your model is mapped to Java elements, by writing the actual translation code.
-		
-		// An implementation for the initial hello world example could look like this:
-// 		acceptor.accept(element.toClass("my.company.greeting.MyGreetings")) [
-// 			for (greeting : element.greetings) {
-// 				members += greeting.toMethod("hello" + greeting.name, typeRef(String)) [
-// 					body = '''
-//						return "Hello «greeting.name»";
-//					'''
-//				]
-//			}
-//		]
+	def dispatch void infer(XklaimModel model, extension IJvmDeclaredTypeAcceptor acceptor, boolean isPreIndexingPhase) {
+		val nodes = model.nodes
+		if (!nodes.empty) {
+			for (node : nodes) {
+				accept(node.toClass(node.fullyQualifiedName)) [
+					documentation = node.documentation
+				]
+			}
+		}
 	}
 }
