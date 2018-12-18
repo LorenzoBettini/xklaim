@@ -1,10 +1,13 @@
 grammar xklaim.Xklaim with org.eclipse.xtext.xbase.annotations.XbaseWithAnnotations
 
+import "http://www.eclipse.org/xtext/xbase/Xbase" as xbase
+
 generate xklaim "http://www.Xklaim.xklaim"
 
 XklaimModel:
 	importSection=XImportSection?
 	('package' name=QualifiedName)?
+	processes+=XklaimProcess*
 	nodes+=XklaimNode*
 	nets+=XklaimNet*;
 
@@ -27,3 +30,17 @@ XklaimNetNode:
 ;
 
 XklaimAbstractNode: XklaimNode | XklaimNetNode;
+
+XklaimProcess:
+	'proc' name=ValidID
+	'(' (params+=FullJvmFormalParameter (',' params+=FullJvmFormalParameter)*)? ')' (':' type=JvmTypeReference)? 
+	body=XBlockExpression
+;
+
+// redefine Xbase primary expression with our special expressions
+@Override 
+XPrimaryExpression returns xbase::XExpression:
+	{XklaimOutOperation}
+	'out' '(' arguments+=XExpression (',' arguments+=XExpression)* ')' '@' locality=ID |
+	super
+;

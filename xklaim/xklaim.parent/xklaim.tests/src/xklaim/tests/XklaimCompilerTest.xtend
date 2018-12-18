@@ -134,23 +134,55 @@ class XklaimCompilerTest {
 		)
 	}
 
-//	def private checkCompilation(CharSequence input, CharSequence expectedGeneratedJava) {
-//		checkCompilation(input, expectedGeneratedJava, true)
-//	}
-//
-//	def private checkCompilation(CharSequence input, CharSequence expectedGeneratedJava, boolean checkValidationErrors) {
-//		input.compile[
-//			if (checkValidationErrors) {
-//				assertNoValidationErrors
-//			}
-//			if (expectedGeneratedJava !== null) {
-//				assertGeneratedJavaCode(expectedGeneratedJava)
-//			}
-//			if (checkValidationErrors) {
-//				assertGeneratedJavaCodeCompiles
-//			}
-//		]
-//	}
+	@Test
+	def void testProgramWithProcess() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			println(s)
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {
+			    InputOutput.<String>println(this.s);
+			  }
+			}
+			'''
+		)
+	}
+
+	def private checkCompilation(CharSequence input, CharSequence expectedGeneratedJava) {
+		checkCompilation(input, expectedGeneratedJava, true)
+	}
+
+	def private checkCompilation(CharSequence input, CharSequence expectedGeneratedJava, boolean checkValidationErrors) {
+		input.compile[
+			if (checkValidationErrors) {
+				assertNoValidationErrors
+			}
+			if (expectedGeneratedJava !== null) {
+				assertGeneratedJavaCode(expectedGeneratedJava)
+			}
+			if (checkValidationErrors) {
+				assertGeneratedJavaCodeCompiles
+			}
+		]
+	}
 
 	def private checkCompilation(CharSequence input, Pair<CharSequence, CharSequence>... expectations) {
 		input.compile[
@@ -171,9 +203,9 @@ class XklaimCompilerTest {
 		}
 	}
 
-//	def private assertGeneratedJavaCode(CompilationTestHelper.Result r, CharSequence expected) {
-//		expected.toString.assertEquals(r.singleGeneratedCode)
-//	}
+	def private assertGeneratedJavaCode(CompilationTestHelper.Result r, CharSequence expected) {
+		expected.toString.assertEquals(r.singleGeneratedCode)
+	}
 
 	def private assertGeneratedJavaCodeCompiles(CompilationTestHelper.Result r) {
 		r.compiledClass // check Java compilation succeeds

@@ -20,6 +20,7 @@ import org.mikado.imc.common.IMCException
 import xklaim.xklaim.XklaimAbstractNode
 import xklaim.xklaim.XklaimModel
 import xklaim.xklaim.XklaimNet
+import xklaim.xklaim.XklaimProcess
 
 /**
  * <p>Infers a JVM model from the source model.</p> 
@@ -65,6 +66,9 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		val nets = program.nets
 		val nodeClasses = newArrayList
 		val netClasses = newArrayList
+		for (p : program.processes) {
+			p.toProcessClass(acceptor)
+		}
 		if (!nodes.empty || !nets.empty) {
 			for (node : nodes) {
 				nodeClasses += toNodeClass(node, KlavaNode, acceptor)
@@ -165,6 +169,31 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 			]
 		]
 		netClass
+	}
+
+	def private toProcessClass(XklaimProcess process, extension IJvmDeclaredTypeAcceptor acceptor) {
+		accept(process.toClass(process.fullyQualifiedName)) [
+			documentation = process.documentation
+			superTypes += KlavaProcess.typeRef()
+			for (p : process.params) {
+				members += p.toField(p.name, p.parameterType)
+			}
+			members += process.toConstructor [
+				for (p : process.params) {
+					parameters += p.toParameter(p.name, p.parameterType)
+				}
+				body = '''
+				super("«process.fullyQualifiedName»");
+				«FOR p : process.params»
+				this.«p.name» = «p.name»;
+				«ENDFOR»
+				'''
+			]
+			members += process.toMethod("executeProcess", typeRef(Void.TYPE)) [
+				addOverrideAnnotation()
+				body = process.body
+			]
+		]
 	}
 
 	def private void addOverrideAnnotation(JvmAnnotationTarget it) {
