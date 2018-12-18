@@ -5,7 +5,7 @@
 
 package klava ;
 
-public class KlavaException extends Exception implements java.io.Serializable {
+public class KlavaException extends RuntimeException implements java.io.Serializable {
     /**
      * 
      */
