@@ -10,6 +10,7 @@ import org.eclipse.xtext.xbase.jvmmodel.AbstractModelInferrer
 import org.eclipse.xtext.xbase.jvmmodel.IJvmDeclaredTypeAcceptor
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder
 import xklaim.xklaim.XklaimModel
+import klava.topology.KlavaNode
 
 /**
  * <p>Infers a JVM model from the source model.</p> 
@@ -49,14 +50,27 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 	 *            rely on linking using the index if isPreIndexingPhase is
 	 *            <code>true</code>.
 	 */
-	def dispatch void infer(XklaimModel model, extension IJvmDeclaredTypeAcceptor acceptor, boolean isPreIndexingPhase) {
-		val nodes = model.nodes
+	def dispatch void infer(XklaimModel program, extension IJvmDeclaredTypeAcceptor acceptor, boolean isPreIndexingPhase) {
+		val nodes = program.nodes
 		if (!nodes.empty) {
 			for (node : nodes) {
 				accept(node.toClass(node.fullyQualifiedName)) [
 					documentation = node.documentation
+					superTypes += KlavaNode.typeRef()
 				]
 			}
+			val modelFQN = program.fullyQualifiedName
+			val javaClassName = program.eResource().getURI().trimFileExtension().lastSegment()
+			val javaClassFQN = if (modelFQN !== null) { modelFQN.toString + "." + javaClassName} else { javaClassName }
+			accept(program.toClass(javaClassFQN)) [
+				members += program.toMethod('main', typeRef(Void.TYPE)) [
+					parameters += program.toParameter("args", typeRef(String).addArrayTypeDimension)
+					static = true
+					// Associate the script as the body of the main method
+					body = '''
+					'''
+				]
+			]
 		}
 	}
 }
