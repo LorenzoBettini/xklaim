@@ -8,13 +8,19 @@ import klava.topology.KlavaNode
 import klava.topology.KlavaProcess
 import org.eclipse.xtext.common.types.JvmAnnotationTarget
 import org.eclipse.xtext.common.types.JvmDeclaredType
+import org.eclipse.xtext.common.types.JvmGenericType
 import org.eclipse.xtext.common.types.JvmVisibility
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.xbase.jvmmodel.AbstractModelInferrer
 import org.eclipse.xtext.xbase.jvmmodel.IJvmDeclaredTypeAcceptor
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder
-import xklaim.xklaim.XklaimModel
 import org.mikado.imc.common.IMCException
+import xklaim.xklaim.XklaimModel
+import xklaim.xklaim.XklaimNode
+import xklaim.xklaim.XklaimNet
+import klava.topology.Net
+import xklaim.xklaim.XklaimAbstractNode
+import klava.PhysicalLocality
 
 /**
  * <p>Infers a JVM model from the source model.</p> 
@@ -57,33 +63,15 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 	def dispatch void infer(XklaimModel program, extension IJvmDeclaredTypeAcceptor acceptor,
 		boolean isPreIndexingPhase) {
 		val nodes = program.nodes
+		val nets = program.nets
 		val nodeClasses = newArrayList
-		if (!nodes.empty) {
+		val netClasses = newArrayList
+		if (!nodes.empty || !nets.empty) {
 			for (node : nodes) {
-				val nodeFQN = node.fullyQualifiedName
-				val nodeClass = node.toClass(nodeFQN)
-				nodeClasses += nodeClass
-				val nodeProcessClass = node.toClass(nodeFQN + "Process")
-				accept(nodeClass) [
-					documentation = node.documentation
-					superTypes += KlavaNode.typeRef()
-					members += node.toMethod("addMainProcess", typeRef(Void.TYPE)) [
-						exceptions += IMCException.typeRef()
-						body = '''
-							addNodeProcess(new «nodeProcessClass»());
-						'''
-					]
-				]
-				accept(nodeProcessClass) [
-					declaringType = nodeClass
-					static = true
-					visibility = JvmVisibility.PRIVATE
-					superTypes += KlavaProcess.typeRef()
-					members += node.toMethod("executeProcess", typeRef(Void.TYPE)) [
-						addOverrideAnnotation()
-						body = node.body
-					]
-				]
+				nodeClasses += toNodeClass(node, KlavaNode, acceptor)
+			}
+			for (net : nets) {
+				netClasses += toNetClass(net, acceptor)
 			}
 			val modelFQN = program.fullyQualifiedName
 			val javaClassName = program.eResource().getURI().trimFileExtension().lastSegment()
@@ -97,7 +85,6 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 					parameters += program.toParameter("args", typeRef(String).addArrayTypeDimension)
 					static = true
 					exceptions += Exception.typeRef()
-					// Associate the script as the body of the main method
 					body = '''
 						«FOR nodeClass : nodeClasses»
 							«nodeClass» «nodeClass.simpleName.toFirstLower» = new «nodeClass»();
@@ -105,10 +92,74 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 						«FOR nodeClass : nodeClasses»
 							«nodeClass.simpleName.toFirstLower».addMainProcess();
 						«ENDFOR»
-						'''
+					'''
 				]
 			]
 		}
+	}
+
+	private def JvmGenericType toNodeClass(XklaimAbstractNode node, Class<? extends KlavaNode> clazz,
+		extension IJvmDeclaredTypeAcceptor acceptor) {
+		val nodeFQN = node.fullyQualifiedName
+		val nodeClass = node.toClass(nodeFQN)
+		val nodeProcessClass = node.toClass(nodeFQN + "Process")
+		accept(nodeClass) [
+			documentation = node.documentation
+			superTypes += clazz.typeRef()
+			members += node.toMethod("addMainProcess", typeRef(Void.TYPE)) [
+				exceptions += IMCException.typeRef()
+				body = '''
+					addNodeProcess(new «nodeProcessClass»());
+				'''
+			]
+		]
+		accept(nodeProcessClass) [
+			declaringType = nodeClass
+			static = true
+			visibility = JvmVisibility.PRIVATE
+			superTypes += KlavaProcess.typeRef()
+			members += node.toMethod("executeProcess", typeRef(Void.TYPE)) [
+				addOverrideAnnotation()
+				body = node.body
+			]
+		]
+		nodeClass
+	}
+
+	private def JvmGenericType toNetClass(XklaimNet net, extension IJvmDeclaredTypeAcceptor acceptor) {
+		val netFQN = net.fullyQualifiedName
+		val netClass = net.toClass(netFQN)
+		val nodeClasses = newArrayList
+		val nodes = net.nodes
+		for (node : nodes) {
+			nodeClasses += toNodeClass(node, KlavaNode, acceptor)
+		}
+		accept(netClass) [
+			documentation = net.documentation
+			superTypes += Net.typeRef()
+			for (nodeClass : nodeClasses) {
+				nodeClass.declaringType = netClass
+				nodeClass.static = true
+			}
+			members += net.toConstructor[
+				exceptions += IMCException.typeRef()
+				body = '''
+				super(new «PhysicalLocality»("«net.physicalLocality»"));
+				'''
+			]
+			members += net.toMethod("addNodes", typeRef(Void.TYPE)) [
+				exceptions += IMCException.typeRef()
+				body = '''
+					«FOR nodeClass : nodeClasses»
+						«nodeClass» «nodeClass.simpleName.toFirstLower» = new «nodeClass»();
+					«ENDFOR»
+					«FOR nodeClass : nodeClasses»
+						«nodeClass.simpleName.toFirstLower».addMainProcess();
+					«ENDFOR»
+				'''
+			]
+		]
+		netClass
 	}
 
 	def private void addOverrideAnnotation(JvmAnnotationTarget it) {

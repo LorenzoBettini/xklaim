@@ -6,11 +6,8 @@ package xklaim.tests
 import com.google.inject.Inject
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
-import org.eclipse.xtext.testing.util.ParseHelper
-import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
-import xklaim.xklaim.XklaimModel
 import org.junit.Rule
 import org.eclipse.xtext.xbase.testing.TemporaryFolder
 import org.eclipse.xtext.xbase.testing.CompilationTestHelper
@@ -23,32 +20,17 @@ import static extension org.junit.Assert.*
 @RunWith(XtextRunner)
 @InjectWith(XklaimInjectorProvider)
 class XklaimCompilerTest {
-	@Inject ParseHelper<XklaimModel> parseHelper
 	@Rule @Inject public TemporaryFolder temporaryFolder
 	@Inject extension CompilationTestHelper
 
 	@Test
-	def void testEmptyProgram() {
+	def void testProgramWithNode() {
 		'''
 		package foo
 		node TestNode {
 			println("Hello")
 		}
 		'''.checkCompilation(
-			"foo.MyFile" ->
-			'''
-			package foo;
-			
-			import foo.TestNode;
-			
-			@SuppressWarnings("all")
-			public class MyFile {
-			  public static void main(final String[] args) throws Exception {
-			    TestNode testNode = new TestNode();
-			    testNode.addMainProcess();
-			  }
-			}
-			''',
 			"foo.TestNode" ->
 			'''
 			package foo;
@@ -69,6 +51,69 @@ class XklaimCompilerTest {
 			    public void executeProcess() {
 			      InputOutput.<String>println("Hello");
 			    }
+			  }
+			}
+			''',
+			"foo.MyFile" ->
+			'''
+			package foo;
+			
+			import foo.TestNode;
+			
+			@SuppressWarnings("all")
+			public class MyFile {
+			  public static void main(final String[] args) throws Exception {
+			    TestNode testNode = new TestNode();
+			    testNode.addMainProcess();
+			  }
+			}
+			'''
+		)
+	}
+
+	@Test
+	def void testProgramWithNet() {
+		'''
+		package foo
+		net TestNet physical "tcp-127.0.0.1:9999" {
+			node TestNode {
+				println("Hello")
+			}
+		}
+		'''.checkCompilation(
+			"foo.TestNet" ->
+			'''
+			package foo;
+			
+			import klava.PhysicalLocality;
+			import klava.topology.KlavaNode;
+			import klava.topology.KlavaProcess;
+			import klava.topology.Net;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			import org.mikado.imc.common.IMCException;
+			
+			@SuppressWarnings("all")
+			public class TestNet extends Net {
+			  public static class TestNode extends KlavaNode {
+			    public void addMainProcess() throws IMCException {
+			      addNodeProcess(new TestNet.TestNode.TestNodeProcess());
+			    }
+			    
+			    private static class TestNodeProcess extends KlavaProcess {
+			      @Override
+			      public void executeProcess() {
+			        InputOutput.<String>println("Hello");
+			      }
+			    }
+			  }
+			  
+			  public TestNet() throws IMCException {
+			    super(new PhysicalLocality("tcp-127.0.0.1:9999"));
+			  }
+			  
+			  public void addNodes() throws IMCException {
+			    TestNet.TestNode testNode = new TestNet.TestNode();
+			    testNode.addMainProcess();
 			  }
 			}
 			'''

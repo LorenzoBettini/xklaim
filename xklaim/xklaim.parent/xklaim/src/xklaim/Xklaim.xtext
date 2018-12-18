@@ -10,12 +10,20 @@ XklaimModel:
 
 XklaimNode:
 	'node' name=ID
-	('logical' logicalLocality=STRING)?
 	body=XBlockExpression
 ;
 
 XklaimNet:
 	'net' name=ID
-	('physical' physicalLocality=STRING)?
-	nodes+=XklaimNode*
+	'physical' physicalLocality=STRING '{'
+		nodes+=XklaimNetNode*
+	'}'
 ;
+
+XklaimNetNode:
+	'node' name=ID
+	('logical' logicalLocality=STRING)?
+	body=XBlockExpression
+;
+
+XklaimAbstractNode: XklaimNode | XklaimNetNode;
