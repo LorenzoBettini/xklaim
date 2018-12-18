@@ -39,10 +39,13 @@ class XklaimCompilerTest {
 			'''
 			package foo;
 			
+			import foo.TestNode;
+			
 			@SuppressWarnings("all")
 			public class MyFile {
 			  public static void main(final String[] args) throws Exception {
-			    
+			    TestNode testNode = new TestNode();
+			    testNode.addMainProcess();
 			  }
 			}
 			''',
@@ -53,9 +56,14 @@ class XklaimCompilerTest {
 			import klava.topology.KlavaNode;
 			import klava.topology.KlavaProcess;
 			import org.eclipse.xtext.xbase.lib.InputOutput;
+			import org.mikado.imc.common.IMCException;
 			
 			@SuppressWarnings("all")
 			public class TestNode extends KlavaNode {
+			  public void addMainProcess() throws IMCException {
+			    addNodeProcess(new TestNode.TestNodeProcess());
+			  }
+			  
 			  private static class TestNodeProcess extends KlavaProcess {
 			    @Override
 			    public void executeProcess() {

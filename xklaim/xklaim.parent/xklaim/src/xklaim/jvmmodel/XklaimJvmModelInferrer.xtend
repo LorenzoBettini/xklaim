@@ -8,12 +8,13 @@ import klava.topology.KlavaNode
 import klava.topology.KlavaProcess
 import org.eclipse.xtext.common.types.JvmAnnotationTarget
 import org.eclipse.xtext.common.types.JvmDeclaredType
+import org.eclipse.xtext.common.types.JvmVisibility
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.xbase.jvmmodel.AbstractModelInferrer
 import org.eclipse.xtext.xbase.jvmmodel.IJvmDeclaredTypeAcceptor
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder
 import xklaim.xklaim.XklaimModel
-import org.eclipse.xtext.common.types.JvmVisibility
+import org.mikado.imc.common.IMCException
 
 /**
  * <p>Infers a JVM model from the source model.</p> 
@@ -56,15 +57,24 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 	def dispatch void infer(XklaimModel program, extension IJvmDeclaredTypeAcceptor acceptor,
 		boolean isPreIndexingPhase) {
 		val nodes = program.nodes
+		val nodeClasses = newArrayList
 		if (!nodes.empty) {
 			for (node : nodes) {
 				val nodeFQN = node.fullyQualifiedName
 				val nodeClass = node.toClass(nodeFQN)
+				nodeClasses += nodeClass
+				val nodeProcessClass = node.toClass(nodeFQN + "Process")
 				accept(nodeClass) [
 					documentation = node.documentation
 					superTypes += KlavaNode.typeRef()
+					members += node.toMethod("addMainProcess", typeRef(Void.TYPE)) [
+						exceptions += IMCException.typeRef()
+						body = '''
+							addNodeProcess(new «nodeProcessClass»());
+						'''
+					]
 				]
-				accept(node.toClass(nodeFQN + "Process")) [
+				accept(nodeProcessClass) [
 					declaringType = nodeClass
 					static = true
 					visibility = JvmVisibility.PRIVATE
@@ -89,7 +99,13 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 					exceptions += Exception.typeRef()
 					// Associate the script as the body of the main method
 					body = '''
-					'''
+						«FOR nodeClass : nodeClasses»
+							«nodeClass» «nodeClass.simpleName.toFirstLower» = new «nodeClass»();
+						«ENDFOR»
+						«FOR nodeClass : nodeClasses»
+							«nodeClass.simpleName.toFirstLower».addMainProcess();
+						«ENDFOR»
+						'''
 				]
 			]
 		}

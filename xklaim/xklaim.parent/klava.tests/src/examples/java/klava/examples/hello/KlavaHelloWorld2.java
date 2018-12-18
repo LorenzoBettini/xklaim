@@ -1,6 +1,5 @@
 package klava.examples.hello;
 
-import klava.KString;
 import klava.KlavaException;
 import klava.PhysicalLocality;
 import klava.Tuple;
