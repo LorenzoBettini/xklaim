@@ -48,3 +48,19 @@ public class HelloWorld {
     app.waitForNodesAndTerminate();
   }
 }
+
+ClientNode o Net?
+
+node class=Net address="..."
+
+node class=ClientNode address="..." {
+	login
+}
+
+oppure come era prima
+
+net locality="..." {
+	node ...
+	node ...
+}
+

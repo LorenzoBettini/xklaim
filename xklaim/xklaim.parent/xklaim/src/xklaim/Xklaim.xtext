@@ -4,9 +4,18 @@ generate xklaim "http://www.Xklaim.xklaim"
 
 XklaimModel:
 	importSection=XImportSection?
-	('package' name=QualifiedName ';'?)?
-	nodes+=XklaimNode*;
-	
+	('package' name=QualifiedName)?
+	nodes+=XklaimNode*
+	nets+=XklaimNet*;
+
 XklaimNode:
-	'node' name=ID body=XBlockExpression
+	'node' name=ID
+	('logical' logicalLocality=STRING)?
+	body=XBlockExpression
+;
+
+XklaimNet:
+	'net' name=ID
+	('physical' physicalLocality=STRING)?
+	nodes+=XklaimNode*
 ;

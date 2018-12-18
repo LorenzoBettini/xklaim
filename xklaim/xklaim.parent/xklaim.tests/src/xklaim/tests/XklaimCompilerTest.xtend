@@ -23,16 +23,17 @@ import static extension org.junit.Assert.*
 @RunWith(XtextRunner)
 @InjectWith(XklaimInjectorProvider)
 class XklaimCompilerTest {
-	@Inject
-	ParseHelper<XklaimModel> parseHelper
+	@Inject ParseHelper<XklaimModel> parseHelper
 	@Rule @Inject public TemporaryFolder temporaryFolder
 	@Inject extension CompilationTestHelper
-	
+
 	@Test
 	def void testEmptyProgram() {
 		'''
 		package foo
-		node TestNode {}
+		node TestNode {
+			println("Hello")
+		}
 		'''.checkCompilation(
 			"foo.MyFile" ->
 			'''
@@ -50,9 +51,17 @@ class XklaimCompilerTest {
 			package foo;
 			
 			import klava.topology.KlavaNode;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
 			
 			@SuppressWarnings("all")
 			public class TestNode extends KlavaNode {
+			  private static class TestNodeProcess extends KlavaProcess {
+			    @Override
+			    public void executeProcess() {
+			      InputOutput.<String>println("Hello");
+			    }
+			  }
 			}
 			'''
 		)
