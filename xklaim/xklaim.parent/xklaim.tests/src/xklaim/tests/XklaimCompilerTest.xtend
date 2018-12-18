@@ -42,15 +42,15 @@ class XklaimCompilerTest {
 			
 			@SuppressWarnings("all")
 			public class TestNode extends KlavaNode {
-			  public void addMainProcess() throws IMCException {
-			    addNodeProcess(new TestNode.TestNodeProcess());
-			  }
-			  
 			  private static class TestNodeProcess extends KlavaProcess {
 			    @Override
 			    public void executeProcess() {
 			      InputOutput.<String>println("Hello");
 			    }
+			  }
+			  
+			  public void addMainProcess() throws IMCException {
+			    addNodeProcess(new TestNode.TestNodeProcess());
 			  }
 			}
 			''',
@@ -95,15 +95,15 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestNet extends Net {
 			  public static class TestNode extends KlavaNode {
-			    public void addMainProcess() throws IMCException {
-			      addNodeProcess(new TestNet.TestNode.TestNodeProcess());
-			    }
-			    
 			    private static class TestNodeProcess extends KlavaProcess {
 			      @Override
 			      public void executeProcess() {
 			        InputOutput.<String>println("Hello");
 			      }
+			    }
+			    
+			    public void addMainProcess() throws IMCException {
+			      addNodeProcess(new TestNet.TestNode.TestNodeProcess());
 			    }
 			  }
 			  
@@ -116,28 +116,41 @@ class XklaimCompilerTest {
 			    testNode.addMainProcess();
 			  }
 			}
+			''',
+			"foo.MyFile" ->
+			'''
+			package foo;
+			
+			import foo.TestNet;
+			
+			@SuppressWarnings("all")
+			public class MyFile {
+			  public static void main(final String[] args) throws Exception {
+			    TestNet testNet = new TestNet();
+			    testNet.addNodes();
+			  }
+			}
 			'''
 		)
 	}
 
-	def private checkCompilation(CharSequence input, CharSequence expectedGeneratedJava) {
-		checkCompilation(input, expectedGeneratedJava, true)
-	}
-
-	def private checkCompilation(CharSequence input, CharSequence expectedGeneratedJava, boolean checkValidationErrors) {
-		input.compile[
-			if (checkValidationErrors) {
-				assertNoValidationErrors
-			}
-			if (expectedGeneratedJava !== null) {
-				assertGeneratedJavaCode(expectedGeneratedJava)
-			}
-			if (checkValidationErrors) {
-				assertGeneratedJavaCodeCompiles
-			}
-		]
-		println("a" -> "b")
-	}
+//	def private checkCompilation(CharSequence input, CharSequence expectedGeneratedJava) {
+//		checkCompilation(input, expectedGeneratedJava, true)
+//	}
+//
+//	def private checkCompilation(CharSequence input, CharSequence expectedGeneratedJava, boolean checkValidationErrors) {
+//		input.compile[
+//			if (checkValidationErrors) {
+//				assertNoValidationErrors
+//			}
+//			if (expectedGeneratedJava !== null) {
+//				assertGeneratedJavaCode(expectedGeneratedJava)
+//			}
+//			if (checkValidationErrors) {
+//				assertGeneratedJavaCodeCompiles
+//			}
+//		]
+//	}
 
 	def private checkCompilation(CharSequence input, Pair<CharSequence, CharSequence>... expectations) {
 		input.compile[
@@ -158,9 +171,9 @@ class XklaimCompilerTest {
 		}
 	}
 
-	def private assertGeneratedJavaCode(CompilationTestHelper.Result r, CharSequence expected) {
-		expected.toString.assertEquals(r.singleGeneratedCode)
-	}
+//	def private assertGeneratedJavaCode(CompilationTestHelper.Result r, CharSequence expected) {
+//		expected.toString.assertEquals(r.singleGeneratedCode)
+//	}
 
 	def private assertGeneratedJavaCodeCompiles(CompilationTestHelper.Result r) {
 		r.compiledClass // check Java compilation succeeds

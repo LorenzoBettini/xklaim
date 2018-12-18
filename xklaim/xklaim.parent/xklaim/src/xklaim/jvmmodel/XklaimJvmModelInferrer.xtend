@@ -4,8 +4,10 @@
 package xklaim.jvmmodel
 
 import com.google.inject.Inject
+import klava.PhysicalLocality
 import klava.topology.KlavaNode
 import klava.topology.KlavaProcess
+import klava.topology.Net
 import org.eclipse.xtext.common.types.JvmAnnotationTarget
 import org.eclipse.xtext.common.types.JvmDeclaredType
 import org.eclipse.xtext.common.types.JvmGenericType
@@ -15,12 +17,9 @@ import org.eclipse.xtext.xbase.jvmmodel.AbstractModelInferrer
 import org.eclipse.xtext.xbase.jvmmodel.IJvmDeclaredTypeAcceptor
 import org.eclipse.xtext.xbase.jvmmodel.JvmTypesBuilder
 import org.mikado.imc.common.IMCException
-import xklaim.xklaim.XklaimModel
-import xklaim.xklaim.XklaimNode
-import xklaim.xklaim.XklaimNet
-import klava.topology.Net
 import xklaim.xklaim.XklaimAbstractNode
-import klava.PhysicalLocality
+import xklaim.xklaim.XklaimModel
+import xklaim.xklaim.XklaimNet
 
 /**
  * <p>Infers a JVM model from the source model.</p> 
@@ -92,6 +91,12 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 						«FOR nodeClass : nodeClasses»
 							«nodeClass.simpleName.toFirstLower».addMainProcess();
 						«ENDFOR»
+						«FOR netClass : netClasses»
+							«netClass» «netClass.simpleName.toFirstLower» = new «netClass»();
+						«ENDFOR»
+						«FOR netClass : netClasses»
+							«netClass.simpleName.toFirstLower».addNodes();
+						«ENDFOR»
 					'''
 				]
 			]
@@ -103,16 +108,6 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		val nodeFQN = node.fullyQualifiedName
 		val nodeClass = node.toClass(nodeFQN)
 		val nodeProcessClass = node.toClass(nodeFQN + "Process")
-		accept(nodeClass) [
-			documentation = node.documentation
-			superTypes += clazz.typeRef()
-			members += node.toMethod("addMainProcess", typeRef(Void.TYPE)) [
-				exceptions += IMCException.typeRef()
-				body = '''
-					addNodeProcess(new «nodeProcessClass»());
-				'''
-			]
-		]
 		accept(nodeProcessClass) [
 			declaringType = nodeClass
 			static = true
@@ -121,6 +116,16 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 			members += node.toMethod("executeProcess", typeRef(Void.TYPE)) [
 				addOverrideAnnotation()
 				body = node.body
+			]
+		]
+		accept(nodeClass) [
+			documentation = node.documentation
+			superTypes += clazz.typeRef()
+			members += node.toMethod("addMainProcess", typeRef(Void.TYPE)) [
+				exceptions += IMCException.typeRef()
+				body = '''
+					addNodeProcess(new «nodeProcessClass»());
+				'''
 			]
 		]
 		nodeClass
@@ -141,10 +146,10 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 				nodeClass.declaringType = netClass
 				nodeClass.static = true
 			}
-			members += net.toConstructor[
+			members += net.toConstructor [
 				exceptions += IMCException.typeRef()
 				body = '''
-				super(new «PhysicalLocality»("«net.physicalLocality»"));
+					super(new «PhysicalLocality»("«net.physicalLocality»"));
 				'''
 			]
 			members += net.toMethod("addNodes", typeRef(Void.TYPE)) [
