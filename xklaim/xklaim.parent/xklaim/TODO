@@ -64,3 +64,29 @@ net locality="..." {
 	node ...
 }
 
+	protected def reassignThisType(ITreeAppendable b, JvmDeclaredType declaredType) {
+		if (b.hasObject('this')) {
+			val element = b.getObject('this')
+			if (element instanceof JvmDeclaredType) {
+				if (element.local) {
+					b.declareVariable(element, '')
+				} else {
+					val proposedName = element.simpleName+'.this'
+					b.declareVariable(element, proposedName)
+				}
+			}
+		}
+		if (declaredType !== null)
+			b.declareVariable(declaredType, 'this');
+	}
+
+	protected String getReferenceName(XExpression expr, ITreeAppendable b) {
+		if (b.hasName(expr))
+			return b.getName(expr);
+		if (expr instanceof XFeatureCall) {
+			XFeatureCall featureCall = (XFeatureCall) expr;
+			if (b.hasName(featureCall.getFeature()))
+				return b.getName(featureCall.getFeature());
+		}
+		return null;
+	}

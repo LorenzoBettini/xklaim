@@ -198,6 +198,86 @@ class XklaimCompilerTest {
 		)
 	}
 
+	@Test
+	def void testXklaimOperationsWithProcessCall() {
+		'''
+		package foo
+		proc AnotherProcess(int i) {
+			
+		}
+		proc TestProcess(String s) {
+			out(new AnotherProcess(10))@self
+		}
+		'''.checkCompilation(
+			"foo.TestProcess" ->
+			'''
+			package foo;
+			
+			import foo.AnotherProcess;
+			import klava.Tuple;
+			import klava.topology.KlavaProcess;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {
+			    AnotherProcess _anotherProcess = new AnotherProcess(10);
+			    out(new Tuple(new Object[] {_anotherProcess}), this.self);
+			  }
+			}
+			'''
+		)
+	}
+
+	@Test
+	def void testXklaimOperationsWithNestedProcess() {
+		'''
+		package foo
+		
+		proc TestProcess(String s) {
+			val i = 10
+			out({ println(s + i) }, s+i)@self
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.Tuple;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {
+			    final int i = 10;
+			    KlavaProcess _Proc = new KlavaProcess() {
+			      @Override public void executeProcess() {
+			        InputOutput.<String>println((TestProcess.this.s + Integer.valueOf(i)));
+			      }
+			    };
+			    
+			    out(new Tuple(new Object[] {_Proc, (this.s + Integer.valueOf(i))}), this.self);
+			  }
+			}
+			'''
+		)
+	}
+
 	def private checkCompilation(CharSequence input, CharSequence expectedGeneratedJava) {
 		checkCompilation(input, expectedGeneratedJava, true)
 	}
