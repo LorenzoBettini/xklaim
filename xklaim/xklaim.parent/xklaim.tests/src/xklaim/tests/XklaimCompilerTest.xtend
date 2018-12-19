@@ -177,6 +177,7 @@ class XklaimCompilerTest {
 			'''
 			package foo;
 			
+			import klava.Tuple;
 			import klava.topology.KlavaProcess;
 			
 			@SuppressWarnings("all")
@@ -189,7 +190,8 @@ class XklaimCompilerTest {
 			  }
 			  
 			  @Override
-			  public void executeProcess() {out(s);
+			  public void executeProcess() {
+			    out(new Tuple(new Object[] {this.s}), this.self);
 			  }
 			}
 			'''

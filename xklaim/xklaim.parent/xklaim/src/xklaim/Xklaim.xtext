@@ -41,6 +41,6 @@ XklaimProcess:
 @Override 
 XPrimaryExpression returns xbase::XExpression:
 	{XklaimOutOperation}
-	'out' '(' arguments+=XExpression (',' arguments+=XExpression)* ')' '@' locality=ID |
+	'out' '(' arguments+=XExpression (',' arguments+=XExpression)* ')' '@' locality=XFeatureCall |
 	super
 ;

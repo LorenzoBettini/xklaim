@@ -3,23 +3,19 @@
  */
 package xklaim.validation
 
+import org.eclipse.xtext.xbase.XExpression
+import xklaim.xklaim.XklaimOutOperation
 
 /**
  * This class contains custom validation rules. 
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class XklaimValidator extends AbstractXklaimValidator {
-	
-//	public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					XklaimPackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
-	
+
+	override protected isValueExpectedRecursive(XExpression expr) {
+		return expr.eContainer instanceof XklaimOutOperation ||
+			super.isValueExpectedRecursive(expr)
+	}
+
 }

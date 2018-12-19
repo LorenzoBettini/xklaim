@@ -4,6 +4,7 @@ import org.eclipse.xtext.xbase.annotations.typesystem.XbaseWithAnnotationsTypeCo
 import org.eclipse.xtext.xbase.XExpression
 import org.eclipse.xtext.xbase.typesystem.computation.ITypeComputationState
 import xklaim.xklaim.XklaimOutOperation
+import klava.Locality
 
 class XklaimTypeComputer extends XbaseWithAnnotationsTypeComputer {
 
@@ -15,6 +16,9 @@ class XklaimTypeComputer extends XbaseWithAnnotationsTypeComputer {
 	}
 
 	def void _computeTypes(XklaimOutOperation e, ITypeComputationState state) {
+		state.withExpectation(getRawTypeForName(Locality, state)).computeTypes(e.locality)
+		for (a : e.arguments)
+			state.withNonVoidExpectation.computeTypes(a)
 		state.acceptActualType(getPrimitiveVoid(state))
 	}
 }
