@@ -89,6 +89,8 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 				if (a.isFormalField) {
 					val formalField = a as XVariableDeclaration
 					appendable.newLine
+					if (!formalField.isWriteable)
+						appendable.append("final ")
 					appendable.append(formalField.type.type)
 					appendable.append(" " + formalField.name + " = (")
 					appendable.append(formalField.type.type)

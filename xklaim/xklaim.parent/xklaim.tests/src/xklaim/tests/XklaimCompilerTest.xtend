@@ -172,8 +172,9 @@ class XklaimCompilerTest {
 		package foo
 		proc TestProcess(String s) {
 			out(s, s)@self
-			in(s, var Integer i, s)@self
+			in(s, var Integer i, val Boolean b)@self
 			println(i)
+			println(b)
 		}
 		'''.checkCompilation(
 			'''
@@ -195,10 +196,12 @@ class XklaimCompilerTest {
 			  @Override
 			  public void executeProcess() {
 			    out(new Tuple(new Object[] {this.s, this.s}), this.self);
-			    Tuple _Tuple = new Tuple(new Object[] {this.s, Integer.class, this.s});
+			    Tuple _Tuple = new Tuple(new Object[] {this.s, Integer.class, Boolean.class});
 			    in(_Tuple, this.self);
 			    Integer i = (Integer) _Tuple.getItem(1);
+			    final Boolean b = (Boolean) _Tuple.getItem(2);
 			    InputOutput.<Integer>println(i);
+			    InputOutput.<Boolean>println(b);
 			  }
 			}
 			'''

@@ -66,6 +66,37 @@ class XklaimValidatorTest {
 		'''.parse.assertNoIssues
 	}
 
+	@Test
+	def void testFormalTupleFieldMustHaveAType() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			in(var i, s)@self
+		}
+		'''.parse.assertErrorsAsStrings("Type must be specified")
+	}
+
+	@Test
+	def void testFormalTupleFieldCannotHaveInitialization() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			in(var Integer i = 10, s)@self
+		}
+		'''.parse.assertErrorsAsStrings("Formal field must not be initialized")
+	}
+
+	@Test
+	def void testCanUseValForFormalTupleFields() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			in(val Integer i, s)@self
+			println(i)
+		}
+		'''.parse.assertNoIssues
+	}
+
 	def private assertErrorsAsStrings(EObject o, CharSequence expected) {
 		expected.toString.trim.assertEquals(
 			o.validate.filter[severity == Severity.ERROR].map[message].sort.join(System.lineSeparator))

@@ -6,6 +6,11 @@ package xklaim.validation
 import org.eclipse.xtext.xbase.XExpression
 import xklaim.xklaim.XklaimAbstractOperation
 import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.xbase.XVariableDeclaration
+
+import org.eclipse.xtext.xbase.XbasePackage.Literals
+import org.eclipse.xtext.validation.ValidationMessageAcceptor
+import org.eclipse.xtext.xbase.validation.IssueCodes
 
 /**
  * This class contains custom validation rules. 
@@ -13,6 +18,9 @@ import org.eclipse.emf.ecore.EObject
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class XklaimValidator extends AbstractXklaimValidator {
+
+	public static val PREFIX = "xklaim.";
+	public static val WRONG_FORMAL_INITIALIZATION = PREFIX + "WrongFormalInitialization";
 
 	override protected isValueExpectedRecursive(XExpression expr) {
 		return expr.eContainer instanceof XklaimAbstractOperation || super.isValueExpectedRecursive(expr)
@@ -26,4 +34,19 @@ class XklaimValidator extends AbstractXklaimValidator {
 		}
 		return super.isLocallyUsed(target, containerToFindUsage);
 	}
+
+	override checkVariableDeclaration(XVariableDeclaration declaration) {
+		if (declaration.eContainer instanceof XklaimAbstractOperation) {
+			if (declaration.getRight() !== null) {
+				error("Formal field must not be initialized", Literals.XVARIABLE_DECLARATION__WRITEABLE,
+							ValidationMessageAcceptor.INSIGNIFICANT_INDEX, WRONG_FORMAL_INITIALIZATION);
+			}
+			if (declaration.getType() === null) {
+					error("Type must be specified", Literals.XVARIABLE_DECLARATION__NAME,
+							ValidationMessageAcceptor.INSIGNIFICANT_INDEX, IssueCodes.MISSING_TYPE);
+			}
+		} else
+			super.checkVariableDeclaration(declaration)
+	}
+	
 }
