@@ -243,9 +243,17 @@ class XklaimCompilerTest {
 		
 		proc TestProcess(String s) {
 			val i = 10
-			out({ println(s + i) }, s+i)@self
+			out({ println(s + i + self) }, s+i)@self
+		}
+		
+		net TestNet physical "tcp-127.0.0.1:9999" {
+			node TestNode {
+				val i = 10
+				out({ println(i + "" + self) }, i)@self
+			}
 		}
 		'''.checkCompilation(
+			"foo.TestProcess" ->
 			'''
 			package foo;
 			
@@ -267,11 +275,55 @@ class XklaimCompilerTest {
 			    final int i = 10;
 			    KlavaProcess _Proc = new KlavaProcess() {
 			      @Override public void executeProcess() {
-			        InputOutput.<String>println((TestProcess.this.s + Integer.valueOf(i)));
+			        InputOutput.<String>println(((TestProcess.this.s + Integer.valueOf(i)) + TestProcess.this.self));
 			      }
 			    };
-			    
 			    out(new Tuple(new Object[] {_Proc, (this.s + Integer.valueOf(i))}), this.self);
+			  }
+			}
+			''',
+			"foo.TestNet" ->
+			'''
+			package foo;
+			
+			import klava.PhysicalLocality;
+			import klava.Tuple;
+			import klava.topology.KlavaNode;
+			import klava.topology.KlavaProcess;
+			import klava.topology.Net;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			import org.mikado.imc.common.IMCException;
+			
+			@SuppressWarnings("all")
+			public class TestNet extends Net {
+			  public static class TestNode extends KlavaNode {
+			    private static class TestNodeProcess extends KlavaProcess {
+			      @Override
+			      public void executeProcess() {
+			        final int i = 10;
+			        KlavaProcess _Proc = new KlavaProcess() {
+			          @Override public void executeProcess() {
+			            String _plus = (Integer.valueOf(i) + "");
+			            String _plus_1 = (_plus + TestNodeProcess.this.self);
+			            InputOutput.<String>println(_plus_1);
+			          }
+			        };
+			        out(new Tuple(new Object[] {_Proc, i}), this.self);
+			      }
+			    }
+			    
+			    public void addMainProcess() throws IMCException {
+			      addNodeProcess(new TestNet.TestNode.TestNodeProcess());
+			    }
+			  }
+			  
+			  public TestNet() throws IMCException {
+			    super(new PhysicalLocality("tcp-127.0.0.1:9999"));
+			  }
+			  
+			  public void addNodes() throws IMCException {
+			    TestNet.TestNode testNode = new TestNet.TestNode();
+			    testNode.addMainProcess();
 			  }
 			}
 			'''

@@ -42,8 +42,8 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 						appendable.append("};")
 					} else {
 						a.internalToJavaStatement(appendable, true)
+						appendable.newLine
 					}
-					appendable.newLine
 				}
 				e.locality.internalToJavaStatement(appendable, true)
 				appendable.append("out(new ");
