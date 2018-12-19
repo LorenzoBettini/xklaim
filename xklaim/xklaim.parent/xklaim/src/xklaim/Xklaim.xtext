@@ -53,5 +53,5 @@ XklaimOutOperation returns XklaimAbstractOperation:
 ;
 
 XklaimInOperation returns XklaimAbstractOperation:
-	{XklaimInOperation} op='in' '(' arguments+=XExpression (',' arguments+=XExpression)* ')' '@' locality=XFeatureCall
+	{XklaimInOperation} op='in' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
 ;

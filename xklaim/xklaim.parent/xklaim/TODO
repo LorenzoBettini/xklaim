@@ -90,3 +90,30 @@ net locality="..." {
 		}
 		return null;
 	}
+
+// redefine Xbase primary expression with our special expressions
+@Override 
+XPrimaryExpression returns xbase::XExpression:
+	XklaimAbstractOperation |
+	super
+;
+
+XklaimAbstractOperation returns xbase::XExpression:
+	XklaimOutOperation | XklaimAbstractMatchingOperation
+;
+
+XklaimOutOperation returns XklaimAbstractOperation:
+	{XklaimOutOperation} op='out' '(' arguments+=XExpression (',' arguments+=XExpression)* ')' '@' locality=XFeatureCall
+;
+
+XklaimInOperation returns XklaimAbstractOperation:
+	{XklaimInOperation} op='in' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
+;
+
+XklaimReadOperation returns XklaimAbstractOperation:
+	{XklaimReadOperation} op='read' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
+;
+
+XklaimAbstractMatchingOperation:
+	XklaimInOperation | XklaimReadOperation
+;

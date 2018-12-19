@@ -171,8 +171,9 @@ class XklaimCompilerTest {
 		'''
 		package foo
 		proc TestProcess(String s) {
-			out(s)@self
-			in(s)@self
+			out(s, s)@self
+			in(s, var Integer i, s)@self
+			println(i)
 		}
 		'''.checkCompilation(
 			'''
@@ -180,6 +181,7 @@ class XklaimCompilerTest {
 			
 			import klava.Tuple;
 			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
 			
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
@@ -192,8 +194,11 @@ class XklaimCompilerTest {
 			  
 			  @Override
 			  public void executeProcess() {
-			    out(new Tuple(new Object[] {this.s}), this.self);
-			    in(new Tuple(new Object[] {this.s}), this.self);
+			    out(new Tuple(new Object[] {this.s, this.s}), this.self);
+			    Tuple _Tuple = new Tuple(new Object[] {this.s, Integer.class, this.s});
+			    in(_Tuple, this.self);
+			    Integer i = (Integer) _Tuple.getItem(1);
+			    InputOutput.<Integer>println(i);
 			  }
 			}
 			'''
@@ -246,6 +251,7 @@ class XklaimCompilerTest {
 		proc TestProcess(String s) {
 			val i = 10
 			out({ println(s + i + self) }, s+i)@self
+			out({ println("") }, s+i)@self
 		}
 		
 		net TestNet physical "tcp-127.0.0.1:9999" {
@@ -281,6 +287,12 @@ class XklaimCompilerTest {
 			      }
 			    };
 			    out(new Tuple(new Object[] {_Proc, (this.s + Integer.valueOf(i))}), this.self);
+			    KlavaProcess _Proc_1 = new KlavaProcess() {
+			      @Override public void executeProcess() {
+			        InputOutput.<String>println("");
+			      }
+			    };
+			    out(new Tuple(new Object[] {_Proc_1, (this.s + Integer.valueOf(i))}), this.self);
 			  }
 			}
 			''',

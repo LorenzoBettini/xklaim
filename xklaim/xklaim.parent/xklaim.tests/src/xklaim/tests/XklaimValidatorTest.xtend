@@ -55,6 +55,17 @@ class XklaimValidatorTest {
 		'''.parse.assertErrorsAsStrings("Type mismatch: cannot convert from int to Locality")
 	}
 
+	@Test
+	def void testCanAccessFormalTupleFields() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			in(var Integer i, s)@self
+			println(i)
+		}
+		'''.parse.assertNoIssues
+	}
+
 	def private assertErrorsAsStrings(EObject o, CharSequence expected) {
 		expected.toString.trim.assertEquals(
 			o.validate.filter[severity == Severity.ERROR].map[message].sort.join(System.lineSeparator))

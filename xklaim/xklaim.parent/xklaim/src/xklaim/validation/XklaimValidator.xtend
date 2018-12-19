@@ -5,6 +5,7 @@ package xklaim.validation
 
 import org.eclipse.xtext.xbase.XExpression
 import xklaim.xklaim.XklaimAbstractOperation
+import org.eclipse.emf.ecore.EObject
 
 /**
  * This class contains custom validation rules. 
@@ -14,8 +15,15 @@ import xklaim.xklaim.XklaimAbstractOperation
 class XklaimValidator extends AbstractXklaimValidator {
 
 	override protected isValueExpectedRecursive(XExpression expr) {
-		return expr.eContainer instanceof XklaimAbstractOperation ||
-			super.isValueExpectedRecursive(expr)
+		return expr.eContainer instanceof XklaimAbstractOperation || super.isValueExpectedRecursive(expr)
 	}
 
+	override protected boolean isLocallyUsed(EObject target, EObject containerToFindUsage) {
+		if (containerToFindUsage instanceof XklaimAbstractOperation) {
+			// we don't want warning when a variable declaration appears as
+			// formal field: it is implicitly used for the result
+			return true;
+		}
+		return super.isLocallyUsed(target, containerToFindUsage);
+	}
 }
