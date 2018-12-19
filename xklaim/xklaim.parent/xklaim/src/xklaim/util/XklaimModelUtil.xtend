@@ -6,8 +6,8 @@ import xklaim.xklaim.XklaimAbstractOperation
 
 class XklaimModelUtil {
 
-	def getFormalFields(XklaimAbstractOperation o) {
-		return o.arguments.filter[isFormalField].toList
+	def containsFormalFields(XklaimAbstractOperation o) {
+		return o.arguments.exists[isFormalField]
 	}
 
 	def isFormalField(XExpression e) {

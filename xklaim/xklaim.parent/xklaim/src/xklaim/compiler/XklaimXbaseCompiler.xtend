@@ -30,8 +30,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 	private def ITreeAppendable compileXklaimOperationAsStatement(XklaimAbstractOperation e,
 		ITreeAppendable appendable) {
 		val arguments = e.arguments
-		val formalFields = e.formalFields
-		val hasFormalFields = !formalFields.empty
+		val hasFormalFields = e.containsFormalFields
 
 		var String tupleName
 		if (hasFormalFields) {
