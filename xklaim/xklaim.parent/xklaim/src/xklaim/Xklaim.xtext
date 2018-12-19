@@ -40,7 +40,18 @@ XklaimProcess:
 // redefine Xbase primary expression with our special expressions
 @Override 
 XPrimaryExpression returns xbase::XExpression:
-	{XklaimOutOperation}
-	'out' '(' arguments+=XExpression (',' arguments+=XExpression)* ')' '@' locality=XFeatureCall |
+	XklaimAbstractOperation |
 	super
+;
+
+XklaimAbstractOperation returns xbase::XExpression:
+	XklaimOutOperation | XklaimInOperation
+;
+
+XklaimOutOperation returns XklaimAbstractOperation:
+	{XklaimOutOperation} op='out' '(' arguments+=XExpression (',' arguments+=XExpression)* ')' '@' locality=XFeatureCall
+;
+
+XklaimInOperation returns XklaimAbstractOperation:
+	{XklaimInOperation} op='in' '(' arguments+=XExpression (',' arguments+=XExpression)* ')' '@' locality=XFeatureCall
 ;
