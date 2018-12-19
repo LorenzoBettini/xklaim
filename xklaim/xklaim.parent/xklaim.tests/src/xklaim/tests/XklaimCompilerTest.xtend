@@ -166,6 +166,36 @@ class XklaimCompilerTest {
 		)
 	}
 
+	@Test
+	def void testXklaimOperations() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			out(s)@self
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.topology.KlavaProcess;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {out(s);
+			  }
+			}
+			'''
+		)
+	}
+
 	def private checkCompilation(CharSequence input, CharSequence expectedGeneratedJava) {
 		checkCompilation(input, expectedGeneratedJava, true)
 	}

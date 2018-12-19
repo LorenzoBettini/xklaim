@@ -19,15 +19,16 @@ Require-Bundle: org.eclipse.xtext,
  org.objectweb.asm;bundle-version="[7.0.0,7.1.0)";resolution:=optional,
  xklaim.runtime;bundle-version="2.0.0";visibility:=reexport
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Export-Package: xklaim.xklaim.util,
- xklaim.serializer,
- xklaim.parser.antlr.internal,
- xklaim.services,
- xklaim.scoping,
- xklaim,
- xklaim.parser.antlr,
- xklaim.xklaim,
+Export-Package: xklaim,
  xklaim.jvmmodel,
+ xklaim.parser.antlr,
+ xklaim.parser.antlr.internal,
+ xklaim.scoping,
+ xklaim.serializer,
+ xklaim.services,
+ xklaim.typesystem,
  xklaim.validation,
- xklaim.xklaim.impl
+ xklaim.xklaim,
+ xklaim.xklaim.impl,
+ xklaim.xklaim.util
 Import-Package: org.apache.log4j

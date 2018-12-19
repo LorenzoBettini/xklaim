@@ -3,9 +3,20 @@
  */
 package xklaim
 
+import org.eclipse.xtext.xbase.compiler.XbaseCompiler
+import xklaim.compiler.XklaimXbaseCompiler
+import xklaim.typesystem.XklaimTypeComputer
 
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 class XklaimRuntimeModule extends AbstractXklaimRuntimeModule {
+
+	override bindITypeComputer() {
+		XklaimTypeComputer
+	}
+
+	def Class<? extends XbaseCompiler> bindXbaseCompiler() {
+		XklaimXbaseCompiler
+	}
 }
