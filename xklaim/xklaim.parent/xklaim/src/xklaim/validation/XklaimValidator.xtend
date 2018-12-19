@@ -4,7 +4,7 @@
 package xklaim.validation
 
 import org.eclipse.xtext.xbase.XExpression
-import xklaim.xklaim.XklaimOutOperation
+import xklaim.xklaim.XklaimAbstractOperation
 
 /**
  * This class contains custom validation rules. 
@@ -14,7 +14,7 @@ import xklaim.xklaim.XklaimOutOperation
 class XklaimValidator extends AbstractXklaimValidator {
 
 	override protected isValueExpectedRecursive(XExpression expr) {
-		return expr.eContainer instanceof XklaimOutOperation ||
+		return expr.eContainer instanceof XklaimAbstractOperation ||
 			super.isValueExpectedRecursive(expr)
 	}
 

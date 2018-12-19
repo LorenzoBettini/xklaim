@@ -172,6 +172,7 @@ class XklaimCompilerTest {
 		package foo
 		proc TestProcess(String s) {
 			out(s)@self
+			in(s)@self
 		}
 		'''.checkCompilation(
 			'''
@@ -192,6 +193,7 @@ class XklaimCompilerTest {
 			  @Override
 			  public void executeProcess() {
 			    out(new Tuple(new Object[] {this.s}), this.self);
+			    in(new Tuple(new Object[] {this.s}), this.self);
 			  }
 			}
 			'''
