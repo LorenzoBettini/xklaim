@@ -640,7 +640,11 @@ class XklaimCompilerTest {
 		proc TestProcess(String s) {
 			var nonFinalVar = "a"
 			val finalVar = "b"
-			out({ println(s + finalVar + nonFinalVar + self) }, s + finalVar + nonFinalVar)@self
+			out({
+				var myLocalVar = "c"
+				println(finalVar + nonFinalVar)
+				println(s + finalVar + nonFinalVar + myLocalVar + self)
+			}, s + finalVar + nonFinalVar)@self
 		}
 		'''.checkCompilation(
 			'''
@@ -672,7 +676,11 @@ class XklaimCompilerTest {
 			        return this;
 			      }
 			      @Override public void executeProcess() {
-			        InputOutput.<String>println((((TestProcess.this.s + finalVar) + nonFinalVar) + TestProcess.this.self));
+			        {
+			          String myLocalVar = "c";
+			          InputOutput.<String>println((finalVar + nonFinalVar));
+			          InputOutput.<String>println(((((TestProcess.this.s + finalVar) + nonFinalVar) + myLocalVar) + TestProcess.this.self));
+			        }
 			      }
 			    }._initFields(finalVar, nonFinalVar);
 			    out(new Tuple(new Object[] {_Proc, ((this.s + finalVar) + nonFinalVar)}), this.self);

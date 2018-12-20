@@ -104,6 +104,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 				val vars = EcoreUtil2.getAllContentsOfType(a, XAbstractFeatureCall)
 					.map[feature]
 					.filter(XVariableDeclaration)
+					.filter[appendable.hasName(it)] // no name means not in the enclosing scope
 					.toSet
 				for (v : vars) {
 					generateTypeAndNameFromVariableDeclaration(v, appendable)
