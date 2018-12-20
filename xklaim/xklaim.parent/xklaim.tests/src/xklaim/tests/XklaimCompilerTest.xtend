@@ -379,6 +379,61 @@ class XklaimCompilerTest {
 	}
 
 	@Test
+	def void testXklaimNonBlockingOperationsInDoWhileStatement() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			do {
+				println()
+			} while (in_nb(var Integer i, s)@self && !in_nb(var String l)@self)
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.Tuple;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {
+			    boolean _dowhile = false;
+			    do {
+			      InputOutput.println();
+			      boolean _and = false;
+			      Integer i = null;
+			      Tuple _Tuple = new Tuple(new Object[] {Integer.class, this.s});
+			      boolean _in_nb = in_nb(_Tuple, this.self);
+			      i = (Integer) _Tuple.getItem(0);
+			      if (!_in_nb) {
+			        _and = false;
+			      } else {
+			        String l = null;
+			        Tuple _Tuple_1 = new Tuple(new Object[] {String.class});
+			        boolean _in_nb_1 = in_nb(_Tuple_1, this.self);
+			        l = (String) _Tuple_1.getItem(0);
+			        boolean _not = (!_in_nb_1);
+			        _and = _not;
+			      }
+			      _dowhile = _and;
+			    } while(_dowhile);
+			  }
+			}
+			'''
+		)
+	}
+
+
+	@Test
 	def void testDuplicateFormalFieldsInXklaimOperationAfterIf() {
 		'''
 		package foo

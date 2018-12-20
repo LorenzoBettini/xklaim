@@ -135,6 +135,18 @@ class XklaimValidatorTest {
 	}
 
 	@Test
+	def void testNonBlockingInOperationAsBooleanExpressionInDoWhileStatement() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			do {
+				println()
+			} while (in_nb(val Integer i, s)@self)
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
 	def void testFormalFieldsInNonBlockingInOperationAsBooleanExpressionAreNotVisibleOutside() {
 		'''
 		package foo
