@@ -4,17 +4,17 @@ import com.google.inject.Inject
 import klava.Tuple
 import klava.topology.KlavaProcess
 import org.eclipse.emf.common.util.EList
+import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.common.types.JvmDeclaredType
 import org.eclipse.xtext.xbase.XBlockExpression
 import org.eclipse.xtext.xbase.XExpression
+import org.eclipse.xtext.xbase.XIfExpression
 import org.eclipse.xtext.xbase.XVariableDeclaration
+import org.eclipse.xtext.xbase.XWhileExpression
 import org.eclipse.xtext.xbase.compiler.XbaseCompiler
 import org.eclipse.xtext.xbase.compiler.output.ITreeAppendable
 import xklaim.util.XklaimModelUtil
 import xklaim.xklaim.XklaimAbstractOperation
-import org.eclipse.xtext.EcoreUtil2
-import org.eclipse.xtext.xbase.XIfExpression
-import org.eclipse.xtext.xbase.XWhileExpression
 
 class XklaimXbaseCompiler extends XbaseCompiler {
 
@@ -64,10 +64,15 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 
 		var String tupleName
 		if (hasFormalFields) {
-			if (isReferenced) {
-				for (a : arguments) {
-					if (a.isFormalField && !appendable.hasName(a)) {
-						a.internalToJavaStatement(appendable, false)
+			for (a : arguments) {
+				if (a.isFormalField && !appendable.hasName(a)) {
+					val varDecl = a as XVariableDeclaration
+					if (varDecl.isWriteable) {
+						varDecl.internalToJavaStatement(appendable, false)
+					} else {
+						appendable.newLine
+						appendVariableTypeAndName(varDecl, appendable)
+						appendable.append(";")
 					}
 				}
 			}
@@ -136,13 +141,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 				if (a.isFormalField) {
 					val formalField = a as XVariableDeclaration
 					appendable.newLine
-					if (!isReferenced) {
-						if (!formalField.isWriteable)
-							appendable.append("final ")
-						appendable.append(formalField.type.type)
-						appendable.append(" ")
-					}
-					appendable.append(formalField.name + " = (")
+					appendable.append(appendable.getName(a) + " = (")
 					appendable.append(formalField.type.type)
 					appendable.append(") " + tupleName + ".getItem(" + i + ");")
 				}

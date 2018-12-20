@@ -196,10 +196,12 @@ class XklaimCompilerTest {
 			  @Override
 			  public void executeProcess() {
 			    out(new Tuple(new Object[] {this.s, this.s}), this.self);
+			    Integer i = null;
+			    final Boolean b;
 			    Tuple _Tuple = new Tuple(new Object[] {this.s, Integer.class, Boolean.class});
 			    in(_Tuple, this.self);
-			    Integer i = (Integer) _Tuple.getItem(1);
-			    final Boolean b = (Boolean) _Tuple.getItem(2);
+			    i = (Integer) _Tuple.getItem(1);
+			    b = (Boolean) _Tuple.getItem(2);
 			    InputOutput.<Integer>println(i);
 			    InputOutput.<Boolean>println(b);
 			  }
@@ -370,6 +372,53 @@ class XklaimCompilerTest {
 			      }
 			      _while = _and_1;
 			    }
+			  }
+			}
+			'''
+		)
+	}
+
+	@Test
+	def void testDuplicateFormalFieldsInXklaimOperationAfterIf() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			if (in_nb(var Integer i, s)@self) {
+				
+			}
+			in(var String i)@self
+			println(i.length())
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.Tuple;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {
+			    Integer i = null;
+			    Tuple _Tuple = new Tuple(new Object[] {Integer.class, this.s});
+			    boolean _in_nb = in_nb(_Tuple, this.self);
+			    i = (Integer) _Tuple.getItem(0);
+			    if (_in_nb) {
+			    }
+			    String i_1 = null;
+			    Tuple _Tuple_1 = new Tuple(new Object[] {String.class});
+			    in(_Tuple_1, this.self);
+			    i_1 = (String) _Tuple_1.getItem(0);
+			    InputOutput.<Integer>println(Integer.valueOf(i_1.length()));
 			  }
 			}
 			'''

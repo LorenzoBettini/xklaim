@@ -169,6 +169,19 @@ class XklaimValidatorTest {
 	}
 
 	@Test
+	def void testDuplicateFormalFieldsInXklaimOperationAfterIf() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			if (in_nb(var Integer i, s)@self) {
+				
+			}
+			in(var String i)@self
+		}
+		'''.parse.assertNoErrors
+	}
+
+	@Test
 	def void testDuplicateFormalFieldsInXklaimOperation() {
 		'''
 		package foo
