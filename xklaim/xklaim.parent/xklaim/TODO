@@ -138,3 +138,39 @@ proc TestProcess(String s) {
 	}
 }
 
+PREPROCESS INLINE PROCESSES
+
+references to variables in the outer scope must be turned into fields of the inner class
+
+public class MyJavaTests {
+
+	private int i;
+	
+	private void myMethod(String s) {
+		Object o;
+		o = null;
+		o = new Object();
+		String s1 = "";
+		s1 = "hello";
+		
+		Runnable r = new Runnable() {
+			Object o;
+			String s1;
+			
+			private Runnable _initFields(Object o, String s1) {
+				this.o = o;
+				this.s1 = s1;
+				return this;
+			}
+			
+			@Override
+			public void run() {
+				System.out.println(s1);
+				System.out.println(o);
+				System.out.println(i + s);
+			}
+		}._initFields(o, s1);
+
+	}
+}
+

@@ -254,6 +254,62 @@ class XklaimCompilerTest {
 	}
 
 	@Test
+	def void testXklaimNonBlockingOperationsInComplexBooleanExpression() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			if (in_nb(var Integer i, s)@self && !in_nb(var String l)@self) {
+				println(l + i)
+			} else {
+				val res = (l + i)
+			}
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.Tuple;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {
+			    Integer i = null;
+			    String l = null;
+			    boolean _and = false;
+			    Tuple _Tuple = new Tuple(new Object[] {Integer.class, this.s});
+			    boolean _in_nb = in_nb(_Tuple, this.self);
+			    i = (Integer) _Tuple.getItem(0);
+			    if (!_in_nb) {
+			      _and = false;
+			    } else {
+			      Tuple _Tuple_1 = new Tuple(new Object[] {String.class});
+			      boolean _in_nb_1 = in_nb(_Tuple_1, this.self);
+			      l = (String) _Tuple_1.getItem(0);
+			      boolean _not = (!_in_nb_1);
+			      _and = _not;
+			    }
+			    if (_and) {
+			      InputOutput.<String>println((l + i));
+			    } else {
+			      final String res = (l + i);
+			    }
+			  }
+			}
+			'''
+		)
+	}
+
+	@Test
 	def void testXklaimOperationsWithProcessCall() {
 		'''
 		package foo

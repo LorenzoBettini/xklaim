@@ -12,6 +12,8 @@ import org.eclipse.xtext.xbase.compiler.XbaseCompiler
 import org.eclipse.xtext.xbase.compiler.output.ITreeAppendable
 import xklaim.util.XklaimModelUtil
 import xklaim.xklaim.XklaimAbstractOperation
+import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.xtext.xbase.XIfExpression
 
 class XklaimXbaseCompiler extends XbaseCompiler {
 
@@ -44,6 +46,11 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		return super.internalCanCompileToJavaExpression(expression, appendable)
 	}
 
+	override protected _toJavaStatement(XIfExpression e, ITreeAppendable b, boolean isReferenced) {
+		precompileVariableDeclarationsForFormalFields(e.^if, b)
+		super._toJavaStatement(e, b, isReferenced)
+	}
+
 	private def ITreeAppendable compileXklaimOperationAsStatement(XklaimAbstractOperation e, ITreeAppendable appendable,
 		boolean isReferenced) {
 		val arguments = e.arguments
@@ -53,7 +60,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		if (hasFormalFields) {
 			if (isReferenced) {
 				for (a : arguments) {
-					if (a.isFormalField) {
+					if (a.isFormalField && !appendable.hasName(a)) {
 						a.internalToJavaStatement(appendable, false)
 					}
 				}
@@ -157,5 +164,25 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			}
 		]
 		appendable.append("})")
+	}
+
+	private def ITreeAppendable precompileVariableDeclarationsForFormalFields(XExpression e,
+			ITreeAppendable appendable) {
+		val xklaimOps = EcoreUtil2.getAllContentsOfType(e, XklaimAbstractOperation)
+		for (o : xklaimOps) {
+			o.precompileVariableDeclarationsForFormalFields(appendable)
+		}
+		appendable
+	}
+
+	private def ITreeAppendable precompileVariableDeclarationsForFormalFields(XklaimAbstractOperation e,
+		ITreeAppendable appendable) {
+		val arguments = e.arguments
+		for (a : arguments) {
+			if (a.isFormalField) {
+				a.internalToJavaStatement(appendable, false)
+			}
+		}
+		appendable
 	}
 }
