@@ -4,10 +4,12 @@
 package xklaim.jvmmodel
 
 import com.google.inject.Inject
+import klava.LogicalLocality
 import klava.PhysicalLocality
+import klava.topology.ClientNode
 import klava.topology.KlavaNode
 import klava.topology.KlavaProcess
-import klava.topology.Net
+import klava.topology.LogicalNet
 import org.eclipse.xtext.common.types.JvmAnnotationTarget
 import org.eclipse.xtext.common.types.JvmDeclaredType
 import org.eclipse.xtext.common.types.JvmGenericType
@@ -71,7 +73,7 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		}
 		if (!nodes.empty || !nets.empty) {
 			for (node : nodes) {
-				nodeClasses += toNodeClass(node, KlavaNode, acceptor)
+				nodeClasses += toNodeClass(node, KlavaNode, acceptor, [])
 			}
 			for (net : nets) {
 				netClasses += toNetClass(net, acceptor)
@@ -108,7 +110,7 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 	}
 
 	private def JvmGenericType toNodeClass(XklaimAbstractNode node, Class<? extends KlavaNode> clazz,
-		extension IJvmDeclaredTypeAcceptor acceptor) {
+			extension IJvmDeclaredTypeAcceptor acceptor, (JvmDeclaredType)=>void typeEnricher) {
 		val nodeFQN = node.fullyQualifiedName
 		val nodeClass = node.toClass(nodeFQN)
 		val nodeProcessClass = node.toClass(nodeFQN + "Process")
@@ -125,6 +127,7 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		accept(nodeClass) [
 			documentation = node.documentation
 			superTypes += clazz.typeRef()
+			typeEnricher.apply(it)
 			members += node.toMethod("addMainProcess", typeRef(Void.TYPE)) [
 				exceptions += IMCException.typeRef()
 				body = '''
@@ -141,11 +144,23 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		val nodeClasses = newArrayList
 		val nodes = net.nodes
 		for (node : nodes) {
-			nodeClasses += toNodeClass(node, KlavaNode, acceptor)
+			nodeClasses += toNodeClass(node, ClientNode, acceptor) [
+				members += node.toConstructor [
+					if (node.logicalLocality !== null) {
+						body = '''
+						super(new «PhysicalLocality»("«net.physicalLocality»"), new «LogicalLocality»("«node.logicalLocality»"));
+						'''
+					} else {
+						body = '''
+						super(new «PhysicalLocality»("«net.physicalLocality»"));
+						'''
+					}
+				]
+			]
 		}
 		accept(netClass) [
 			documentation = net.documentation
-			superTypes += Net.typeRef()
+			superTypes += LogicalNet.typeRef()
 			for (nodeClass : nodeClasses) {
 				nodeClass.declaringType = netClass
 				nodeClass.static = true

@@ -79,22 +79,26 @@ class XklaimCompilerTest {
 			node TestNode {
 				println("Hello")
 			}
+			node TestNodeWithLogLoc logical "foo" {
+				println("Hello")
+			}
 		}
 		'''.checkCompilation(
 			"foo.TestNet" ->
 			'''
 			package foo;
 			
+			import klava.LogicalLocality;
 			import klava.PhysicalLocality;
-			import klava.topology.KlavaNode;
+			import klava.topology.ClientNode;
 			import klava.topology.KlavaProcess;
-			import klava.topology.Net;
+			import klava.topology.LogicalNet;
 			import org.eclipse.xtext.xbase.lib.InputOutput;
 			import org.mikado.imc.common.IMCException;
 			
 			@SuppressWarnings("all")
-			public class TestNet extends Net {
-			  public static class TestNode extends KlavaNode {
+			public class TestNet extends LogicalNet {
+			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaProcess {
 			      @Override
 			      public void executeProcess() {
@@ -102,8 +106,29 @@ class XklaimCompilerTest {
 			      }
 			    }
 			    
+			    public TestNode() {
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"));
+			    }
+			    
 			    public void addMainProcess() throws IMCException {
 			      addNodeProcess(new TestNet.TestNode.TestNodeProcess());
+			    }
+			  }
+			  
+			  public static class TestNodeWithLogLoc extends ClientNode {
+			    private static class TestNodeWithLogLocProcess extends KlavaProcess {
+			      @Override
+			      public void executeProcess() {
+			        InputOutput.<String>println("Hello");
+			      }
+			    }
+			    
+			    public TestNodeWithLogLoc() {
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("foo"));
+			    }
+			    
+			    public void addMainProcess() throws IMCException {
+			      addNodeProcess(new TestNet.TestNodeWithLogLoc.TestNodeWithLogLocProcess());
 			    }
 			  }
 			  
@@ -113,7 +138,9 @@ class XklaimCompilerTest {
 			  
 			  public void addNodes() throws IMCException {
 			    TestNet.TestNode testNode = new TestNet.TestNode();
+			    TestNet.TestNodeWithLogLoc testNodeWithLogLoc = new TestNet.TestNodeWithLogLoc();
 			    testNode.addMainProcess();
+			    testNodeWithLogLoc.addMainProcess();
 			  }
 			}
 			''',
@@ -585,15 +612,15 @@ class XklaimCompilerTest {
 			
 			import klava.PhysicalLocality;
 			import klava.Tuple;
-			import klava.topology.KlavaNode;
+			import klava.topology.ClientNode;
 			import klava.topology.KlavaProcess;
-			import klava.topology.Net;
+			import klava.topology.LogicalNet;
 			import org.eclipse.xtext.xbase.lib.InputOutput;
 			import org.mikado.imc.common.IMCException;
 			
 			@SuppressWarnings("all")
-			public class TestNet extends Net {
-			  public static class TestNode extends KlavaNode {
+			public class TestNet extends LogicalNet {
+			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaProcess {
 			      @Override
 			      public void executeProcess() {
@@ -612,6 +639,10 @@ class XklaimCompilerTest {
 			        }._initFields(i);
 			        out(new Tuple(new Object[] {_Proc, i}), this.self);
 			      }
+			    }
+			    
+			    public TestNode() {
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"));
 			    }
 			    
 			    public void addMainProcess() throws IMCException {
