@@ -65,11 +65,17 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		var String tupleName
 		if (hasFormalFields) {
 			for (a : arguments) {
+				// the variable declaration has already been generated when the operation is
+				// used in an if or while so we must use hasName
 				if (a.isFormalField && !appendable.hasName(a)) {
 					val varDecl = a as XVariableDeclaration
 					if (varDecl.isWriteable) {
 						varDecl.internalToJavaStatement(appendable, false)
 					} else {
+						// for final variables don't generate the assignment to the
+						// default literal: they will be initialized later after the matching
+						// and this is legal in Java (as long as the final variable hasn't been
+						// already initialized)
 						appendable.newLine
 						appendVariableTypeAndName(varDecl, appendable)
 						appendable.append(";")
@@ -141,6 +147,10 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 				if (a.isFormalField) {
 					val formalField = a as XVariableDeclaration
 					appendable.newLine
+					// don't use the var name directly since the original declaration
+					// might have been renamed to avoid duplication in generated code
+					// e.g., for blocks of the shape in(var String s)@self ; in(var Integer s)@self
+					// which are legal in Xklaim
 					appendable.append(appendable.getName(a) + " = (")
 					appendable.append(formalField.type.type)
 					appendable.append(") " + tupleName + ".getItem(" + i + ");")
