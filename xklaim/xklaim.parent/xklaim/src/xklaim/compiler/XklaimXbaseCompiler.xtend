@@ -94,66 +94,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 
 		for (a : arguments) {
 			if (a instanceof XBlockExpression) {
-				val procVarName = appendable.declareSyntheticVariable(a, "_Proc")
-				appendable.newLine
-				appendable.append(KlavaProcess)
-				appendable.append(" " + procVarName + " = new ")
-				appendable.append(KlavaProcess)
-				appendable.append("() {")
-				appendable.increaseIndentation.newLine
-				val vars = EcoreUtil2.getAllContentsOfType(a, XAbstractFeatureCall)
-					.map[feature]
-					.filter(XVariableDeclaration)
-					.filter[appendable.hasName(it)] // no name means not in the enclosing scope
-					.toSet
-				for (v : vars) {
-					generateTypeAndNameFromVariableDeclaration(v, appendable)
-					appendable.append(";")
-					appendable.newLine
-				}
-				appendable.append("private ")
-				appendable.append(KlavaProcess)
-				appendable.append(" _initFields(")
-				vars.forEach[v, i|
-					if (i !== 0)
-						appendable.append(", ")
-					generateTypeAndNameFromVariableDeclaration(v, appendable)
-				]
-				appendable.append(") {")
-				appendable.increaseIndentation
-				for (v : vars) {
-					appendable.newLine
-					val varName = appendable.getName(v)
-					appendable.append("this." + varName + " = " + varName)
-					appendable.append(";")
-				}
-				appendable.newLine
-				appendable.append("return this;")
-				appendable.decreaseIndentation.newLine
-				appendable.append("}")
-				appendable.newLine
-				appendable.append("@Override public void executeProcess() {")
-				appendable.increaseIndentation
-				// we need to reassign the mapping for this since we generate an
-				// anonymous innerclass, instead of
-				// this.field
-				// we must generate
-				// CurrentType.this.field
-				appendable.openScope
-				val mappedThis = appendable.getObject("this") as JvmDeclaredType
-				appendable.declareVariable(mappedThis, mappedThis.simpleName + ".this")
-				a.internalToJavaStatement(appendable, false)
-				appendable.closeScope
-				appendable.decreaseIndentation.newLine
-				appendable.append("}")
-				appendable.decreaseIndentation.newLine
-				appendable.append("}._initFields(")
-				vars.forEach[v, i|
-					if (i !== 0)
-						appendable.append(", ")
-					appendable.append(appendable.getName(v))
-				]
-				appendable.append(");")
+				compileInnerProcess(appendable, a)
 			} else if (!a.isFormalField) {
 				a.internalToJavaStatement(appendable, true)
 			}
@@ -197,6 +138,74 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			}
 		}
 		return appendable
+	}
+
+	/**
+	 * Creates an anonymous inner class for the code block representing the process;
+	 * references to variables in the enclosing scope are turned into fields of the
+	 * inner process so that their values are closed.
+	 */
+	private def ITreeAppendable compileInnerProcess(ITreeAppendable appendable, XBlockExpression a) {
+		val procVarName = appendable.declareSyntheticVariable(a, "_Proc")
+		appendable.newLine
+		appendable.append(KlavaProcess)
+		appendable.append(" " + procVarName + " = new ")
+		appendable.append(KlavaProcess)
+		appendable.append("() {")
+		appendable.increaseIndentation.newLine
+		val vars = EcoreUtil2.getAllContentsOfType(a, XAbstractFeatureCall)
+			.map[feature]
+			.filter(XVariableDeclaration)
+			.filter[appendable.hasName(it)] // no name means not in the enclosing scope
+			.toSet
+		for (v : vars) {
+			generateTypeAndNameFromVariableDeclaration(v, appendable)
+			appendable.append(";")
+			appendable.newLine
+		}
+		appendable.append("private ")
+		appendable.append(KlavaProcess)
+		appendable.append(" _initFields(")
+		vars.forEach[v, i|
+			if (i !== 0)
+				appendable.append(", ")
+			generateTypeAndNameFromVariableDeclaration(v, appendable)
+		]
+		appendable.append(") {")
+		appendable.increaseIndentation
+		for (v : vars) {
+			appendable.newLine
+			val varName = appendable.getName(v)
+			appendable.append("this." + varName + " = " + varName)
+			appendable.append(";")
+		}
+		appendable.newLine
+		appendable.append("return this;")
+		appendable.decreaseIndentation.newLine
+		appendable.append("}")
+		appendable.newLine
+		appendable.append("@Override public void executeProcess() {")
+		appendable.increaseIndentation
+		// we need to reassign the mapping for this since we generate an
+		// anonymous innerclass, instead of
+		// this.field
+		// we must generate
+		// CurrentType.this.field
+		appendable.openScope
+		val mappedThis = appendable.getObject("this") as JvmDeclaredType
+		appendable.declareVariable(mappedThis, mappedThis.simpleName + ".this")
+		a.internalToJavaStatement(appendable, false)
+		appendable.closeScope
+		appendable.decreaseIndentation.newLine
+		appendable.append("}")
+		appendable.decreaseIndentation.newLine
+		appendable.append("}._initFields(")
+		vars.forEach[v, i|
+			if (i !== 0)
+				appendable.append(", ")
+			appendable.append(appendable.getName(v))
+		]
+		appendable.append(");")
 	}
 	
 	private def ITreeAppendable generateTypeAndNameFromVariableDeclaration(XVariableDeclaration v, ITreeAppendable appendable) {
