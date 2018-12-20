@@ -1,14 +1,13 @@
 package xklaim.typesystem
 
+import com.google.inject.Inject
 import klava.Locality
 import org.eclipse.xtext.xbase.XExpression
-import org.eclipse.xtext.xbase.annotations.typesystem.XbaseWithAnnotationsTypeComputer
 import org.eclipse.xtext.xbase.typesystem.computation.ITypeComputationState
-import xklaim.xklaim.XklaimAbstractOperation
-import com.google.inject.Inject
 import xklaim.util.XklaimModelUtil
+import xklaim.xklaim.XklaimAbstractOperation
 
-class XklaimTypeComputer extends XbaseWithAnnotationsTypeComputer {
+class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 
 	@Inject extension XklaimModelUtil
 
@@ -28,7 +27,10 @@ class XklaimTypeComputer extends XbaseWithAnnotationsTypeComputer {
 				state.withNonVoidExpectation.computeTypes(a)
 			}
 		}
-		state.acceptActualType(getPrimitiveVoid(state))
+		if (e.isNonBlockingOperation)
+			state.acceptActualType(getRawTypeForName(Boolean.TYPE, state))
+		else
+			state.acceptActualType(getPrimitiveVoid(state))
 	}
 
 	override protected addLocalToCurrentScope(XExpression e, ITypeComputationState state) {

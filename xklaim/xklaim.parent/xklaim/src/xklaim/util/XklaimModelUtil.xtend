@@ -3,6 +3,7 @@ package xklaim.util
 import org.eclipse.xtext.xbase.XExpression
 import org.eclipse.xtext.xbase.XVariableDeclaration
 import xklaim.xklaim.XklaimAbstractOperation
+import xklaim.xklaim.XklaimNonBlockingInOperation
 
 class XklaimModelUtil {
 
@@ -12,5 +13,9 @@ class XklaimModelUtil {
 
 	def isFormalField(XExpression e) {
 		return e instanceof XVariableDeclaration
+	}
+
+	def isNonBlockingOperation(XklaimAbstractOperation o) {
+		return o instanceof XklaimNonBlockingInOperation
 	}
 }

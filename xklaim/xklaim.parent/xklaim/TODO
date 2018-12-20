@@ -117,3 +117,24 @@ XklaimReadOperation returns XklaimAbstractOperation:
 XklaimAbstractMatchingOperation:
 	XklaimInOperation | XklaimReadOperation
 ;
+
+package foo
+proc TestProcess(String s) {
+	if (inp(val Integer i, s)@self && !inp(val String l)@self) {
+		println(l + i)
+	} else {
+		val res = (l + i)
+	}
+}
+
+final variables cannot be used when the operation is used as a boolean operation
+
+package foo
+proc TestProcess(String s) {
+	if (in_nb(var Integer i, s)@self && !in_nb(var String l)@self) {
+		println(l + i)
+	} else {
+		val res = (l + i)
+	}
+}
+

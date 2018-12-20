@@ -45,7 +45,7 @@ XPrimaryExpression returns xbase::XExpression:
 ;
 
 XklaimAbstractOperation returns xbase::XExpression:
-	XklaimOutOperation | XklaimInOperation
+	XklaimOutOperation | XklaimInOperation | XklaimNonBlockingInOperation
 ;
 
 XklaimOutOperation returns XklaimAbstractOperation:
@@ -54,4 +54,8 @@ XklaimOutOperation returns XklaimAbstractOperation:
 
 XklaimInOperation returns XklaimAbstractOperation:
 	{XklaimInOperation} op='in' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
+;
+
+XklaimNonBlockingInOperation returns XklaimAbstractOperation:
+	{XklaimNonBlockingInOperation} op='in_nb' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
 ;

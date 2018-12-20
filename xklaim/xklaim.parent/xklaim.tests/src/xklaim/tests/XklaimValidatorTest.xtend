@@ -97,6 +97,65 @@ class XklaimValidatorTest {
 		'''.parse.assertNoIssues
 	}
 
+	@Test
+	def void testNonBlockingInOperationAsStatement() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			in_nb(val Integer i, s)@self
+			println(i)
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testNonBlockingInOperationAsBooleanExpression() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			if (in_nb(val Integer i, s)@self && !in_nb(val String l)@self) {
+				println(l + i)
+			} else {
+				println(l + i)
+			}
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testFormalFieldsInNonBlockingInOperationAsBooleanExpressionAreNotVisibleOutside() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			if (in_nb(val Integer i, s)@self && !in_nb(val String l)@self) {
+				
+			}
+			println(l + i)
+		}
+		'''.parse.assertErrorsAsStrings(
+			'''
+			The method or field i is undefined
+			The method or field l is undefined
+			'''
+		)
+	}
+
+	@Test
+	def void testDuplicateFormalFieldsInXklaimOperation() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			if (in_nb(var Integer i, s)@self && !in_nb(var String i)@self) {
+				
+			}
+		}
+		'''.parse.assertErrorsAsStrings(
+			'''
+			Duplicate local variable i
+			'''
+		)
+	}
+
 	def private assertErrorsAsStrings(EObject o, CharSequence expected) {
 		expected.toString.trim.assertEquals(
 			o.validate.filter[severity == Severity.ERROR].map[message].sort.join(System.lineSeparator))

@@ -209,6 +209,51 @@ class XklaimCompilerTest {
 	}
 
 	@Test
+	def void testXklaimNonBlockingOperations() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			if (in_nb(var Integer i, s)@self) {
+				println(i)
+			} else {
+				val res = i
+			}
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.Tuple;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {
+			    Integer i = null;
+			    Tuple _Tuple = new Tuple(new Object[] {Integer.class, this.s});
+			    boolean _in_nb = in_nb(_Tuple, this.self);
+			    i = (Integer) _Tuple.getItem(0);
+			    if (_in_nb) {
+			      InputOutput.<Integer>println(i);
+			    } else {
+			      final Integer res = i;
+			    }
+			  }
+			}
+			'''
+		)
+	}
+
+	@Test
 	def void testXklaimOperationsWithProcessCall() {
 		'''
 		package foo

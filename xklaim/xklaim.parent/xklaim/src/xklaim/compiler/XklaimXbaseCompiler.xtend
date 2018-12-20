@@ -20,21 +20,46 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 	override protected doInternalToJavaStatement(XExpression e, ITreeAppendable appendable, boolean isReferenced) {
 		switch (e) {
 			XklaimAbstractOperation: {
-				compileXklaimOperationAsStatement(e, appendable);
+				compileXklaimOperationAsStatement(e, appendable, isReferenced);
 			}
 			default:
 				super.doInternalToJavaStatement(e, appendable, isReferenced)
 		}
 	}
 
-	private def ITreeAppendable compileXklaimOperationAsStatement(XklaimAbstractOperation e,
-		ITreeAppendable appendable) {
+	override protected internalToConvertedExpression(XExpression e, ITreeAppendable appendable) {
+		switch (e) {
+			XklaimAbstractOperation: {
+				appendable.append(getVarName(e, appendable))
+			}
+			default:
+				super.internalToConvertedExpression(e, appendable)
+		}
+	}
+
+	override protected internalCanCompileToJavaExpression(XExpression expression, ITreeAppendable appendable) {
+		if (expression instanceof XklaimAbstractOperation) {
+			return false
+		}
+		return super.internalCanCompileToJavaExpression(expression, appendable)
+	}
+
+	private def ITreeAppendable compileXklaimOperationAsStatement(XklaimAbstractOperation e, ITreeAppendable appendable,
+		boolean isReferenced) {
 		val arguments = e.arguments
 		val hasFormalFields = e.containsFormalFields
 
 		var String tupleName
 		if (hasFormalFields) {
-			tupleName = appendable.declareSyntheticVariable(e, "_Tuple")
+			if (isReferenced) {
+				for (a : arguments) {
+					if (a.isFormalField) {
+						a.internalToJavaStatement(appendable, false)
+					}
+				}
+			}
+
+			tupleName = appendable.declareSyntheticVariable(new Object(), "_Tuple")
 			appendable.newLine
 			appendable.append(Tuple)
 			appendable.append(" " + tupleName + " = ")
@@ -72,7 +97,16 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			}
 		}
 		e.locality.internalToJavaStatement(appendable, true)
-		appendable.newLine
+
+		if (isReferenced) {
+			val opVar = appendable.declareSyntheticVariable(e, "_" + e.op)
+			appendable.newLine
+			appendable.append(Boolean.TYPE)
+			appendable.append(" " + opVar + " = ")
+		} else {
+			appendable.newLine
+		}
+
 		appendable.append(e.op);
 		appendable.append("(");
 		if (hasFormalFields) {
@@ -89,10 +123,13 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 				if (a.isFormalField) {
 					val formalField = a as XVariableDeclaration
 					appendable.newLine
-					if (!formalField.isWriteable)
-						appendable.append("final ")
-					appendable.append(formalField.type.type)
-					appendable.append(" " + formalField.name + " = (")
+					if (!isReferenced) {
+						if (!formalField.isWriteable)
+							appendable.append("final ")
+						appendable.append(formalField.type.type)
+						appendable.append(" ")
+					}
+					appendable.append(formalField.name + " = (")
 					appendable.append(formalField.type.type)
 					appendable.append(") " + tupleName + ".getItem(" + i + ");")
 				}
