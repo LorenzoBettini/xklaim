@@ -14,6 +14,7 @@ import xklaim.util.XklaimModelUtil
 import xklaim.xklaim.XklaimAbstractOperation
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.xbase.XIfExpression
+import org.eclipse.xtext.xbase.XWhileExpression
 
 class XklaimXbaseCompiler extends XbaseCompiler {
 
@@ -48,6 +49,11 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 
 	override protected _toJavaStatement(XIfExpression e, ITreeAppendable b, boolean isReferenced) {
 		precompileVariableDeclarationsForFormalFields(e.^if, b)
+		super._toJavaStatement(e, b, isReferenced)
+	}
+
+	override protected _toJavaStatement(XWhileExpression e, ITreeAppendable b, boolean isReferenced) {
+		precompileVariableDeclarationsForFormalFields(e.predicate, b)
 		super._toJavaStatement(e, b, isReferenced)
 	}
 

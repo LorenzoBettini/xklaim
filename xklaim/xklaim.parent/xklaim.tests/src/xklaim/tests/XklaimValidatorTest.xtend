@@ -109,7 +109,7 @@ class XklaimValidatorTest {
 	}
 
 	@Test
-	def void testNonBlockingInOperationAsBooleanExpression() {
+	def void testNonBlockingInOperationAsBooleanExpressionInIfStatement() {
 		'''
 		package foo
 		proc TestProcess(String s) {
@@ -117,6 +117,18 @@ class XklaimValidatorTest {
 				println(l + i)
 			} else {
 				println(l + i)
+			}
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testNonBlockingInOperationAsBooleanExpressionInWhileStatement() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			while (in_nb(val Integer i, s)@self) {
+				println(i)
 			}
 		}
 		'''.parse.assertNoIssues

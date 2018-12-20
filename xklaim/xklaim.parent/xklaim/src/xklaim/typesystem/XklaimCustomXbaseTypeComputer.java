@@ -6,6 +6,7 @@ import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.XIfExpression;
 import org.eclipse.xtext.xbase.XVariableDeclaration;
+import org.eclipse.xtext.xbase.XWhileExpression;
 import org.eclipse.xtext.xbase.annotations.typesystem.XbaseWithAnnotationsTypeComputer;
 import org.eclipse.xtext.xbase.typesystem.computation.ITypeComputationResult;
 import org.eclipse.xtext.xbase.typesystem.computation.ITypeComputationState;
@@ -46,6 +47,12 @@ public class XklaimCustomXbaseTypeComputer extends XbaseWithAnnotationsTypeCompu
 			processor.process(thenResult);
 			processor.commit();
 		}
+	}
+
+	@Override
+	protected void _computeTypes(XWhileExpression object, ITypeComputationState state) {
+		addFormalFieldsToCurrentScope(object.getPredicate(), state);
+		super._computeTypes(object, state);
 	}
 
 	protected void addFormalFieldsToCurrentScope(XExpression e, ITypeComputationState state) {
