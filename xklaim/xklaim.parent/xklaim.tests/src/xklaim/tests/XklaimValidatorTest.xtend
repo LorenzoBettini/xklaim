@@ -141,13 +141,28 @@ class XklaimValidatorTest {
 	}
 
 	@Test
-	def void testDuplicateFormalFieldsInXklaimOperation() {
+	def void testDuplicateFormalFieldsInXklaimOperationInBooleanExpression() {
 		'''
 		package foo
 		proc TestProcess(String s) {
 			if (in_nb(var Integer i, s)@self && !in_nb(var String i)@self) {
 				
 			}
+		}
+		'''.parse.assertErrorsAsStrings(
+			'''
+			Duplicate local variable i
+			'''
+		)
+	}
+
+	@Test
+	def void testDuplicateFormalFieldsInXklaimOperation() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			in(var Integer i, s)@self
+			in(var String i)@self
 		}
 		'''.parse.assertErrorsAsStrings(
 			'''
