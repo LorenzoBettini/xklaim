@@ -6,6 +6,7 @@ import klava.topology.KlavaProcess
 import org.eclipse.emf.common.util.EList
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.common.types.JvmDeclaredType
+import org.eclipse.xtext.xbase.XAbstractFeatureCall
 import org.eclipse.xtext.xbase.XBlockExpression
 import org.eclipse.xtext.xbase.XExpression
 import org.eclipse.xtext.xbase.XIfExpression
@@ -100,6 +101,36 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 				appendable.append(KlavaProcess)
 				appendable.append("() {")
 				appendable.increaseIndentation.newLine
+				val vars = EcoreUtil2.getAllContentsOfType(a, XAbstractFeatureCall)
+					.map[feature]
+					.filter(XVariableDeclaration)
+					.toSet
+				for (v : vars) {
+					generateTypeAndNameFromVariableDeclaration(v, appendable)
+					appendable.append(";")
+					appendable.newLine
+				}
+				appendable.append("private ")
+				appendable.append(KlavaProcess)
+				appendable.append(" _initFields(")
+				vars.forEach[v, i|
+					if (i !== 0)
+						appendable.append(", ")
+					generateTypeAndNameFromVariableDeclaration(v, appendable)
+				]
+				appendable.append(") {")
+				appendable.increaseIndentation
+				for (v : vars) {
+					appendable.newLine
+					val varName = appendable.getName(v)
+					appendable.append("this." + varName + " = " + varName)
+					appendable.append(";")
+				}
+				appendable.newLine
+				appendable.append("return this;")
+				appendable.decreaseIndentation.newLine
+				appendable.append("}")
+				appendable.newLine
 				appendable.append("@Override public void executeProcess() {")
 				appendable.increaseIndentation
 				// we need to reassign the mapping for this since we generate an
@@ -115,7 +146,13 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 				appendable.decreaseIndentation.newLine
 				appendable.append("}")
 				appendable.decreaseIndentation.newLine
-				appendable.append("};")
+				appendable.append("}._initFields(")
+				vars.forEach[v, i|
+					if (i !== 0)
+						appendable.append(", ")
+					appendable.append(appendable.getName(v))
+				]
+				appendable.append(");")
 			} else if (!a.isFormalField) {
 				a.internalToJavaStatement(appendable, true)
 			}
@@ -159,6 +196,19 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			}
 		}
 		return appendable
+	}
+	
+	private def ITreeAppendable generateTypeAndNameFromVariableDeclaration(XVariableDeclaration v, ITreeAppendable appendable) {
+		if (v.getType() !== null) {
+			serialize(v.getType(), v, appendable);
+		} else {
+			var type = getLightweightType(v.getRight());
+			if (type.isAny()) {
+				type = getTypeForVariableDeclaration(v.getRight());
+			}
+			appendable.append(type);
+		}
+		appendable.append(" " + appendable.getName(v))
 	}
 
 	private def ITreeAppendable compileNewTuple(ITreeAppendable appendable, EList<XExpression> arguments) {

@@ -557,16 +557,24 @@ class XklaimCompilerTest {
 			  public void executeProcess() {
 			    final int i = 10;
 			    KlavaProcess _Proc = new KlavaProcess() {
+			      int i;
+			      private KlavaProcess _initFields(int i) {
+			        this.i = i;
+			        return this;
+			      }
 			      @Override public void executeProcess() {
 			        InputOutput.<String>println(((TestProcess.this.s + Integer.valueOf(i)) + TestProcess.this.self));
 			      }
-			    };
+			    }._initFields(i);
 			    out(new Tuple(new Object[] {_Proc, (this.s + Integer.valueOf(i))}), this.self);
 			    KlavaProcess _Proc_1 = new KlavaProcess() {
+			      private KlavaProcess _initFields() {
+			        return this;
+			      }
 			      @Override public void executeProcess() {
 			        InputOutput.<String>println("");
 			      }
-			    };
+			    }._initFields();
 			    out(new Tuple(new Object[] {_Proc_1, (this.s + Integer.valueOf(i))}), this.self);
 			  }
 			}
@@ -591,12 +599,17 @@ class XklaimCompilerTest {
 			      public void executeProcess() {
 			        final int i = 10;
 			        KlavaProcess _Proc = new KlavaProcess() {
+			          int i;
+			          private KlavaProcess _initFields(int i) {
+			            this.i = i;
+			            return this;
+			          }
 			          @Override public void executeProcess() {
 			            String _plus = (Integer.valueOf(i) + "");
 			            String _plus_1 = (_plus + TestNodeProcess.this.self);
 			            InputOutput.<String>println(_plus_1);
 			          }
-			        };
+			        }._initFields(i);
 			        out(new Tuple(new Object[] {_Proc, i}), this.self);
 			      }
 			    }
@@ -613,6 +626,56 @@ class XklaimCompilerTest {
 			  public void addNodes() throws IMCException {
 			    TestNet.TestNode testNode = new TestNet.TestNode();
 			    testNode.addMainProcess();
+			  }
+			}
+			'''
+		)
+	}
+
+	@Test
+	def void testXklaimOperationsWithNestedProcessAccessignEnclosingScope() {
+		'''
+		package foo
+		
+		proc TestProcess(String s) {
+			var nonFinalVar = "a"
+			val finalVar = "b"
+			out({ println(s + finalVar + nonFinalVar + self) }, s + finalVar + nonFinalVar)@self
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.Tuple;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {
+			    String nonFinalVar = "a";
+			    final String finalVar = "b";
+			    KlavaProcess _Proc = new KlavaProcess() {
+			      String finalVar;
+			      String nonFinalVar;
+			      private KlavaProcess _initFields(String finalVar, String nonFinalVar) {
+			        this.finalVar = finalVar;
+			        this.nonFinalVar = nonFinalVar;
+			        return this;
+			      }
+			      @Override public void executeProcess() {
+			        InputOutput.<String>println((((TestProcess.this.s + finalVar) + nonFinalVar) + TestProcess.this.self));
+			      }
+			    }._initFields(finalVar, nonFinalVar);
+			    out(new Tuple(new Object[] {_Proc, ((this.s + finalVar) + nonFinalVar)}), this.self);
 			  }
 			}
 			'''
