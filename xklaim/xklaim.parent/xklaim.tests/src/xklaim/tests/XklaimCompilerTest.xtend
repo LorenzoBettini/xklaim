@@ -584,15 +584,17 @@ class XklaimCompilerTest {
 			  public void executeProcess() {
 			    final int i = 10;
 			    KlavaProcess _Proc = new KlavaProcess() {
+			      String s;
 			      int i;
-			      private KlavaProcess _initFields(int i) {
+			      private KlavaProcess _initFields(String s, int i) {
+			        this.s = s;
 			        this.i = i;
 			        return this;
 			      }
 			      @Override public void executeProcess() {
-			        InputOutput.<String>println(((TestProcess.this.s + Integer.valueOf(i)) + TestProcess.this.self));
+			        InputOutput.<String>println(((this.s + Integer.valueOf(i)) + this.self));
 			      }
-			    }._initFields(i);
+			    }._initFields(s, i);
 			    out(new Tuple(new Object[] {_Proc, (this.s + Integer.valueOf(i))}), this.self);
 			    KlavaProcess _Proc_1 = new KlavaProcess() {
 			      private KlavaProcess _initFields() {
@@ -633,7 +635,7 @@ class XklaimCompilerTest {
 			          }
 			          @Override public void executeProcess() {
 			            String _plus = (Integer.valueOf(i) + "");
-			            String _plus_1 = (_plus + TestNodeProcess.this.self);
+			            String _plus_1 = (_plus + this.self);
 			            InputOutput.<String>println(_plus_1);
 			          }
 			        }._initFields(i);
@@ -664,7 +666,7 @@ class XklaimCompilerTest {
 	}
 
 	@Test
-	def void testXklaimOperationsWithNestedProcessAccessignEnclosingScope() {
+	def void testXklaimOperationsWithNestedProcessAccessingEnclosingScope() {
 		'''
 		package foo
 		
@@ -701,20 +703,137 @@ class XklaimCompilerTest {
 			    KlavaProcess _Proc = new KlavaProcess() {
 			      String finalVar;
 			      String nonFinalVar;
-			      private KlavaProcess _initFields(String finalVar, String nonFinalVar) {
+			      String s;
+			      private KlavaProcess _initFields(String finalVar, String nonFinalVar, String s) {
 			        this.finalVar = finalVar;
 			        this.nonFinalVar = nonFinalVar;
+			        this.s = s;
 			        return this;
 			      }
 			      @Override public void executeProcess() {
 			        {
 			          String myLocalVar = "c";
 			          InputOutput.<String>println((finalVar + nonFinalVar));
-			          InputOutput.<String>println(((((TestProcess.this.s + finalVar) + nonFinalVar) + myLocalVar) + TestProcess.this.self));
+			          InputOutput.<String>println(((((this.s + finalVar) + nonFinalVar) + myLocalVar) + this.self));
 			        }
 			      }
-			    }._initFields(finalVar, nonFinalVar);
+			    }._initFields(finalVar, nonFinalVar, s);
 			    out(new Tuple(new Object[] {_Proc, ((this.s + finalVar) + nonFinalVar)}), this.self);
+			  }
+			}
+			'''
+		)
+	}
+
+	@Test
+	def void testXklaimEval() {
+		'''
+		package foo
+		
+		proc P(String s) {
+			
+		}
+		
+		proc TestProcess(String s) {
+			val i = 10
+			eval(proc { println(s + i + self) }, new P("test"))@self
+		}
+		
+		net TestNet physical "tcp-127.0.0.1:9999" {
+			node TestNode {
+				val i = 10
+				eval(proc { println(i + "" + self) })@self
+			}
+		}
+		'''.checkCompilation(
+			"foo.TestProcess" ->
+			'''
+			package foo;
+			
+			import foo.P;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {
+			    final int i = 10;
+			    KlavaProcess _Proc = new KlavaProcess() {
+			      String s;
+			      int i;
+			      private KlavaProcess _initFields(String s, int i) {
+			        this.s = s;
+			        this.i = i;
+			        return this;
+			      }
+			      @Override public void executeProcess() {
+			        InputOutput.<String>println(((this.s + Integer.valueOf(i)) + this.self));
+			      }
+			    }._initFields(s, i);
+			    P _p = new P("test");
+			    eval(_Proc, this.self);
+			    eval(_p, this.self);
+			  }
+			}
+			''',
+			"foo.TestNet" ->
+			'''
+			package foo;
+			
+			import klava.PhysicalLocality;
+			import klava.topology.ClientNode;
+			import klava.topology.KlavaProcess;
+			import klava.topology.LogicalNet;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			import org.mikado.imc.common.IMCException;
+			
+			@SuppressWarnings("all")
+			public class TestNet extends LogicalNet {
+			  public static class TestNode extends ClientNode {
+			    private static class TestNodeProcess extends KlavaProcess {
+			      @Override
+			      public void executeProcess() {
+			        final int i = 10;
+			        KlavaProcess _Proc = new KlavaProcess() {
+			          int i;
+			          private KlavaProcess _initFields(int i) {
+			            this.i = i;
+			            return this;
+			          }
+			          @Override public void executeProcess() {
+			            String _plus = (Integer.valueOf(i) + "");
+			            String _plus_1 = (_plus + this.self);
+			            InputOutput.<String>println(_plus_1);
+			          }
+			        }._initFields(i);
+			        eval(_Proc, this.self);
+			      }
+			    }
+			    
+			    public TestNode() {
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"));
+			    }
+			    
+			    public void addMainProcess() throws IMCException {
+			      addNodeProcess(new TestNet.TestNode.TestNodeProcess());
+			    }
+			  }
+			  
+			  public TestNet() throws IMCException {
+			    super(new PhysicalLocality("tcp-127.0.0.1:9999"));
+			  }
+			  
+			  public void addNodes() throws IMCException {
+			    TestNet.TestNode testNode = new TestNet.TestNode();
+			    testNode.addMainProcess();
 			  }
 			}
 			'''

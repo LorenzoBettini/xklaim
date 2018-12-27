@@ -1,5 +1,6 @@
-package xklaim.examples.helloremote;
+package xklaim.examples.helloremoteeval;
 
+import klava.Locality;
 import klava.LogicalLocality;
 import klava.PhysicalLocality;
 import klava.Tuple;
@@ -10,18 +11,23 @@ import org.eclipse.xtext.xbase.lib.InputOutput;
 import org.mikado.imc.common.IMCException;
 
 @SuppressWarnings("all")
-public class HelloFromReceivedProcNet extends LogicalNet {
+public class HelloRemoveEvalProcNet extends LogicalNet {
   public static class Reader extends ClientNode {
     private static class ReaderProcess extends KlavaProcess {
       @Override
       public void executeProcess() {
         final LogicalLocality writerLoc = new LogicalLocality("writer");
         KlavaProcess _Proc = new KlavaProcess() {
-          private KlavaProcess _initFields() {
+          LogicalLocality writerLoc;
+          private KlavaProcess _initFields(LogicalLocality writerLoc) {
+            this.writerLoc = writerLoc;
             return this;
           }
           @Override public void executeProcess() {
             {
+              Locality _physical = this.getPhysical(writerLoc);
+              String _plus = ("executing at " + _physical);
+              InputOutput.<String>println(_plus);
               String s = null;
               Tuple _Tuple = new Tuple(new Object[] {String.class});
               in(_Tuple, this.self);
@@ -29,8 +35,8 @@ public class HelloFromReceivedProcNet extends LogicalNet {
               InputOutput.<String>println(s);
             }
           }
-        }._initFields();
-        out(new Tuple(new Object[] {_Proc}), writerLoc);
+        }._initFields(writerLoc);
+        eval(_Proc, writerLoc);
       }
     }
     
@@ -39,7 +45,7 @@ public class HelloFromReceivedProcNet extends LogicalNet {
     }
     
     public void addMainProcess() throws IMCException {
-      addNodeProcess(new HelloFromReceivedProcNet.Reader.ReaderProcess());
+      addNodeProcess(new HelloRemoveEvalProcNet.Reader.ReaderProcess());
     }
   }
   
@@ -48,12 +54,6 @@ public class HelloFromReceivedProcNet extends LogicalNet {
       @Override
       public void executeProcess() {
         out(new Tuple(new Object[] {"Hello World"}), this.self);
-        KlavaProcess P = null;
-        Tuple _Tuple = new Tuple(new Object[] {KlavaProcess.class});
-        in(_Tuple, this.self);
-        P = (KlavaProcess) _Tuple.getItem(0);
-        InputOutput.<String>println(("Received proc: " + P));
-        eval(P, this.self);
       }
     }
     
@@ -62,17 +62,17 @@ public class HelloFromReceivedProcNet extends LogicalNet {
     }
     
     public void addMainProcess() throws IMCException {
-      addNodeProcess(new HelloFromReceivedProcNet.Writer.WriterProcess());
+      addNodeProcess(new HelloRemoveEvalProcNet.Writer.WriterProcess());
     }
   }
   
-  public HelloFromReceivedProcNet() throws IMCException {
+  public HelloRemoveEvalProcNet() throws IMCException {
     super(new PhysicalLocality("tcp-127.0.0.1:9999"));
   }
   
   public void addNodes() throws IMCException {
-    HelloFromReceivedProcNet.Reader reader = new HelloFromReceivedProcNet.Reader();
-    HelloFromReceivedProcNet.Writer writer = new HelloFromReceivedProcNet.Writer();
+    HelloRemoveEvalProcNet.Reader reader = new HelloRemoveEvalProcNet.Reader();
+    HelloRemoveEvalProcNet.Writer writer = new HelloRemoveEvalProcNet.Writer();
     reader.addMainProcess();
     writer.addMainProcess();
   }

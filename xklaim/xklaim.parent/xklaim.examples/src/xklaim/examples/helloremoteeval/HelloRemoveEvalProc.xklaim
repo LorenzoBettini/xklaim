@@ -1,20 +1,17 @@
 import klava.LogicalLocality
-import klava.topology.KlavaProcess
 
-package xklaim.examples.helloremote
+package xklaim.examples.helloremoteeval
  
-net HelloFromReceivedProcNet physical "tcp-127.0.0.1:9999" {
+net HelloRemoveEvalProcNet physical "tcp-127.0.0.1:9999" {
 	node Reader logical "reader" {
 		val writerLoc = new LogicalLocality("writer")
-		out(proc {
+		eval(proc {
+			println("executing at " + getPhysical(writerLoc))
 			in(var String s)@self
 			println(s)
 		})@writerLoc
 	}
 	node Writer logical "writer" {
 		out("Hello World")@self
-		in(var KlavaProcess P)@self
-		println("Received proc: " + P)
-		eval(P)@self
 	}
 }
