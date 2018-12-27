@@ -138,3 +138,9 @@ Locality _physical = ReaderProcess.this.getPhysical(writerLoc);
 this is wrong: it should be
 
 Locality _physical = this.getPhysical(writerLoc);
+
+otherwise in a mobile process we refer the old enclosing object which does
+not exist anymore.
+
+DONE
+

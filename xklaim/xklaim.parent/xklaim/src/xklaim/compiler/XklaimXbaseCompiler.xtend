@@ -5,7 +5,8 @@ import klava.Tuple
 import klava.topology.KlavaProcess
 import org.eclipse.emf.common.util.EList
 import org.eclipse.xtext.EcoreUtil2
-import org.eclipse.xtext.common.types.JvmDeclaredType
+import org.eclipse.xtext.common.types.JvmField
+import org.eclipse.xtext.common.types.JvmIdentifiableElement
 import org.eclipse.xtext.xbase.XAbstractFeatureCall
 import org.eclipse.xtext.xbase.XExpression
 import org.eclipse.xtext.xbase.XIfExpression
@@ -15,12 +16,15 @@ import org.eclipse.xtext.xbase.compiler.XbaseCompiler
 import org.eclipse.xtext.xbase.compiler.output.ITreeAppendable
 import xklaim.util.XklaimModelUtil
 import xklaim.xklaim.XklaimAbstractOperation
-import xklaim.xklaim.XklaimInlineProcess
 import xklaim.xklaim.XklaimEvalOperation
+import xklaim.xklaim.XklaimInlineProcess
+import org.eclipse.xtext.xbase.jvmmodel.IJvmModelAssociations
+import org.eclipse.xtext.common.types.JvmFormalParameter
 
 class XklaimXbaseCompiler extends XbaseCompiler {
 
 	@Inject extension XklaimModelUtil
+	@Inject extension IJvmModelAssociations
 
 	override protected doInternalToJavaStatement(XExpression e, ITreeAppendable appendable, boolean isReferenced) {
 		switch (e) {
@@ -189,29 +193,36 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		appendable.append(KlavaProcess)
 		appendable.append("() {")
 		appendable.increaseIndentation.newLine
-		val vars = EcoreUtil2.getAllContentsOfType(proc, XAbstractFeatureCall)
+		val eclosingScopeVars = EcoreUtil2.getAllContentsOfType(proc, XAbstractFeatureCall)
 			.map[feature]
-			.filter(XVariableDeclaration)
-			.filter[appendable.hasName(it)] // no name means not in the enclosing scope
+			.filter[
+				// original process parameters are translated into fields
+				if (it instanceof JvmField)
+					return it.sourceElements.exists[it instanceof JvmFormalParameter]
+				if (it instanceof XVariableDeclaration)
+					return appendable.hasName(it) // no name means not in the enclosing scope
+				else
+					return false
+			]
 			.toSet
-		for (v : vars) {
-			generateTypeAndNameFromVariableDeclaration(v, appendable)
+		for (v : eclosingScopeVars) {
+			generateTypeAndNameFromEnclosingReference(v, appendable)
 			appendable.append(";")
 			appendable.newLine
 		}
 		appendable.append("private ")
 		appendable.append(KlavaProcess)
 		appendable.append(" _initFields(")
-		vars.forEach[v, i|
+		eclosingScopeVars.forEach[v, i|
 			if (i !== 0)
 				appendable.append(", ")
-			generateTypeAndNameFromVariableDeclaration(v, appendable)
+			generateTypeAndNameFromEnclosingReference(v, appendable)
 		]
 		appendable.append(") {")
 		appendable.increaseIndentation
-		for (v : vars) {
+		for (v : eclosingScopeVars) {
 			appendable.newLine
-			val varName = appendable.getName(v)
+			val varName = appendable.getEnclosingScopeVarName(v)
 			appendable.append("this." + varName + " = " + varName)
 			appendable.append(";")
 		}
@@ -222,6 +233,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		appendable.newLine
 		appendable.append("@Override public void executeProcess() {")
 		appendable.increaseIndentation
+		/*
 		// we need to reassign the mapping for this since we generate an
 		// anonymous innerclass, instead of
 		// this.field
@@ -230,31 +242,47 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		appendable.openScope
 		val mappedThis = appendable.getObject("this") as JvmDeclaredType
 		appendable.declareVariable(mappedThis, mappedThis.simpleName + ".this")
+		*/
 		proc.body.internalToJavaStatement(appendable, false)
-		appendable.closeScope
+		// appendable.closeScope
 		appendable.decreaseIndentation.newLine
 		appendable.append("}")
 		appendable.decreaseIndentation.newLine
 		appendable.append("}._initFields(")
-		vars.forEach[v, i|
+		eclosingScopeVars.forEach[v, i|
 			if (i !== 0)
 				appendable.append(", ")
-			appendable.append(appendable.getName(v))
+			appendable.append(appendable.getEnclosingScopeVarName(v))
 		]
 		appendable.append(");")
 	}
-	
-	private def ITreeAppendable generateTypeAndNameFromVariableDeclaration(XVariableDeclaration v, ITreeAppendable appendable) {
-		if (v.getType() !== null) {
-			serialize(v.getType(), v, appendable);
-		} else {
-			var type = getLightweightType(v.getRight());
-			if (type.isAny()) {
-				type = getTypeForVariableDeclaration(v.getRight());
+
+	private def ITreeAppendable generateTypeAndNameFromEnclosingReference(JvmIdentifiableElement v,
+		ITreeAppendable appendable) {
+		if (v instanceof XVariableDeclaration) {
+			if (v.getType() !== null) {
+				serialize(v.getType(), v, appendable);
+			} else {
+				var type = getLightweightType(v.getRight());
+				if (type.isAny()) {
+					type = getTypeForVariableDeclaration(v.getRight());
+				}
+				appendable.append(type);
 			}
-			appendable.append(type);
+			appendable.append(" " + appendable.getName(v))
+		} else {
+			val p = v as JvmField
+			serialize(p.type, p, appendable)
+			appendable.append(" " + p.simpleName)
 		}
-		appendable.append(" " + appendable.getName(v))
+		appendable
+	}
+
+	private def getEnclosingScopeVarName(ITreeAppendable appendable, JvmIdentifiableElement e) {
+		if (e instanceof XVariableDeclaration) {
+			return appendable.getName(e)
+		}
+		return e.simpleName
 	}
 
 	private def ITreeAppendable compileNewTuple(ITreeAppendable appendable, EList<XExpression> arguments) {
