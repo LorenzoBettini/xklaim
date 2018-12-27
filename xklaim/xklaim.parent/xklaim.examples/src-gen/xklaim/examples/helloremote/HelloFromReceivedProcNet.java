@@ -21,7 +21,13 @@ public class HelloFromReceivedProcNet extends LogicalNet {
             return this;
           }
           @Override public void executeProcess() {
-            InputOutput.<String>println("Hello");
+            {
+              String s = null;
+              Tuple _Tuple = new Tuple(new Object[] {String.class});
+              in(_Tuple, ReaderProcess.this.self);
+              s = (String) _Tuple.getItem(0);
+              InputOutput.<String>println(s);
+            }
           }
         }._initFields();
         out(new Tuple(new Object[] {_Proc}), writerLoc);
@@ -47,6 +53,7 @@ public class HelloFromReceivedProcNet extends LogicalNet {
         in(_Tuple, this.self);
         P = (KlavaProcess) _Tuple.getItem(0);
         InputOutput.<String>println(("Received proc: " + P));
+        eval(P, this.self);
       }
     }
     
