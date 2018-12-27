@@ -368,23 +368,23 @@ public class Tuple implements Cloneable, java.io.Serializable {
         t.id = id; // we also set the id of this tuple
 
         for (int i = 0; i < length(); i++) {
-            Object MyElement = getItem(i);
-            Object ItsElement = t.getItem(i);
+            Object myElement = getItem(i);
+            Object itsElement = t.getItem(i);
 
             // we skip bad tuple items
-            if (MyElement == null)
+            if (myElement == null)
                 continue;
 
-            if (ItsElement == null)
+            if (itsElement == null)
                 return false;
 
-            if (ItsElement instanceof Class) {
+            if (itsElement instanceof Class) {
                 try {
-                    Class<?> itsElementClass = (Class<?>) ItsElement;
-                    if (itsElementClass.isAssignableFrom(MyElement.getClass()) &&
-                            !(ItsElement.equals(getClass()))) {
+                    Class<?> itsElementClass = (Class<?>) itsElement;
+                    if (itsElementClass.isAssignableFrom(myElement.getClass()) &&
+                            !(itsElement.equals(getClass()))) {
                         // for security fields of tuple type are not allowed
-                        t.setItem(i, MyElement);
+                        t.setItem(i, myElement);
                     } else {
                         return false;
                     }
@@ -392,27 +392,27 @@ public class Tuple implements Cloneable, java.io.Serializable {
                     System.out.println(e);
                     return false;
                 }
-            } else if (ItsElement instanceof TupleItem) {
-                TupleItem itsElement = (TupleItem) ItsElement;
-                if (itsElement.isFormal()) {
-                	if (itsElement instanceof KlavaProcessVar) {
-                        if (!(MyElement instanceof KlavaProcess))
+            } else if (itsElement instanceof TupleItem) {
+                TupleItem itsTupleItem = (TupleItem) itsElement;
+                if (itsTupleItem.isFormal()) {
+                	if (itsTupleItem instanceof KlavaProcessVar) {
+                        if (!(myElement instanceof KlavaProcess))
                             return false;
-                    } else if (!ItsElement.getClass().isAssignableFrom(MyElement.getClass())) {
+                    } else if (!itsElement.getClass().isAssignableFrom(myElement.getClass())) {
                         return false;
                     }
-                    t.setItem(i, MyElement);
-                } else if (ItsElement.getClass().isAssignableFrom(MyElement.getClass())
-                        && ItsElement.equals(MyElement)) {
+                    t.setItem(i, myElement);
+                } else if (itsElement.getClass().isAssignableFrom(myElement.getClass())
+                        && itsElement.equals(myElement)) {
                     continue;
                 } else
                     return false;
-            } else if (!ItsElement.getClass().equals(MyElement.getClass())) {
+            } else if (!itsElement.getClass().equals(myElement.getClass())) {
                 return false;
-            } else if ((ItsElement.equals(MyElement))
-                    || (MyElement instanceof Tuple
-                            && ItsElement instanceof Tuple && ((Tuple) MyElement)
-                            .match((Tuple) ItsElement))) {
+            } else if ((itsElement.equals(myElement))
+                    || (myElement instanceof Tuple
+                            && itsElement instanceof Tuple && ((Tuple) myElement)
+                            .match((Tuple) itsElement))) {
                 continue;
             } else {
                 return false;
