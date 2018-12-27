@@ -208,6 +208,25 @@ class XklaimValidatorTest {
 		)
 	}
 
+	@Test
+	def void testInlineProc() {
+		'''
+		package foo
+		
+		proc TestProcess(String s) {
+			var nonFinalVar = "a"
+			val finalVar = "b"
+			out(proc {
+				var myLocalVar = "c"
+				println(finalVar + nonFinalVar)
+				println(s + finalVar + nonFinalVar + myLocalVar + self)
+			},
+			proc println(finalVar + nonFinalVar),
+			s + finalVar + nonFinalVar)@self
+		}
+		'''.parse.assertNoIssues
+	}
+
 	def private assertErrorsAsStrings(EObject o, CharSequence expected) {
 		expected.toString.trim.assertEquals(
 			o.validate.filter[severity == Severity.ERROR].map[message].sort.join(System.lineSeparator))

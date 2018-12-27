@@ -552,14 +552,14 @@ class XklaimCompilerTest {
 		
 		proc TestProcess(String s) {
 			val i = 10
-			out({ println(s + i + self) }, s+i)@self
-			out({ println("") }, s+i)@self
+			out(proc { println(s + i + self) }, s+i)@self
+			out(proc println(""), s+i)@self
 		}
 		
 		net TestNet physical "tcp-127.0.0.1:9999" {
 			node TestNode {
 				val i = 10
-				out({ println(i + "" + self) }, i)@self
+				out(proc { println(i + "" + self) }, i)@self
 			}
 		}
 		'''.checkCompilation(
@@ -671,7 +671,7 @@ class XklaimCompilerTest {
 		proc TestProcess(String s) {
 			var nonFinalVar = "a"
 			val finalVar = "b"
-			out({
+			out(proc {
 				var myLocalVar = "c"
 				println(finalVar + nonFinalVar)
 				println(s + finalVar + nonFinalVar + myLocalVar + self)

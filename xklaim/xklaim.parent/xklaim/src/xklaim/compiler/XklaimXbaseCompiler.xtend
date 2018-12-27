@@ -7,7 +7,6 @@ import org.eclipse.emf.common.util.EList
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.common.types.JvmDeclaredType
 import org.eclipse.xtext.xbase.XAbstractFeatureCall
-import org.eclipse.xtext.xbase.XBlockExpression
 import org.eclipse.xtext.xbase.XExpression
 import org.eclipse.xtext.xbase.XIfExpression
 import org.eclipse.xtext.xbase.XVariableDeclaration
@@ -16,6 +15,7 @@ import org.eclipse.xtext.xbase.compiler.XbaseCompiler
 import org.eclipse.xtext.xbase.compiler.output.ITreeAppendable
 import xklaim.util.XklaimModelUtil
 import xklaim.xklaim.XklaimAbstractOperation
+import xklaim.xklaim.XklaimInlineProcess
 
 class XklaimXbaseCompiler extends XbaseCompiler {
 
@@ -93,7 +93,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		}
 
 		for (a : arguments) {
-			if (a instanceof XBlockExpression) {
+			if (a instanceof XklaimInlineProcess) {
 				compileInnerProcess(appendable, a)
 			} else if (!a.isFormalField) {
 				a.internalToJavaStatement(appendable, true)
@@ -145,15 +145,15 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 	 * references to variables in the enclosing scope are turned into fields of the
 	 * inner process so that their values are closed.
 	 */
-	private def ITreeAppendable compileInnerProcess(ITreeAppendable appendable, XBlockExpression a) {
-		val procVarName = appendable.declareSyntheticVariable(a, "_Proc")
+	private def ITreeAppendable compileInnerProcess(ITreeAppendable appendable, XklaimInlineProcess proc) {
+		val procVarName = appendable.declareSyntheticVariable(proc, "_Proc")
 		appendable.newLine
 		appendable.append(KlavaProcess)
 		appendable.append(" " + procVarName + " = new ")
 		appendable.append(KlavaProcess)
 		appendable.append("() {")
 		appendable.increaseIndentation.newLine
-		val vars = EcoreUtil2.getAllContentsOfType(a, XAbstractFeatureCall)
+		val vars = EcoreUtil2.getAllContentsOfType(proc, XAbstractFeatureCall)
 			.map[feature]
 			.filter(XVariableDeclaration)
 			.filter[appendable.hasName(it)] // no name means not in the enclosing scope
@@ -194,7 +194,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		appendable.openScope
 		val mappedThis = appendable.getObject("this") as JvmDeclaredType
 		appendable.declareVariable(mappedThis, mappedThis.simpleName + ".this")
-		a.internalToJavaStatement(appendable, false)
+		proc.body.internalToJavaStatement(appendable, false)
 		appendable.closeScope
 		appendable.decreaseIndentation.newLine
 		appendable.append("}")
@@ -229,7 +229,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			if (i !== 0)
 				appendable.append(", ")
 
-			if (a instanceof XBlockExpression) {
+			if (a instanceof XklaimInlineProcess) {
 				appendable.append(getVarName(a, appendable))
 			} else if (!a.isFormalField) {
 				a.internalToJavaExpression(appendable)

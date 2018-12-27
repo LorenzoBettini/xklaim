@@ -41,6 +41,7 @@ XklaimProcess:
 @Override 
 XPrimaryExpression returns xbase::XExpression:
 	XklaimAbstractOperation |
+	XklaimInlineProcess |
 	super
 ;
 
@@ -58,4 +59,8 @@ XklaimInOperation returns XklaimAbstractOperation:
 
 XklaimNonBlockingInOperation returns XklaimAbstractOperation:
 	{XklaimNonBlockingInOperation} op='in_nb' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
+;
+
+XklaimInlineProcess returns xbase::XExpression:
+	{XklaimInlineProcess} 'proc' body=XExpression
 ;
