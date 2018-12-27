@@ -1,0 +1,14 @@
+import klava.LogicalLocality
+
+package xklaim.examples.hello
+ 
+net HelloNet physical "tcp-127.0.0.1:9999" {
+	node Reader logical "reader" {
+		val writerLoc = new LogicalLocality("writer")
+		in(var String s)@writerLoc
+		println(s)
+	}
+	node Writer logical "writer" {
+		out("Hello World")@self
+	}
+}
