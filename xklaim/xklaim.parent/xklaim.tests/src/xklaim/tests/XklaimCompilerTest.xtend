@@ -721,6 +721,119 @@ class XklaimCompilerTest {
 		)
 	}
 
+	@Test
+	def void testXklaimEval() {
+		'''
+		package foo
+		
+		proc P(String s) {
+			
+		}
+		
+		proc TestProcess(String s) {
+			val i = 10
+			eval(proc { println(s + i + self) }, new P("test"))@self
+		}
+		
+		net TestNet physical "tcp-127.0.0.1:9999" {
+			node TestNode {
+				val i = 10
+				eval(proc { println(i + "" + self) })@self
+			}
+		}
+		'''.checkCompilation(
+			"foo.TestProcess" ->
+			'''
+			package foo;
+			
+			import foo.P;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {
+			    final int i = 10;
+			    KlavaProcess _Proc = new KlavaProcess() {
+			      int i;
+			      private KlavaProcess _initFields(int i) {
+			        this.i = i;
+			        return this;
+			      }
+			      @Override public void executeProcess() {
+			        InputOutput.<String>println(((TestProcess.this.s + Integer.valueOf(i)) + TestProcess.this.self));
+			      }
+			    }._initFields(i);
+			    P _p = new P("test");
+			    eval(_Proc, this.self);
+			    eval(_p, this.self);
+			  }
+			}
+			''',
+			"foo.TestNet" ->
+			'''
+			package foo;
+			
+			import klava.PhysicalLocality;
+			import klava.topology.ClientNode;
+			import klava.topology.KlavaProcess;
+			import klava.topology.LogicalNet;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			import org.mikado.imc.common.IMCException;
+			
+			@SuppressWarnings("all")
+			public class TestNet extends LogicalNet {
+			  public static class TestNode extends ClientNode {
+			    private static class TestNodeProcess extends KlavaProcess {
+			      @Override
+			      public void executeProcess() {
+			        final int i = 10;
+			        KlavaProcess _Proc = new KlavaProcess() {
+			          int i;
+			          private KlavaProcess _initFields(int i) {
+			            this.i = i;
+			            return this;
+			          }
+			          @Override public void executeProcess() {
+			            String _plus = (Integer.valueOf(i) + "");
+			            String _plus_1 = (_plus + TestNodeProcess.this.self);
+			            InputOutput.<String>println(_plus_1);
+			          }
+			        }._initFields(i);
+			        eval(_Proc, this.self);
+			      }
+			    }
+			    
+			    public TestNode() {
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"));
+			    }
+			    
+			    public void addMainProcess() throws IMCException {
+			      addNodeProcess(new TestNet.TestNode.TestNodeProcess());
+			    }
+			  }
+			  
+			  public TestNet() throws IMCException {
+			    super(new PhysicalLocality("tcp-127.0.0.1:9999"));
+			  }
+			  
+			  public void addNodes() throws IMCException {
+			    TestNet.TestNode testNode = new TestNet.TestNode();
+			    testNode.addMainProcess();
+			  }
+			}
+			'''
+		)
+	}
+
 	def private checkCompilation(CharSequence input, CharSequence expectedGeneratedJava) {
 		checkCompilation(input, expectedGeneratedJava, true)
 	}

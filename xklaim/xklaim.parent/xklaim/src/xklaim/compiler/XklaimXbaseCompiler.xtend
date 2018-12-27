@@ -16,6 +16,7 @@ import org.eclipse.xtext.xbase.compiler.output.ITreeAppendable
 import xklaim.util.XklaimModelUtil
 import xklaim.xklaim.XklaimAbstractOperation
 import xklaim.xklaim.XklaimInlineProcess
+import xklaim.xklaim.XklaimEvalOperation
 
 class XklaimXbaseCompiler extends XbaseCompiler {
 
@@ -23,6 +24,9 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 
 	override protected doInternalToJavaStatement(XExpression e, ITreeAppendable appendable, boolean isReferenced) {
 		switch (e) {
+			XklaimEvalOperation: {
+				compileXklaimEvalAsStatement(e, appendable, isReferenced);
+			}
 			XklaimAbstractOperation: {
 				compileXklaimOperationAsStatement(e, appendable, isReferenced);
 			}
@@ -33,7 +37,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 
 	override protected internalToConvertedExpression(XExpression e, ITreeAppendable appendable) {
 		switch (e) {
-			XklaimAbstractOperation: {
+			XklaimAbstractOperation | XklaimInlineProcess : {
 				appendable.append(getVarName(e, appendable))
 			}
 			default:
@@ -138,6 +142,38 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			}
 		}
 		return appendable
+	}
+
+	private def ITreeAppendable compileXklaimEvalAsStatement(XklaimEvalOperation e, ITreeAppendable appendable,
+			boolean isReferenced) {
+		val arguments = e.arguments
+		for (a : arguments) {
+			if (a instanceof XklaimInlineProcess) {
+				compileInnerProcess(appendable, a)
+			} else if (!a.isFormalField) {
+				a.internalToJavaStatement(appendable, true)
+			}
+		}
+		e.locality.internalToJavaStatement(appendable, true)
+
+		if (isReferenced) {
+			val opVar = appendable.declareSyntheticVariable(e, "_" + e.op)
+			appendable.newLine
+			appendable.append(Boolean.TYPE)
+			appendable.append(" " + opVar + " = ")
+		}
+
+		for (a : arguments) {
+			appendable.newLine
+			appendable.append(e.op);
+			appendable.append("(");
+			a.internalToJavaExpression(appendable)
+			appendable.append(", ")
+			e.locality.internalToJavaExpression(appendable)
+			appendable.append(");")
+		}
+
+		appendable
 	}
 
 	/**
