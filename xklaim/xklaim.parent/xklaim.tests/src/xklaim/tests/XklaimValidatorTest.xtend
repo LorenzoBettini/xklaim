@@ -227,6 +227,37 @@ class XklaimValidatorTest {
 		'''.parse.assertNoIssues
 	}
 
+	@Test
+	def void testValidEvalOperation() {
+		'''
+		package foo
+		
+		proc P(String s) {
+			
+		}
+		
+		proc TestProcess(String s) {
+			eval(new P("test"))@self
+			eval(proc println("test"))@self
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testInvalidEvalOperation() {
+		'''
+		package foo
+		
+		proc P(String s) {
+			
+		}
+		
+		proc TestProcess(String s) {
+			eval("test")@self
+		}
+		'''.parse.assertErrorsAsStrings("Type mismatch: cannot convert from String to KlavaProcess")
+	}
+
 	def private assertErrorsAsStrings(EObject o, CharSequence expected) {
 		expected.toString.trim.assertEquals(
 			o.validate.filter[severity == Severity.ERROR].map[message].sort.join(System.lineSeparator))

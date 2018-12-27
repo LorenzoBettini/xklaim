@@ -2,12 +2,13 @@ package xklaim.typesystem
 
 import com.google.inject.Inject
 import klava.Locality
+import klava.topology.KlavaProcess
 import org.eclipse.xtext.xbase.XExpression
 import org.eclipse.xtext.xbase.typesystem.computation.ITypeComputationState
 import xklaim.util.XklaimModelUtil
 import xklaim.xklaim.XklaimAbstractOperation
+import xklaim.xklaim.XklaimEvalOperation
 import xklaim.xklaim.XklaimInlineProcess
-import klava.topology.KlavaProcess
 
 class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 
@@ -15,10 +16,19 @@ class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 
 	override computeTypes(XExpression expression, ITypeComputationState state) {
 		switch (expression) {
+			XklaimEvalOperation: _computeTypes(expression, state)
 			XklaimAbstractOperation: _computeTypes(expression, state)
 			XklaimInlineProcess: _computeTypes(expression, state)
 			default: super.computeTypes(expression, state)
 		}
+	}
+
+	def void _computeTypes(XklaimEvalOperation e, ITypeComputationState state) {
+		state.withExpectation(getRawTypeForName(Locality, state)).computeTypes(e.locality)
+		for (a : e.arguments) {
+			state.withExpectation(getRawTypeForName(KlavaProcess, state)).computeTypes(a)
+		}
+		state.acceptActualType(getPrimitiveVoid(state))
 	}
 
 	def void _computeTypes(XklaimAbstractOperation e, ITypeComputationState state) {
