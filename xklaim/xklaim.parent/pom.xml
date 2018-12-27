@@ -29,6 +29,7 @@
     <module>xklaim</module>
     <module>xklaim.ide</module>
     <module>xklaim.ui</module>
+    <module>xklaim.examples</module>
     <module>xklaim.target</module>
     <module>xklaim.feature</module>
     <module>xklaim.repository</module>
@@ -71,18 +72,35 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.eclipse.tycho.extras</groupId>
+        <artifactId>tycho-pack200b-plugin</artifactId>
+        <version>${tycho-version}</version>
+        <executions>
+          <execution>
+            <id>pack200-pack</id>
+            <goals>
+              <goal>pack</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.eclipse.tycho</groupId>
         <artifactId>tycho-p2-plugin</artifactId>
         <version>${tycho-version}</version>
         <executions>
           <execution>
-            <id>attach-p2-metadata</id>
-            <phase>package</phase>
+            <id>p2-metadata</id>
             <goals>
               <goal>p2-metadata</goal>
             </goals>
+            <phase>package</phase>
           </execution>
         </executions>
+        <configuration>
+          <defaultP2Metadata>false</defaultP2Metadata>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
@@ -113,6 +131,7 @@
               <arch>x86_64</arch>
             </environment>
           </environments>
+          <includePackedArtifacts>true</includePackedArtifacts>
         </configuration>
       </plugin>
     </plugins>
