@@ -234,6 +234,8 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		appendable.append("@Override public void executeProcess() {")
 		appendable.increaseIndentation
 		/*
+		 * NO: we manually "close" the inner process by passing
+		 * arguments for referred local variables and process parameters
 		// we need to reassign the mapping for this since we generate an
 		// anonymous innerclass, instead of
 		// this.field
