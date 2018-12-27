@@ -220,7 +220,9 @@ class XklaimValidatorTest {
 				var myLocalVar = "c"
 				println(finalVar + nonFinalVar)
 				println(s + finalVar + nonFinalVar + myLocalVar + self)
-			}, s + finalVar + nonFinalVar)@self
+			},
+			proc println(finalVar + nonFinalVar),
+			s + finalVar + nonFinalVar)@self
 		}
 		'''.parse.assertNoIssues
 	}
