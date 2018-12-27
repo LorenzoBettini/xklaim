@@ -378,10 +378,11 @@ public class Tuple implements Cloneable, java.io.Serializable {
             if (ItsElement == null)
                 return false;
 
-            if (ItsElement instanceof Class
-                    && ItsElement.equals(MyElement.getClass())) {
+            if (ItsElement instanceof Class) {
                 try {
-                    if (!(ItsElement.equals(getClass()))) {
+                    Class<?> itsElementClass = (Class<?>) ItsElement;
+                    if (itsElementClass.isAssignableFrom(MyElement.getClass()) &&
+                            !(ItsElement.equals(getClass()))) {
                         // for security fields of tuple type are not allowed
                         t.setItem(i, MyElement);
                     } else {
@@ -397,12 +398,11 @@ public class Tuple implements Cloneable, java.io.Serializable {
                 	if (itsElement instanceof KlavaProcessVar) {
                         if (!(MyElement instanceof KlavaProcess))
                             return false;
-                    } else if (!MyElement.getClass().getName().equals(
-                            ItsElement.getClass().getName())) {
+                    } else if (!ItsElement.getClass().isAssignableFrom(MyElement.getClass())) {
                         return false;
                     }
                     t.setItem(i, MyElement);
-                } else if (ItsElement.getClass().equals(MyElement.getClass())
+                } else if (ItsElement.getClass().isAssignableFrom(MyElement.getClass())
                         && ItsElement.equals(MyElement)) {
                     continue;
                 } else

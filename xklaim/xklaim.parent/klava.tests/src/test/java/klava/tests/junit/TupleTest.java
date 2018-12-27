@@ -23,12 +23,47 @@ import klava.topology.KlavaProcessVar;
  */
 public class TupleTest extends TestCase {
 
-    protected void setUp() throws Exception {
+	private static class BaseClass {
+		
+	}
+
+	private static class DerivedClass extends BaseClass {
+		
+	}
+
+	protected void setUp() throws Exception {
         super.setUp();
     }
 
     protected void tearDown() throws Exception {
         super.tearDown();
+    }
+
+    public void testExactTypeMatch() {
+    	BaseClass o1 = new BaseClass();
+    	Tuple tuple = new Tuple(o1);
+    	Tuple template = new Tuple(BaseClass.class);
+    	
+    	boolean matched = tuple.match(template);
+        assertTrue(matched);
+    }
+
+    public void testSubtypeMatch() {
+    	BaseClass o1 = new DerivedClass();
+    	Tuple tuple = new Tuple(o1);
+    	Tuple template = new Tuple(BaseClass.class);
+    	
+    	boolean matched = tuple.match(template);
+        assertTrue(matched);
+    }
+
+    public void testSupertypeMatch() {
+        BaseClass o1 = new BaseClass();
+        Tuple tuple = new Tuple(o1);
+        Tuple template = new Tuple(DerivedClass.class);
+        
+        boolean matched = tuple.match(template);
+        assertFalse(matched);
     }
 
     public void testProcessMatch() {
