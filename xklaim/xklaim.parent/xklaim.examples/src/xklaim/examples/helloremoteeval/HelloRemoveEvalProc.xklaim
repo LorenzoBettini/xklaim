@@ -6,7 +6,7 @@ net HelloRemoveEvalProcNet physical "tcp-127.0.0.1:9999" {
 	node Reader logical "reader" {
 		val writerLoc = new LogicalLocality("writer")
 		eval(proc {
-//			println("executing at " + getPhysical(writerLoc))
+			println("executing at " + getPhysical(writerLoc))
 			in(var String s)@self
 			println(s)
 		})@writerLoc

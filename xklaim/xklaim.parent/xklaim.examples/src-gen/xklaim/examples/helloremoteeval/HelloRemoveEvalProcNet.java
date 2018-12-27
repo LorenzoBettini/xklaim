@@ -1,5 +1,6 @@
 package xklaim.examples.helloremoteeval;
 
+import klava.Locality;
 import klava.LogicalLocality;
 import klava.PhysicalLocality;
 import klava.Tuple;
@@ -17,19 +18,24 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
       public void executeProcess() {
         final LogicalLocality writerLoc = new LogicalLocality("writer");
         KlavaProcess _Proc = new KlavaProcess() {
-          private KlavaProcess _initFields() {
+          LogicalLocality writerLoc;
+          private KlavaProcess _initFields(LogicalLocality writerLoc) {
+            this.writerLoc = writerLoc;
             return this;
           }
           @Override public void executeProcess() {
             {
+              Locality _physical = this.getPhysical(writerLoc);
+              String _plus = ("executing at " + _physical);
+              InputOutput.<String>println(_plus);
               String s = null;
               Tuple _Tuple = new Tuple(new Object[] {String.class});
-              in(_Tuple, ReaderProcess.this.self);
+              in(_Tuple, this.self);
               s = (String) _Tuple.getItem(0);
               InputOutput.<String>println(s);
             }
           }
-        }._initFields();
+        }._initFields(writerLoc);
         eval(_Proc, writerLoc);
       }
     }
