@@ -29,6 +29,7 @@
     <module>xklaim</module>
     <module>xklaim.ide</module>
     <module>xklaim.ui</module>
+    <module>xklaim.examples</module>
     <module>xklaim.target</module>
     <module>xklaim.feature</module>
     <module>xklaim.repository</module>
