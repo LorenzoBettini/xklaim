@@ -9,6 +9,7 @@ net HelloRemoveEvalProcNet physical "tcp-127.0.0.1:9999" {
 			println("executing at " + getPhysical(writerLoc))
 			in(var String s)@self
 			println(s)
+			System.exit(0)
 		})@writerLoc
 	}
 	node Writer logical "writer" {

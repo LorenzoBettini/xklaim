@@ -21,6 +21,7 @@ public class HelloNet extends LogicalNet {
         in(_Tuple, writerLoc);
         s = (String) _Tuple.getItem(0);
         InputOutput.<String>println(s);
+        System.exit(0);
       }
     }
     

@@ -27,6 +27,7 @@ public class HelloFromReceivedProcNet extends LogicalNet {
               in(_Tuple, this.self);
               s = (String) _Tuple.getItem(0);
               InputOutput.<String>println(s);
+              System.exit(0);
             }
           }
         }._initFields();

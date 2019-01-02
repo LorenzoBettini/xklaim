@@ -9,6 +9,7 @@ net HelloFromReceivedProcNet physical "tcp-127.0.0.1:9999" {
 		out(proc {
 			in(var String s)@self
 			println(s)
+			System.exit(0)
 		})@writerLoc
 	}
 	node Writer logical "writer" {
