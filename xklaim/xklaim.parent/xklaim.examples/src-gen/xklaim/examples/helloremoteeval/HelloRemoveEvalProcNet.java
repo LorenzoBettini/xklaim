@@ -1,10 +1,10 @@
 package xklaim.examples.helloremoteeval;
 
-import klava.Locality;
 import klava.LogicalLocality;
 import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.topology.ClientNode;
+import klava.topology.KlavaNodeCoordinator;
 import klava.topology.KlavaProcess;
 import klava.topology.LogicalNet;
 import org.eclipse.xtext.xbase.lib.InputOutput;
@@ -13,7 +13,7 @@ import org.mikado.imc.common.IMCException;
 @SuppressWarnings("all")
 public class HelloRemoveEvalProcNet extends LogicalNet {
   public static class Reader extends ClientNode {
-    private static class ReaderProcess extends KlavaProcess {
+    private static class ReaderProcess extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
         final LogicalLocality writerLoc = new LogicalLocality("writer");
@@ -25,7 +25,7 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
           }
           @Override public void executeProcess() {
             {
-              Locality _physical = this.getPhysical(writerLoc);
+              PhysicalLocality _physical = this.getPhysical(writerLoc);
               String _plus = ("executing at " + _physical);
               InputOutput.<String>println(_plus);
               String s = null;
@@ -46,12 +46,12 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
     }
     
     public void addMainProcess() throws IMCException {
-      addNodeProcess(new HelloRemoveEvalProcNet.Reader.ReaderProcess());
+      addNodeCoordinator(new HelloRemoveEvalProcNet.Reader.ReaderProcess());
     }
   }
   
   public static class Writer extends ClientNode {
-    private static class WriterProcess extends KlavaProcess {
+    private static class WriterProcess extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
         out(new Tuple(new Object[] {"Hello World"}), this.self);
@@ -63,7 +63,7 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
     }
     
     public void addMainProcess() throws IMCException {
-      addNodeProcess(new HelloRemoveEvalProcNet.Writer.WriterProcess());
+      addNodeCoordinator(new HelloRemoveEvalProcNet.Writer.WriterProcess());
     }
   }
   
