@@ -26,7 +26,7 @@ class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 	def void _computeTypes(XklaimEvalOperation e, ITypeComputationState state) {
 		state.withExpectation(getRawTypeForName(Locality, state)).computeTypes(e.locality)
 		for (a : e.arguments) {
-			state.withExpectation(getRawTypeForName(KlavaProcess, state)).computeTypes(a)
+			state.withoutExpectation.computeTypes(a)
 		}
 		state.acceptActualType(getPrimitiveVoid(state))
 	}

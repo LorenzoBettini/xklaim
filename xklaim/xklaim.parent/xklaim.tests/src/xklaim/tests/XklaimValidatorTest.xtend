@@ -262,7 +262,7 @@ class XklaimValidatorTest {
 	}
 
 	@Test
-	def void testInvalidEvalOperation() {
+	def void testEvalOperationWithoutExplicitInnerProc() {
 		'''
 		package foo
 		
@@ -273,7 +273,7 @@ class XklaimValidatorTest {
 		proc TestProcess(String s) {
 			eval("test")@self
 		}
-		'''.parse.assertErrorsAsStrings("Type mismatch: cannot convert from String to KlavaProcess")
+		'''.parse.assertNoIssues
 	}
 
 	def private assertErrorsAsStrings(EObject o, CharSequence expected) {

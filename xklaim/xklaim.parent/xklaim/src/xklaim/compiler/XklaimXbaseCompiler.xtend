@@ -153,8 +153,11 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			boolean isReferenced) {
 		val arguments = e.arguments
 		for (a : arguments) {
-			if (!a.isFormalField) {
+			if (getLightweightType(a).isSubtypeOf(KlavaProcess)) {
 				a.internalToJavaStatement(appendable, true)
+			} else {
+				val procVarName = declareSyntheticVariableForInnerProcess(a, appendable)
+				compileAsInnerProcess(a, appendable, procVarName)
 			}
 		}
 		e.locality.internalToJavaStatement(appendable, true)
@@ -170,7 +173,13 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			appendable.newLine
 			appendable.append(e.op);
 			appendable.append("(");
-			a.internalToJavaExpression(appendable)
+			// we cannot assume it has already been compiled with a synthetic variable
+			// e.g., referring directly to a variable of type process
+			if (appendable.hasName(a)) {
+				appendable.append(getVarName(a, appendable))
+			} else {
+				a.internalToJavaExpression(appendable)
+			}
 			appendable.append(", ")
 			e.locality.internalToJavaExpression(appendable)
 			appendable.append(");")
@@ -179,14 +188,21 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		appendable
 	}
 
+	private def ITreeAppendable compileInnerProcess(ITreeAppendable appendable, XklaimInlineProcess proc) {
+		val procVarName = declareSyntheticVariableForInnerProcess(proc, appendable)
+		compileAsInnerProcess(proc.body, appendable, procVarName)
+	}
+
+	private def String declareSyntheticVariableForInnerProcess(XExpression e, ITreeAppendable appendable) {
+		appendable.declareSyntheticVariable(e, "_Proc")
+	}
+
 	/**
-	 * Creates an anonymous inner class for the code block representing the process;
+	 * Creates an anonymous inner class for the expression representing the inner process body;
 	 * references to variables in the enclosing scope are turned into fields of the
 	 * inner process so that their values are closed.
 	 */
-	private def ITreeAppendable compileInnerProcess(ITreeAppendable appendable, XklaimInlineProcess proc) {
-		val procVarName = appendable.declareSyntheticVariable(proc, "_Proc")
-		val body = proc.body
+	private def ITreeAppendable compileAsInnerProcess(XExpression body, ITreeAppendable appendable, String procVarName) {
 		appendable.newLine
 		appendable.append(KlavaProcess)
 		appendable.append(" " + procVarName + " = new ")
