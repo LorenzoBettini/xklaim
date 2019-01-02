@@ -6,6 +6,7 @@ import klava.topology.KlavaProcess
 import org.eclipse.emf.common.util.EList
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.common.types.JvmField
+import org.eclipse.xtext.common.types.JvmFormalParameter
 import org.eclipse.xtext.common.types.JvmIdentifiableElement
 import org.eclipse.xtext.xbase.XAbstractFeatureCall
 import org.eclipse.xtext.xbase.XExpression
@@ -14,12 +15,11 @@ import org.eclipse.xtext.xbase.XVariableDeclaration
 import org.eclipse.xtext.xbase.XWhileExpression
 import org.eclipse.xtext.xbase.compiler.XbaseCompiler
 import org.eclipse.xtext.xbase.compiler.output.ITreeAppendable
+import org.eclipse.xtext.xbase.jvmmodel.IJvmModelAssociations
 import xklaim.util.XklaimModelUtil
 import xklaim.xklaim.XklaimAbstractOperation
 import xklaim.xklaim.XklaimEvalOperation
 import xklaim.xklaim.XklaimInlineProcess
-import org.eclipse.xtext.xbase.jvmmodel.IJvmModelAssociations
-import org.eclipse.xtext.common.types.JvmFormalParameter
 
 class XklaimXbaseCompiler extends XbaseCompiler {
 
@@ -33,6 +33,9 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			}
 			XklaimAbstractOperation: {
 				compileXklaimOperationAsStatement(e, appendable, isReferenced);
+			}
+			XklaimInlineProcess: {
+				compileInnerProcess(appendable, e)
 			}
 			default:
 				super.doInternalToJavaStatement(e, appendable, isReferenced)
@@ -101,9 +104,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		}
 
 		for (a : arguments) {
-			if (a instanceof XklaimInlineProcess) {
-				compileInnerProcess(appendable, a)
-			} else if (!a.isFormalField) {
+			if (!a.isFormalField) {
 				a.internalToJavaStatement(appendable, true)
 			}
 		}
@@ -152,9 +153,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			boolean isReferenced) {
 		val arguments = e.arguments
 		for (a : arguments) {
-			if (a instanceof XklaimInlineProcess) {
-				compileInnerProcess(appendable, a)
-			} else if (!a.isFormalField) {
+			if (!a.isFormalField) {
 				a.internalToJavaStatement(appendable, true)
 			}
 		}
@@ -187,13 +186,14 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 	 */
 	private def ITreeAppendable compileInnerProcess(ITreeAppendable appendable, XklaimInlineProcess proc) {
 		val procVarName = appendable.declareSyntheticVariable(proc, "_Proc")
+		val body = proc.body
 		appendable.newLine
 		appendable.append(KlavaProcess)
 		appendable.append(" " + procVarName + " = new ")
 		appendable.append(KlavaProcess)
 		appendable.append("() {")
 		appendable.increaseIndentation.newLine
-		val eclosingScopeVars = EcoreUtil2.getAllContentsOfType(proc, XAbstractFeatureCall)
+		val eclosingScopeVars = EcoreUtil2.getAllContentsOfType(body, XAbstractFeatureCall)
 			.map[feature]
 			.filter[
 				// original process parameters are translated into fields
@@ -245,7 +245,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		val mappedThis = appendable.getObject("this") as JvmDeclaredType
 		appendable.declareVariable(mappedThis, mappedThis.simpleName + ".this")
 		*/
-		proc.body.internalToJavaStatement(appendable, false)
+		body.internalToJavaStatement(appendable, false)
 		// appendable.closeScope
 		appendable.decreaseIndentation.newLine
 		appendable.append("}")
@@ -295,9 +295,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			if (i !== 0)
 				appendable.append(", ")
 
-			if (a instanceof XklaimInlineProcess) {
-				appendable.append(getVarName(a, appendable))
-			} else if (!a.isFormalField) {
+			if (!a.isFormalField) {
 				a.internalToJavaExpression(appendable)
 			} else {
 				appendable.append((a as XVariableDeclaration).type.type)
