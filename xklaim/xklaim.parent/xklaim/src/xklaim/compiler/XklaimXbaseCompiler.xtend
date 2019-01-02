@@ -34,6 +34,9 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			XklaimAbstractOperation: {
 				compileXklaimOperationAsStatement(e, appendable, isReferenced);
 			}
+			XklaimInlineProcess: {
+				compileInnerProcess(appendable, e)
+			}
 			default:
 				super.doInternalToJavaStatement(e, appendable, isReferenced)
 		}
@@ -101,9 +104,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		}
 
 		for (a : arguments) {
-			if (a instanceof XklaimInlineProcess) {
-				compileInnerProcess(appendable, a)
-			} else if (!a.isFormalField) {
+			if (!a.isFormalField) {
 				a.internalToJavaStatement(appendable, true)
 			}
 		}
@@ -152,9 +153,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			boolean isReferenced) {
 		val arguments = e.arguments
 		for (a : arguments) {
-			if (a instanceof XklaimInlineProcess) {
-				compileInnerProcess(appendable, a)
-			} else if (!a.isFormalField) {
+			if (!a.isFormalField) {
 				a.internalToJavaStatement(appendable, true)
 			}
 		}
