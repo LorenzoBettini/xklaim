@@ -149,5 +149,9 @@ EVAL ARGUMENTS
 - standard expressions considered as inner processes
 - if it's already a KlavaProcess then use it as it is
 
+in(var KlavaProcess P)@self
+println("Received proc: " + P)
+eval(P)@self
+
 DONE
 

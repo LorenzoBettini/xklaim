@@ -173,7 +173,13 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			appendable.newLine
 			appendable.append(e.op);
 			appendable.append("(");
-			appendable.append(getVarName(a, appendable))
+			// we cannot assume it has already been compiled with a synthetic variable
+			// e.g., referring directly to a variable of type process
+			if (appendable.hasName(a)) {
+				appendable.append(getVarName(a, appendable))
+			} else {
+				a.internalToJavaExpression(appendable)
+			}
 			appendable.append(", ")
 			e.locality.internalToJavaExpression(appendable)
 			appendable.append(");")
