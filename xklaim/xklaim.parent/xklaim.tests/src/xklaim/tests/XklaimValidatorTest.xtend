@@ -209,7 +209,7 @@ class XklaimValidatorTest {
 	}
 
 	@Test
-	def void testInlineProc() {
+	def void testInlineProcInOperations() {
 		'''
 		package foo
 		
@@ -223,6 +223,24 @@ class XklaimValidatorTest {
 			},
 			proc println(finalVar + nonFinalVar),
 			s + finalVar + nonFinalVar)@self
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testInlineProcInVariable() {
+		'''
+		package foo
+		
+		proc TestProcess(String s) {
+			var nonFinalVar = "a"
+			val finalVar = "b"
+			val P = proc {
+				var myLocalVar = "c"
+				println(finalVar + nonFinalVar)
+				println(s + finalVar + nonFinalVar + myLocalVar + self)
+			}
+			out(P)@self
 		}
 		'''.parse.assertNoIssues
 	}

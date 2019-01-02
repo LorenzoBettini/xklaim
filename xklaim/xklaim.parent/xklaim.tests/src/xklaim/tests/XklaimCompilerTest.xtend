@@ -666,6 +666,56 @@ class XklaimCompilerTest {
 	}
 
 	@Test
+	def void testXklaimInlineProcess() {
+		'''
+		package foo
+		
+		proc TestProcess(String s) {
+			val i = 10
+			val P = proc { println(s + i + self) }
+			out(P)@self
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.Tuple;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			  
+			  public TestProcess(final String s) {
+			    super("foo.TestProcess");
+			    this.s = s;
+			  }
+			  
+			  @Override
+			  public void executeProcess() {
+			    final int i = 10;
+			    KlavaProcess _Proc = new KlavaProcess() {
+			      String s;
+			      int i;
+			      private KlavaProcess _initFields(String s, int i) {
+			        this.s = s;
+			        this.i = i;
+			        return this;
+			      }
+			      @Override public void executeProcess() {
+			        InputOutput.<String>println(((this.s + Integer.valueOf(i)) + this.self));
+			      }
+			    }._initFields(s, i);
+			    final KlavaProcess P = _Proc;
+			    out(new Tuple(new Object[] {P}), this.self);
+			  }
+			}
+			'''
+		)
+	}
+
+	@Test
 	def void testXklaimOperationsWithInlineProcessAccessingEnclosingScope() {
 		'''
 		package foo
