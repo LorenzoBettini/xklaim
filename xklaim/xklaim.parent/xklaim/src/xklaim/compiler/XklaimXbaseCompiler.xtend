@@ -296,9 +296,7 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			if (i !== 0)
 				appendable.append(", ")
 
-			if (a instanceof XklaimInlineProcess) {
-				appendable.append(getVarName(a, appendable))
-			} else if (!a.isFormalField) {
+			if (!a.isFormalField) {
 				a.internalToJavaExpression(appendable)
 			} else {
 				appendable.append((a as XVariableDeclaration).type.type)
