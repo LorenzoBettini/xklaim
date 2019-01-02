@@ -1,3 +1,11 @@
+NODECOORDINATOR
+
+PROCCALL
+
+KlavaProcess P_@procname@ = new @procname@();
+@nodename@.addProcess( P_@procname@ ) ;
+P_@procname@.join();
+
 NEWLOC
 
 HIERARCHICAL
