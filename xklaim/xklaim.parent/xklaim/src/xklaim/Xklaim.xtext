@@ -46,7 +46,9 @@ XPrimaryExpression returns xbase::XExpression:
 ;
 
 XklaimAbstractOperation returns xbase::XExpression:
-	XklaimOutOperation | XklaimInOperation | XklaimNonBlockingInOperation |
+	XklaimOutOperation |
+	XklaimInOperation | XklaimNonBlockingInOperation |
+	XklaimReadOperation | XklaimNonBlockingReadOperation |
 	XklaimEvalOperation
 ;
 
@@ -60,6 +62,14 @@ XklaimInOperation returns XklaimAbstractOperation:
 
 XklaimNonBlockingInOperation returns XklaimAbstractOperation:
 	{XklaimNonBlockingInOperation} op='in_nb' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
+;
+
+XklaimReadOperation returns XklaimAbstractOperation:
+	{XklaimReadOperation} op='read' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
+;
+
+XklaimNonBlockingReadOperation returns XklaimAbstractOperation:
+	{XklaimNonBlockingReadOperation} op='read_nb' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
 ;
 
 XklaimEvalOperation returns XklaimAbstractOperation:
