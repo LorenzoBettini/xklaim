@@ -789,7 +789,8 @@ class XklaimCompilerTest {
 			// with explicit inner proc
 			eval(proc { println(s + i + self) }, new P("test"))@self
 			// without explicit inner proc
-			eval(println(s + i + self), "test")@self
+			var P = proc { }
+			eval(println(s + i + self), "test", P)@self
 		}
 		
 		net TestNet physical "tcp-127.0.0.1:9999" {
@@ -835,6 +836,14 @@ class XklaimCompilerTest {
 			    eval(_Proc, this.self);
 			    eval(_p, this.self);
 			    KlavaProcess _Proc_1 = new KlavaProcess() {
+			      private KlavaProcess _initFields() {
+			        return this;
+			      }
+			      @Override public void executeProcess() {
+			      }
+			    }._initFields();
+			    KlavaProcess P = _Proc_1;
+			    KlavaProcess _Proc_2 = new KlavaProcess() {
 			      String s;
 			      int i;
 			      private KlavaProcess _initFields(String s, int i) {
@@ -846,7 +855,7 @@ class XklaimCompilerTest {
 			        InputOutput.<String>println(((this.s + Integer.valueOf(i)) + this.self));
 			      }
 			    }._initFields(s, i);
-			    KlavaProcess _Proc_2 = new KlavaProcess() {
+			    KlavaProcess _Proc_3 = new KlavaProcess() {
 			      private KlavaProcess _initFields() {
 			        return this;
 			      }
@@ -854,8 +863,9 @@ class XklaimCompilerTest {
 			        /* "test" */
 			      }
 			    }._initFields();
-			    eval(_Proc_1, this.self);
 			    eval(_Proc_2, this.self);
+			    eval(_Proc_3, this.self);
+			    eval(P, this.self);
 			  }
 			}
 			''',
