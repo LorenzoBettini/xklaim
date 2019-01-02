@@ -76,7 +76,7 @@ class XklaimCompilerTest {
 		'''
 		package foo
 		net TestNet physical "tcp-127.0.0.1:9999" {
-			node TestNode {
+			node TestNode logical "bar" {
 				println("Hello")
 			}
 			node TestNodeWithLogLoc logical "foo" {
@@ -107,7 +107,7 @@ class XklaimCompilerTest {
 			    }
 			    
 			    public TestNode() {
-			      super(new PhysicalLocality("tcp-127.0.0.1:9999"));
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("bar"));
 			    }
 			    
 			    public void addMainProcess() throws IMCException {
@@ -582,7 +582,7 @@ class XklaimCompilerTest {
 		}
 		
 		net TestNet physical "tcp-127.0.0.1:9999" {
-			node TestNode {
+			node TestNode logical "foo" {
 				val i = 10
 				out(proc { println(i + "" + self) }, i)@self
 			}
@@ -637,6 +637,7 @@ class XklaimCompilerTest {
 			'''
 			package foo;
 			
+			import klava.LogicalLocality;
 			import klava.PhysicalLocality;
 			import klava.Tuple;
 			import klava.topology.ClientNode;
@@ -669,7 +670,7 @@ class XklaimCompilerTest {
 			    }
 			    
 			    public TestNode() {
-			      super(new PhysicalLocality("tcp-127.0.0.1:9999"));
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("foo"));
 			    }
 			    
 			    public void addMainProcess() throws IMCException {
@@ -819,7 +820,7 @@ class XklaimCompilerTest {
 		}
 		
 		net TestNet physical "tcp-127.0.0.1:9999" {
-			node TestNode {
+			node TestNode logical "foo" {
 				val i = 10
 				eval(proc { println(i + "" + self) })@self
 			}
@@ -898,6 +899,7 @@ class XklaimCompilerTest {
 			'''
 			package foo;
 			
+			import klava.LogicalLocality;
 			import klava.PhysicalLocality;
 			import klava.topology.ClientNode;
 			import klava.topology.KlavaProcess;
@@ -929,7 +931,7 @@ class XklaimCompilerTest {
 			    }
 			    
 			    public TestNode() {
-			      super(new PhysicalLocality("tcp-127.0.0.1:9999"));
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("foo"));
 			    }
 			    
 			    public void addMainProcess() throws IMCException {
