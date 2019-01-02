@@ -118,6 +118,11 @@ class XklaimValidatorTest {
 			} else {
 				println(l + i)
 			}
+			if (read_nb(val Integer i, s)@self) {
+				println(i)
+			} else {
+				println(i)
+			}
 		}
 		'''.parse.assertNoIssues
 	}

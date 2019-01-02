@@ -4,6 +4,7 @@ import org.eclipse.xtext.xbase.XExpression
 import org.eclipse.xtext.xbase.XVariableDeclaration
 import xklaim.xklaim.XklaimAbstractOperation
 import xklaim.xklaim.XklaimNonBlockingInOperation
+import xklaim.xklaim.XklaimNonBlockingReadOperation
 
 class XklaimModelUtil {
 
@@ -16,6 +17,8 @@ class XklaimModelUtil {
 	}
 
 	def isNonBlockingOperation(XklaimAbstractOperation o) {
-		return o instanceof XklaimNonBlockingInOperation
+		return
+			o instanceof XklaimNonBlockingInOperation ||
+			o instanceof XklaimNonBlockingReadOperation
 	}
 }
