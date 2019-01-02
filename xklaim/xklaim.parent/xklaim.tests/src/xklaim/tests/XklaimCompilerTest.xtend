@@ -202,6 +202,9 @@ class XklaimCompilerTest {
 			in(s, var Integer i, val Boolean b)@self
 			println(i)
 			println(b)
+			read(s, var Integer i2, val Boolean b2)@self
+			println(i2)
+			println(b2)
 		}
 		'''.checkCompilation(
 			'''
@@ -231,6 +234,14 @@ class XklaimCompilerTest {
 			    b = (Boolean) _Tuple.getItem(2);
 			    InputOutput.<Integer>println(i);
 			    InputOutput.<Boolean>println(b);
+			    Integer i2 = null;
+			    final Boolean b2;
+			    Tuple _Tuple_1 = new Tuple(new Object[] {this.s, Integer.class, Boolean.class});
+			    read(_Tuple_1, this.self);
+			    i2 = (Integer) _Tuple_1.getItem(1);
+			    b2 = (Boolean) _Tuple_1.getItem(2);
+			    InputOutput.<Integer>println(i2);
+			    InputOutput.<Boolean>println(b2);
 			  }
 			}
 			'''
@@ -243,6 +254,11 @@ class XklaimCompilerTest {
 		package foo
 		proc TestProcess(String s) {
 			if (in_nb(var Integer i, s)@self) {
+				println(i)
+			} else {
+				val res = i
+			}
+			if (read_nb(var Integer i, s)@self) {
 				println(i)
 			} else {
 				val res = i
@@ -275,6 +291,15 @@ class XklaimCompilerTest {
 			      InputOutput.<Integer>println(i);
 			    } else {
 			      final Integer res = i;
+			    }
+			    Integer i_1 = null;
+			    Tuple _Tuple_1 = new Tuple(new Object[] {Integer.class, this.s});
+			    boolean _read_nb = read_nb(_Tuple_1, this.self);
+			    i_1 = (Integer) _Tuple_1.getItem(0);
+			    if (_read_nb) {
+			      InputOutput.<Integer>println(i_1);
+			    } else {
+			      final Integer res_1 = i_1;
 			    }
 			  }
 			}
