@@ -546,7 +546,7 @@ class XklaimCompilerTest {
 	}
 
 	@Test
-	def void testXklaimOperationsWithNestedProcess() {
+	def void testXklaimOperationsWithInlineProcess() {
 		'''
 		package foo
 		
@@ -666,7 +666,7 @@ class XklaimCompilerTest {
 	}
 
 	@Test
-	def void testXklaimOperationsWithNestedProcessAccessingEnclosingScope() {
+	def void testXklaimOperationsWithInlineProcessAccessingEnclosingScope() {
 		'''
 		package foo
 		
