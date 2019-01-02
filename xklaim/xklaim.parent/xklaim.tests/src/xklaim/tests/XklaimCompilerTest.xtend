@@ -36,13 +36,13 @@ class XklaimCompilerTest {
 			package foo;
 			
 			import klava.topology.KlavaNode;
-			import klava.topology.KlavaProcess;
+			import klava.topology.KlavaNodeCoordinator;
 			import org.eclipse.xtext.xbase.lib.InputOutput;
 			import org.mikado.imc.common.IMCException;
 			
 			@SuppressWarnings("all")
 			public class TestNode extends KlavaNode {
-			  private static class TestNodeProcess extends KlavaProcess {
+			  private static class TestNodeProcess extends KlavaNodeCoordinator {
 			    @Override
 			    public void executeProcess() {
 			      InputOutput.<String>println("Hello");
@@ -50,7 +50,7 @@ class XklaimCompilerTest {
 			  }
 			  
 			  public void addMainProcess() throws IMCException {
-			    addNodeProcess(new TestNode.TestNodeProcess());
+			    addNodeCoordinator(new TestNode.TestNodeProcess());
 			  }
 			}
 			''',
@@ -91,7 +91,7 @@ class XklaimCompilerTest {
 			import klava.LogicalLocality;
 			import klava.PhysicalLocality;
 			import klava.topology.ClientNode;
-			import klava.topology.KlavaProcess;
+			import klava.topology.KlavaNodeCoordinator;
 			import klava.topology.LogicalNet;
 			import org.eclipse.xtext.xbase.lib.InputOutput;
 			import org.mikado.imc.common.IMCException;
@@ -99,7 +99,7 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
 			  public static class TestNode extends ClientNode {
-			    private static class TestNodeProcess extends KlavaProcess {
+			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
 			      public void executeProcess() {
 			        InputOutput.<String>println("Hello");
@@ -111,12 +111,12 @@ class XklaimCompilerTest {
 			    }
 			    
 			    public void addMainProcess() throws IMCException {
-			      addNodeProcess(new TestNet.TestNode.TestNodeProcess());
+			      addNodeCoordinator(new TestNet.TestNode.TestNodeProcess());
 			    }
 			  }
 			  
 			  public static class TestNodeWithLogLoc extends ClientNode {
-			    private static class TestNodeWithLogLocProcess extends KlavaProcess {
+			    private static class TestNodeWithLogLocProcess extends KlavaNodeCoordinator {
 			      @Override
 			      public void executeProcess() {
 			        InputOutput.<String>println("Hello");
@@ -128,7 +128,7 @@ class XklaimCompilerTest {
 			    }
 			    
 			    public void addMainProcess() throws IMCException {
-			      addNodeProcess(new TestNet.TestNodeWithLogLoc.TestNodeWithLogLocProcess());
+			      addNodeCoordinator(new TestNet.TestNodeWithLogLoc.TestNodeWithLogLocProcess());
 			    }
 			  }
 			  
@@ -641,6 +641,7 @@ class XklaimCompilerTest {
 			import klava.PhysicalLocality;
 			import klava.Tuple;
 			import klava.topology.ClientNode;
+			import klava.topology.KlavaNodeCoordinator;
 			import klava.topology.KlavaProcess;
 			import klava.topology.LogicalNet;
 			import org.eclipse.xtext.xbase.lib.InputOutput;
@@ -649,7 +650,7 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
 			  public static class TestNode extends ClientNode {
-			    private static class TestNodeProcess extends KlavaProcess {
+			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
 			      public void executeProcess() {
 			        final int i = 10;
@@ -674,7 +675,7 @@ class XklaimCompilerTest {
 			    }
 			    
 			    public void addMainProcess() throws IMCException {
-			      addNodeProcess(new TestNet.TestNode.TestNodeProcess());
+			      addNodeCoordinator(new TestNet.TestNode.TestNodeProcess());
 			    }
 			  }
 			  
@@ -902,6 +903,7 @@ class XklaimCompilerTest {
 			import klava.LogicalLocality;
 			import klava.PhysicalLocality;
 			import klava.topology.ClientNode;
+			import klava.topology.KlavaNodeCoordinator;
 			import klava.topology.KlavaProcess;
 			import klava.topology.LogicalNet;
 			import org.eclipse.xtext.xbase.lib.InputOutput;
@@ -910,7 +912,7 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
 			  public static class TestNode extends ClientNode {
-			    private static class TestNodeProcess extends KlavaProcess {
+			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
 			      public void executeProcess() {
 			        final int i = 10;
@@ -935,7 +937,7 @@ class XklaimCompilerTest {
 			    }
 			    
 			    public void addMainProcess() throws IMCException {
-			      addNodeProcess(new TestNet.TestNode.TestNodeProcess());
+			      addNodeCoordinator(new TestNet.TestNode.TestNodeProcess());
 			    }
 			  }
 			  

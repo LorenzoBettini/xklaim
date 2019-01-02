@@ -23,6 +23,7 @@ import xklaim.xklaim.XklaimAbstractNode
 import xklaim.xklaim.XklaimModel
 import xklaim.xklaim.XklaimNet
 import xklaim.xklaim.XklaimProcess
+import klava.topology.KlavaNodeCoordinator
 
 /**
  * <p>Infers a JVM model from the source model.</p> 
@@ -118,7 +119,7 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 			declaringType = nodeClass
 			static = true
 			visibility = JvmVisibility.PRIVATE
-			superTypes += KlavaProcess.typeRef()
+			superTypes += KlavaNodeCoordinator.typeRef()
 			members += node.toMethod("executeProcess", typeRef(Void.TYPE)) [
 				addOverrideAnnotation()
 				body = node.body
@@ -131,7 +132,7 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 			members += node.toMethod("addMainProcess", typeRef(Void.TYPE)) [
 				exceptions += IMCException.typeRef()
 				body = '''
-					addNodeProcess(new «nodeProcessClass»());
+					addNodeCoordinator(new «nodeProcessClass»());
 				'''
 			]
 		]
