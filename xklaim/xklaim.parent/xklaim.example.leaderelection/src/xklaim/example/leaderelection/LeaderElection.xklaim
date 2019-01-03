@@ -35,17 +35,17 @@ proc NotifierProc(Integer myId) {
 }
 
 net LeaderElectionNet physical "localhost:9999" {
-	node L1 logical "l1" {
-		addToEnvironment(new LogicalLocality("next"), getPhysical(new LogicalLocality("l2")))
-		eval(new InitialProc("l1"))@self
+	node L1 {
+		addToEnvironment(new LogicalLocality("next"), getPhysical(L2))
+		eval(new InitialProc("L1"))@self
 	}
-	node L2 logical "l2" {
-		addToEnvironment(new LogicalLocality("next"), getPhysical(new LogicalLocality("l3")))
-		eval(new InitialProc("l2"))@self
+	node L2 {
+		addToEnvironment(new LogicalLocality("next"), getPhysical(L3))
+		eval(new InitialProc("L2"))@self
 	}
-	node L3 logical "l3" {
-		addToEnvironment(new LogicalLocality("next"), getPhysical(new LogicalLocality("l1")))
-		eval(new InitialProc("l3"))@self
+	node L3 {
+		addToEnvironment(new LogicalLocality("next"), getPhysical(L1))
+		eval(new InitialProc("L3"))@self
 	}
 	node RG logical "rg" {
 		out("ID", 0)@self
