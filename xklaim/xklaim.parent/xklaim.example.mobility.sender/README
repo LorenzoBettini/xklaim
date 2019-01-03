@@ -1,0 +1,5 @@
+Mobility Example: Sender
+
+This contains the sender of mobile code which first have to login to the remote Net.
+
+Make sure you have already started the Receiver application in the mobility.sender project. 
