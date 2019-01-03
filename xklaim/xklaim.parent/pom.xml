@@ -30,6 +30,8 @@
     <module>xklaim.ide</module>
     <module>xklaim.ui</module>
     <module>xklaim.examples</module>
+    <module>xklaim.example.mobility.receiver</module>
+    <module>xklaim.example.mobility.sender</module>
     <module>xklaim.target</module>
     <module>xklaim.feature</module>
     <module>xklaim.repository</module>
