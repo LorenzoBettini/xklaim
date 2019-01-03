@@ -32,6 +32,7 @@
     <module>xklaim.examples</module>
     <module>xklaim.example.mobility.receiver</module>
     <module>xklaim.example.mobility.sender</module>
+    <module>xklaim.example.leaderelection</module>
     <module>xklaim.target</module>
     <module>xklaim.feature</module>
     <module>xklaim.repository</module>
