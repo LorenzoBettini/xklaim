@@ -26,7 +26,7 @@ XklaimNet:
 
 XklaimNetNode:
 	'node' name=ID
-	'logical' logicalLocality=STRING
+	('logical' logicalLocality=STRING)?
 	body=XBlockExpression
 ;
 

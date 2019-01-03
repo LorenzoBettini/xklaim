@@ -110,8 +110,8 @@ class XklaimCompilerTest {
 		'''
 		package foo
 		net TestNet physical "tcp-127.0.0.1:9999" {
-			node TestNode logical "bar" {
-				println("Hello from " + bar)
+			node TestNode {
+				println("Hello from " + TestNode)
 			}
 			node TestNodeWithLogLoc logical "foo" {
 				println("Hello from " + foo)
@@ -132,7 +132,7 @@ class XklaimCompilerTest {
 			
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
-			  private static final LogicalLocality bar = new LogicalLocality("bar");
+			  private static final LogicalLocality TestNode = new LogicalLocality("TestNode");
 			  
 			  private static final LogicalLocality foo = new LogicalLocality("foo");
 			  
@@ -140,12 +140,12 @@ class XklaimCompilerTest {
 			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
 			      public void executeProcess() {
-			        InputOutput.<String>println(("Hello from " + TestNet.bar));
+			        InputOutput.<String>println(("Hello from " + TestNet.TestNode));
 			      }
 			    }
 			    
 			    public TestNode() {
-			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("bar"));
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("TestNode"));
 			    }
 			    
 			    public void addMainProcess() throws IMCException {

@@ -286,8 +286,8 @@ class XklaimValidatorTest {
 		'''
 		package foo
 		net TestNet physical "tcp-127.0.0.1:9999" {
-			node TestNode logical "bar" {
-				println("Hello from " + bar)
+			node TestNode {
+				println("Hello from " + TestNode)
 			}
 			node TestNodeWithLogLoc logical "foo" {
 				println("Hello from " + foo)

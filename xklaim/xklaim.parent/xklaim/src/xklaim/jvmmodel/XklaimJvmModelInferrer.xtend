@@ -8,6 +8,7 @@ import klava.LogicalLocality
 import klava.PhysicalLocality
 import klava.topology.ClientNode
 import klava.topology.KlavaNode
+import klava.topology.KlavaNodeCoordinator
 import klava.topology.KlavaProcess
 import klava.topology.LogicalNet
 import org.eclipse.xtext.common.types.JvmAnnotationTarget
@@ -22,8 +23,8 @@ import org.mikado.imc.common.IMCException
 import xklaim.xklaim.XklaimAbstractNode
 import xklaim.xklaim.XklaimModel
 import xklaim.xklaim.XklaimNet
+import xklaim.xklaim.XklaimNetNode
 import xklaim.xklaim.XklaimProcess
-import klava.topology.KlavaNodeCoordinator
 
 /**
  * <p>Infers a JVM model from the source model.</p> 
@@ -155,15 +156,9 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		for (node : nodes) {
 			nodeClasses += toNodeClass(node, ClientNode, acceptor) [
 				members += node.toConstructor [
-					if (node.logicalLocality !== null) {
-						body = '''
-						super(new «PhysicalLocality»("«net.physicalLocality»"), new «LogicalLocality»("«node.logicalLocality»"));
-						'''
-					} else {
-						body = '''
-						super(new «PhysicalLocality»("«net.physicalLocality»"));
-						'''
-					}
+					body = '''
+					super(new «PhysicalLocality»("«net.physicalLocality»"), new «LogicalLocality»("«getLogicalLocalityName(node)»"));
+					'''
 				]
 			]
 		}
@@ -171,7 +166,7 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 			documentation = net.documentation
 			superTypes += LogicalNet.typeRef()
 			for (node : nodes) {
-				val nodeLocFieldName = node.logicalLocality ?: node.name
+				val nodeLocFieldName = getLogicalLocalityName(node)
 				members += node.toField(nodeLocFieldName, LogicalLocality.typeRef) [
 					static = true
 					final = true
@@ -201,6 +196,10 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 			]
 		]
 		netClass
+	}
+
+	private def String getLogicalLocalityName(XklaimNetNode node) {
+		node.logicalLocality ?: node.name
 	}
 
 	def private toProcessClass(XklaimProcess process, extension IJvmDeclaredTypeAcceptor acceptor) {
