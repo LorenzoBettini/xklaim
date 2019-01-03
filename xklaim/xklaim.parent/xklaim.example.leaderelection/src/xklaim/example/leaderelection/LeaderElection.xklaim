@@ -1,0 +1,55 @@
+import klava.LogicalLocality
+
+package xklaim.example.leaderelection
+
+proc InitialProc(String nodeName) {
+	val rg = new LogicalLocality("rg")
+	val next = new LogicalLocality("next")
+	in("ID", var Integer xid)@rg
+	out("ID", xid)@self
+	eval(new CheckerProc(xid))@next
+	in(var String result)@self
+	println(nodeName + ": result is " + result)
+}
+
+proc CheckerProc(Integer myId) {
+	val next = new LogicalLocality("next")
+	read("ID", var Integer x)@self
+	if (myId < x) {
+		eval(new CheckerProc(myId))@next
+	} else if (myId > x) {
+		eval(new NotifierProc(myId))@next
+	} else {
+		out("LEADER")@self
+	}
+}
+
+proc NotifierProc(Integer myId) {
+	val next = new LogicalLocality("next")
+	read("ID", var Integer x)@self
+	if (x == myId) {
+		out("FOLLOWER")@self
+	} else {
+		eval(new NotifierProc(myId))@next
+	}
+}
+
+net LeaderElectionNet physical "localhost:9999" {
+	node L1 logical "l1" {
+		addToEnvironment(new LogicalLocality("next"), getPhysical(new LogicalLocality("l2")))
+		eval(new InitialProc("l1"))@self
+	}
+	node L2 logical "l2" {
+		addToEnvironment(new LogicalLocality("next"), getPhysical(new LogicalLocality("l3")))
+		eval(new InitialProc("l2"))@self
+	}
+	node L3 logical "l3" {
+		addToEnvironment(new LogicalLocality("next"), getPhysical(new LogicalLocality("l1")))
+		eval(new InitialProc("l3"))@self
+	}
+	node RG logical "rg" {
+		out("ID", 0)@self
+		out("ID", 1)@self
+		out("ID", 2)@self
+	}
+}
