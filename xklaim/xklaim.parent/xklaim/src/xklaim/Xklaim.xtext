@@ -13,6 +13,7 @@ XklaimModel:
 
 XklaimNode:
 	'node' name=ID
+	('physical' physicalLocality=STRING)?
 	body=XBlockExpression
 ;
 

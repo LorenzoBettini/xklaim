@@ -24,10 +24,13 @@ class XklaimCompilerTest {
 	@Inject extension CompilationTestHelper
 
 	@Test
-	def void testProgramWithNode() {
+	def void testProgramWithNodes() {
 		'''
 		package foo
 		node TestNode {
+			println("Hello")
+		}
+		node TestNodeWithPhysicalLocality physical "localhost:9999" {
 			println("Hello")
 		}
 		'''.checkCompilation(
@@ -54,17 +57,48 @@ class XklaimCompilerTest {
 			  }
 			}
 			''',
+			"foo.TestNodeWithPhysicalLocality" ->
+			'''
+			package foo;
+			
+			import klava.PhysicalLocality;
+			import klava.topology.KlavaNode;
+			import klava.topology.KlavaNodeCoordinator;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			import org.mikado.imc.common.IMCException;
+			
+			@SuppressWarnings("all")
+			public class TestNodeWithPhysicalLocality extends KlavaNode {
+			  private static class TestNodeWithPhysicalLocalityProcess extends KlavaNodeCoordinator {
+			    @Override
+			    public void executeProcess() {
+			      InputOutput.<String>println("Hello");
+			    }
+			  }
+			  
+			  public TestNodeWithPhysicalLocality() {
+			    setMainPhysicalLocality(new PhysicalLocality("localhost:9999"));
+			  }
+			  
+			  public void addMainProcess() throws IMCException {
+			    addNodeCoordinator(new TestNodeWithPhysicalLocality.TestNodeWithPhysicalLocalityProcess());
+			  }
+			}
+			''',
 			"foo.MyFile" ->
 			'''
 			package foo;
 			
 			import foo.TestNode;
+			import foo.TestNodeWithPhysicalLocality;
 			
 			@SuppressWarnings("all")
 			public class MyFile {
 			  public static void main(final String[] args) throws Exception {
 			    TestNode testNode = new TestNode();
+			    TestNodeWithPhysicalLocality testNodeWithPhysicalLocality = new TestNodeWithPhysicalLocality();
 			    testNode.addMainProcess();
+			    testNodeWithPhysicalLocality.addMainProcess();
 			  }
 			}
 			'''

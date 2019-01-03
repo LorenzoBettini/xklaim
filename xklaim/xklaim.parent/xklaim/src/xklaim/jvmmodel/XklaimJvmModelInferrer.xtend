@@ -74,7 +74,15 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		}
 		if (!nodes.empty || !nets.empty) {
 			for (node : nodes) {
-				nodeClasses += toNodeClass(node, KlavaNode, acceptor, [])
+				nodeClasses += toNodeClass(node, KlavaNode, acceptor, [
+					if (node.physicalLocality !== null) {
+						members += node.toConstructor [
+							body = '''
+							setMainPhysicalLocality(new «PhysicalLocality»("«node.physicalLocality»"));
+							'''
+						]
+					}
+				])
 			}
 			for (net : nets) {
 				netClasses += toNetClass(net, acceptor)
