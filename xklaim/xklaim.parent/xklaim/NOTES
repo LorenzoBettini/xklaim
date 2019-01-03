@@ -155,3 +155,28 @@ eval(P)@self
 
 DONE
 
+Due to the anonymous inner class in node coordinator we get (for inner processes)
+
+klava.KlavaException: java.io.NotSerializableException: xklaim.examples.helloremoteeval.HelloRemoveEvalProcNet$Reader$ReaderProcess
+	at klava.topology.KlavaNode.tupleOperation(KlavaNode.java:1152)
+	at klava.topology.KlavaNode.tupleOperation(KlavaNode.java:1072)
+	at klava.topology.KlavaNode.eval(KlavaNode.java:684)
+	at klava.topology.KlavaNodeProcessProxy.eval(KlavaNodeProcessProxy.java:160)
+	at klava.topology.KlavaNodeCoordinator.eval(KlavaNodeCoordinator.java:213)
+	at xklaim.examples.helloremoteeval.HelloRemoveEvalProcNet$Reader$ReaderProcess.executeProcess(HelloRemoveEvalProcNet.java:40)
+	at klava.topology.KlavaNodeCoordinator.execute(KlavaNodeCoordinator.java:69)
+	at org.mikado.imc.topology.NodeCoordinator.run(NodeCoordinator.java:98)
+Caused by: java.io.NotSerializableException: xklaim.examples.helloremoteeval.HelloRemoveEvalProcNet$Reader$ReaderProcess
+	at klava.proto.TupleState.enter(TupleState.java:148)
+	at klava.proto.TupleOpState.writePacket(TupleOpState.java:220)
+	at klava.proto.TupleOpState.writePacket(TupleOpState.java:166)
+	at klava.proto.TupleOpState.enter(TupleOpState.java:122)
+	at klava.topology.KlavaNode.tupleOperation(KlavaNode.java:1143)
+	... 7 more
+	
+Possible solution:
+
+preprocess inner processes in the inferrer as static private nested classes and
+also associate the XExpression as the body of the inferred "executeProcess" method
+
+No it does not work: make KlavaNodeCoordinator serializable DONE
