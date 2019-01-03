@@ -170,6 +170,14 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		accept(netClass) [
 			documentation = net.documentation
 			superTypes += LogicalNet.typeRef()
+			for (node : nodes) {
+				val nodeLocFieldName = node.logicalLocality ?: node.name
+				members += node.toField(nodeLocFieldName, LogicalLocality.typeRef) [
+					static = true
+					final = true
+					initializer = '''new «LogicalLocality»("«nodeLocFieldName»")'''
+				]
+			}
 			for (nodeClass : nodeClasses) {
 				nodeClass.declaringType = netClass
 				nodeClass.static = true

@@ -281,6 +281,21 @@ class XklaimValidatorTest {
 		'''.parse.assertNoIssues
 	}
 
+	@Test
+	def void testCanAccessImplicitNetLogicalLocalities() {
+		'''
+		package foo
+		net TestNet physical "tcp-127.0.0.1:9999" {
+			node TestNode logical "bar" {
+				println("Hello from " + bar)
+			}
+			node TestNodeWithLogLoc logical "foo" {
+				println("Hello from " + foo)
+			}
+		}
+		'''.parse.assertNoIssues
+	}
+
 	def private assertErrorsAsStrings(EObject o, CharSequence expected) {
 		expected.toString.trim.assertEquals(
 			o.validate.filter[severity == Severity.ERROR].map[message].sort.join(System.lineSeparator))

@@ -111,10 +111,10 @@ class XklaimCompilerTest {
 		package foo
 		net TestNet physical "tcp-127.0.0.1:9999" {
 			node TestNode logical "bar" {
-				println("Hello")
+				println("Hello from " + bar)
 			}
 			node TestNodeWithLogLoc logical "foo" {
-				println("Hello")
+				println("Hello from " + foo)
 			}
 		}
 		'''.checkCompilation(
@@ -132,11 +132,15 @@ class XklaimCompilerTest {
 			
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
+			  private static final LogicalLocality bar = new LogicalLocality("bar");
+			  
+			  private static final LogicalLocality foo = new LogicalLocality("foo");
+			  
 			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
 			      public void executeProcess() {
-			        InputOutput.<String>println("Hello");
+			        InputOutput.<String>println(("Hello from " + TestNet.bar));
 			      }
 			    }
 			    
@@ -153,7 +157,7 @@ class XklaimCompilerTest {
 			    private static class TestNodeWithLogLocProcess extends KlavaNodeCoordinator {
 			      @Override
 			      public void executeProcess() {
-			        InputOutput.<String>println("Hello");
+			        InputOutput.<String>println(("Hello from " + TestNet.foo));
 			      }
 			    }
 			    
@@ -683,6 +687,8 @@ class XklaimCompilerTest {
 			
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
+			  private static final LogicalLocality foo = new LogicalLocality("foo");
+			  
 			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
@@ -945,6 +951,8 @@ class XklaimCompilerTest {
 			
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
+			  private static final LogicalLocality foo = new LogicalLocality("foo");
+			  
 			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
