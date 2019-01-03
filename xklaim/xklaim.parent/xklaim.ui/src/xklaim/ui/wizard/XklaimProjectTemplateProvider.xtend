@@ -52,6 +52,7 @@ final class HelloWorldProject {
 
 	override generateProjects(IProjectGenerator generator) {
 		generator.generate(new PluginProjectFactory => [
+			withPluginXml = false
 			projectName = projectInfo.projectName
 			location = projectInfo.locationPath
 			projectNatures += #[JavaCore.NATURE_ID, "org.eclipse.pde.PluginNature", XtextProjectHelper.NATURE_ID]
