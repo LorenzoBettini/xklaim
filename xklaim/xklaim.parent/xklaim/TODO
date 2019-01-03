@@ -25,6 +25,25 @@ XklaimNodeEnvironment:
 	']'
 ;
 
+net Net physical {
+
+	node L1 [...] {...}
+	node L2 [...] {...}
+
+}
+
+automatically defines a field in the Net class of type LogicalLocality
+
+after starting the nodes, in the net, also modifies their environments as specified in the DSL
+
+... node L1 [ next -> L2 ]
+
+"next" defines a LogicalLocality in the node class and L2 must be a Locality (e.g., reference to an existing one)
+
+the compiled code will generate
+
+addToNodeEnvironment(new LogicalLocality("next"), getPhysical(L2))
+
 PROCCALL
 
 KlavaProcess P_@procname@ = new @procname@();
