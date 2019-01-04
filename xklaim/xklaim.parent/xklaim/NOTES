@@ -201,3 +201,42 @@ the compiled code will generate
 addToNodeEnvironment(new LogicalLocality("next"), getPhysical(L2))
 
 DONE
+
+node Sender [server -> new PhysicalLocality("tcp-127.0.0.1:9999")] {
+	login(server)
+	val myLoc = getPhysical(self)
+	eval({
+		println("Hello...")
+		println("...from a process coming from " + myLoc)
+		println(server)
+		out("DONE")@myLoc
+	})@server
+	in("DONE")@self
+	println("Remote process has done its job")
+	logout(server)
+	System.exit(0)
+}
+
+generates a ClassNotFoundException:
+
+java.lang.ClassNotFoundException: xklaim.example.mobility.sender.Sender
+terminated Thread-2
+	at org.mikado.imc.mobility.NodeClassLoader.loadClass(NodeClassLoader.java:245)
+	at org.mikado.imc.mobility.NodeClassLoader.loadClass(NodeClassLoader.java:182)
+	at xklaim.example.mobility.sender.Sender$SenderProcess$1.executeProcess(Sender.java:32)
+	at klava.topology.KlavaProcess.execute(KlavaProcess.java:150)
+	at org.mikado.imc.topology.NodeProcess.run(NodeProcess.java:97)
+Exception in thread "Thread-2" java.lang.NoClassDefFoundError: xklaim/example/mobility/sender/Sender
+	at xklaim.example.mobility.sender.Sender$SenderProcess$1.executeProcess(Sender.java:32)
+	at klava.topology.KlavaProcess.execute(KlavaProcess.java:150)
+	at org.mikado.imc.topology.NodeProcess.run(NodeProcess.java:97)
+Caused by: java.lang.ClassNotFoundException: xklaim.example.mobility.sender.Sender
+	at org.mikado.imc.mobility.NodeClassLoader.loadClass(NodeClassLoader.java:245)
+	at org.mikado.imc.mobility.NodeClassLoader.loadClass(NodeClassLoader.java:182)
+	... 3 more
+
+references to static fields must be turned into closed parameters as well for
+inner processes?
+
+Or simply collect also getEnclosingClass. DONE
+
