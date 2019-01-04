@@ -230,11 +230,11 @@ class XklaimCompilerTest {
 			    TestNet.TestNodeWithLogLoc testNodeWithLogLoc = new TestNet.TestNodeWithLogLoc();
 			    TestNet.TestNodeWithEmptyEnvironment testNodeWithEmptyEnvironment = new TestNet.TestNodeWithEmptyEnvironment();
 			    TestNet.TestNodeWithEnvironment testNodeWithEnvironment = new TestNet.TestNodeWithEnvironment();
+			    testNodeWithEnvironment.setupEnvironment();
 			    testNode.addMainProcess();
 			    testNodeWithLogLoc.addMainProcess();
 			    testNodeWithEmptyEnvironment.addMainProcess();
 			    testNodeWithEnvironment.addMainProcess();
-			    testNodeWithEnvironment.setupEnvironment();
 			  }
 			}
 			''',

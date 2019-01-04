@@ -207,11 +207,11 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 					«FOR nodeClass : nodeClasses»
 						«nodeClass» «nodeClass.simpleName.toFirstLower» = new «nodeClass»();
 					«ENDFOR»
-					«FOR nodeClass : nodeClasses»
-						«nodeClass.simpleName.toFirstLower».addMainProcess();
-					«ENDFOR»
 					«FOR nodeClass : nodeWithEnvClasses»
 						«nodeClass.simpleName.toFirstLower».setupEnvironment();
+					«ENDFOR»
+					«FOR nodeClass : nodeClasses»
+						«nodeClass.simpleName.toFirstLower».addMainProcess();
 					«ENDFOR»
 				'''
 			]
