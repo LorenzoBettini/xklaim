@@ -3,10 +3,15 @@
  */
 package xklaim
 
+import com.google.inject.Binder
+import com.google.inject.name.Names
+import org.eclipse.xtext.scoping.IScopeProvider
+import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 import org.eclipse.xtext.xbase.compiler.XbaseCompiler
 import org.eclipse.xtext.xbase.scoping.batch.ImplicitlyImportedFeatures
 import xklaim.compiler.XklaimXbaseCompiler
 import xklaim.scoping.XklaimImplicitlyImportedFeatures
+import xklaim.scoping.XklaimImportedNamespaceScopeProvider
 import xklaim.typesystem.XklaimTypeComputer
 
 /**
@@ -24,5 +29,10 @@ class XklaimRuntimeModule extends AbstractXklaimRuntimeModule {
 
 	def Class<? extends ImplicitlyImportedFeatures> bindImplicitlyImportedFeatures() {
 		return XklaimImplicitlyImportedFeatures
+	}
+
+	override void configureIScopeProviderDelegate(Binder binder) {
+		binder.bind(IScopeProvider).annotatedWith(Names.named(AbstractDeclarativeScopeProvider.NAMED_DELEGATE)).to(
+			XklaimImportedNamespaceScopeProvider)
 	}
 }
