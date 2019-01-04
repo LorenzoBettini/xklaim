@@ -23,15 +23,19 @@ public class LeaderElectionNet extends LogicalNet {
     private static class L1Process extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
-        LogicalLocality _logicalLocality = new LogicalLocality("next");
-        this.addToEnvironment(_logicalLocality, this.getPhysical(LeaderElectionNet.L2));
         InitialProc _initialProc = new InitialProc("L1");
         eval(_initialProc, this.self);
       }
     }
     
+    private static final LogicalLocality next = new LogicalLocality("next");
+    
     public L1() {
       super(new PhysicalLocality("localhost:9999"), new LogicalLocality("L1"));
+    }
+    
+    public void setupEnvironment() {
+      addToEnvironment(next, getPhysical(LeaderElectionNet.L2));
     }
     
     public void addMainProcess() throws IMCException {
@@ -43,15 +47,19 @@ public class LeaderElectionNet extends LogicalNet {
     private static class L2Process extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
-        LogicalLocality _logicalLocality = new LogicalLocality("next");
-        this.addToEnvironment(_logicalLocality, this.getPhysical(LeaderElectionNet.L3));
         InitialProc _initialProc = new InitialProc("L2");
         eval(_initialProc, this.self);
       }
     }
     
+    private static final LogicalLocality next = new LogicalLocality("next");
+    
     public L2() {
       super(new PhysicalLocality("localhost:9999"), new LogicalLocality("L2"));
+    }
+    
+    public void setupEnvironment() {
+      addToEnvironment(next, getPhysical(LeaderElectionNet.L3));
     }
     
     public void addMainProcess() throws IMCException {
@@ -63,15 +71,19 @@ public class LeaderElectionNet extends LogicalNet {
     private static class L3Process extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
-        LogicalLocality _logicalLocality = new LogicalLocality("next");
-        this.addToEnvironment(_logicalLocality, this.getPhysical(LeaderElectionNet.L1));
         InitialProc _initialProc = new InitialProc("L3");
         eval(_initialProc, this.self);
       }
     }
     
+    private static final LogicalLocality next = new LogicalLocality("next");
+    
     public L3() {
       super(new PhysicalLocality("localhost:9999"), new LogicalLocality("L3"));
+    }
+    
+    public void setupEnvironment() {
+      addToEnvironment(next, getPhysical(LeaderElectionNet.L1));
     }
     
     public void addMainProcess() throws IMCException {
@@ -111,5 +123,8 @@ public class LeaderElectionNet extends LogicalNet {
     l2.addMainProcess();
     l3.addMainProcess();
     rG.addMainProcess();
+    l1.setupEnvironment();
+    l2.setupEnvironment();
+    l3.setupEnvironment();
   }
 }
