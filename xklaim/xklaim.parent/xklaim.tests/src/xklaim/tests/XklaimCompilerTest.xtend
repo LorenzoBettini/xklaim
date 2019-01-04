@@ -307,7 +307,7 @@ class XklaimCompilerTest {
 			in(s, var Integer i, val Boolean b)@self
 			println(i)
 			println(b)
-			read(s, var Integer i2, val Boolean b2)@self
+			read(s, var Integer i2, val KlavaProcess b2)@self
 			println(i2)
 			println(b2)
 		}
@@ -340,13 +340,13 @@ class XklaimCompilerTest {
 			    InputOutput.<Integer>println(i);
 			    InputOutput.<Boolean>println(b);
 			    Integer i2 = null;
-			    final Boolean b2;
-			    Tuple _Tuple_1 = new Tuple(new Object[] {this.s, Integer.class, Boolean.class});
+			    final KlavaProcess b2;
+			    Tuple _Tuple_1 = new Tuple(new Object[] {this.s, Integer.class, KlavaProcess.class});
 			    read(_Tuple_1, this.self);
 			    i2 = (Integer) _Tuple_1.getItem(1);
-			    b2 = (Boolean) _Tuple_1.getItem(2);
+			    b2 = (KlavaProcess) _Tuple_1.getItem(2);
 			    InputOutput.<Integer>println(i2);
-			    InputOutput.<Boolean>println(b2);
+			    InputOutput.<KlavaProcess>println(b2);
 			  }
 			}
 			'''
