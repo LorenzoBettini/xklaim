@@ -13,14 +13,17 @@ public class Receiver extends KlavaNode {
   private static class ReceiverProcess extends KlavaNodeCoordinator {
     @Override
     public void executeProcess() {
-      final PhysicalLocality myLoc = new PhysicalLocality("tcp-127.0.0.1:9999");
       while (true) {
         {
           final PhysicalLocality remote = new PhysicalLocality();
-          this.accept(myLoc, remote);
+          this.accept(remote);
         }
       }
     }
+  }
+  
+  public Receiver() {
+    setMainPhysicalLocality(new PhysicalLocality("tcp-127.0.0.1:9999"));
   }
   
   public void addMainProcess() throws IMCException {

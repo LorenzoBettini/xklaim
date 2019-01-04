@@ -1,16 +1,13 @@
-import klava.LogicalLocality
-
 package xklaim.examples.helloremoteeval
  
 net HelloRemoveEvalProcNet physical "tcp-127.0.0.1:9999" {
 	node Reader logical "reader" {
-		val writerLoc = new LogicalLocality("writer")
 		eval({
-			println("executing at " + getPhysical(writerLoc))
+			println("executing at " + getPhysical(writer))
 			in(var String s)@self
 			println(s)
 			System.exit(0)
-		})@writerLoc
+		})@writer
 	}
 	node Writer logical "writer" {
 		out("Hello World")@self

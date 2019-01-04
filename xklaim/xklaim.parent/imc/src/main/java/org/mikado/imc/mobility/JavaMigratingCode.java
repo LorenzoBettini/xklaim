@@ -290,6 +290,8 @@ public class JavaMigratingCode extends Thread implements Serializable,
         getUsedClasses(c.getDeclaredClasses());
         getUsedClasses(c.getSuperclass());
         getUsedClasses(c.getInterfaces());
+
+        getUsedClasses(c.getEnclosingClass());
     }
 
     /**

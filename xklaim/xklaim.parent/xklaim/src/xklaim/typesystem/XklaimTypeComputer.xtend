@@ -9,6 +9,7 @@ import xklaim.util.XklaimModelUtil
 import xklaim.xklaim.XklaimAbstractOperation
 import xklaim.xklaim.XklaimEvalOperation
 import xklaim.xklaim.XklaimInlineProcess
+import xklaim.xklaim.XklaimNodeEnvironmentEntry
 
 class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 
@@ -19,6 +20,7 @@ class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 			XklaimEvalOperation: _computeTypes(expression, state)
 			XklaimAbstractOperation: _computeTypes(expression, state)
 			XklaimInlineProcess: _computeTypes(expression, state)
+			XklaimNodeEnvironmentEntry: _computeTypes(expression, state)
 			default: super.computeTypes(expression, state)
 		}
 	}
@@ -49,6 +51,11 @@ class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 	def void _computeTypes(XklaimInlineProcess e, ITypeComputationState state) {
 		state.withoutExpectation.computeTypes(e.body)
 		state.acceptActualType(getRawTypeForName(KlavaProcess, state))
+	}
+
+	def void _computeTypes(XklaimNodeEnvironmentEntry e, ITypeComputationState state) {
+		state.withExpectation(getRawTypeForName(Locality, state)).computeTypes(e.value)
+		state.acceptActualType(getPrimitiveVoid(state))
 	}
 
 	override protected addLocalToCurrentScope(XExpression e, ITypeComputationState state) {

@@ -6,6 +6,7 @@ import xklaim.example.mobility.sender.Sender;
 public class CodeMobilitySender {
   public static void main(final String[] args) throws Exception {
     Sender sender = new Sender();
+    sender.setupEnvironment();
     sender.addMainProcess();
   }
 }

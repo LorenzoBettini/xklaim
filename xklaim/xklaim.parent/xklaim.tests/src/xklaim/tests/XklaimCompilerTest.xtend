@@ -26,8 +26,9 @@ class XklaimCompilerTest {
 	@Test
 	def void testProgramWithNodes() {
 		'''
+		import klava.PhysicalLocality
 		package foo
-		node TestNode {
+		node TestNode [other -> new PhysicalLocality("localhost:9999")] {
 			println("Hello")
 		}
 		node TestNodeWithPhysicalLocality physical "localhost:9999" {
@@ -38,6 +39,8 @@ class XklaimCompilerTest {
 			'''
 			package foo;
 			
+			import klava.LogicalLocality;
+			import klava.PhysicalLocality;
 			import klava.topology.KlavaNode;
 			import klava.topology.KlavaNodeCoordinator;
 			import org.eclipse.xtext.xbase.lib.InputOutput;
@@ -50,6 +53,13 @@ class XklaimCompilerTest {
 			    public void executeProcess() {
 			      InputOutput.<String>println("Hello");
 			    }
+			  }
+			  
+			  private static final LogicalLocality other = new LogicalLocality("other");
+			  
+			  public void setupEnvironment() {
+			    PhysicalLocality _physicalLocality = new PhysicalLocality("localhost:9999");
+			    addToEnvironment(other, getPhysical(_physicalLocality));
 			  }
 			  
 			  public void addMainProcess() throws IMCException {
@@ -97,6 +107,7 @@ class XklaimCompilerTest {
 			  public static void main(final String[] args) throws Exception {
 			    TestNode testNode = new TestNode();
 			    TestNodeWithPhysicalLocality testNodeWithPhysicalLocality = new TestNodeWithPhysicalLocality();
+			    testNode.setupEnvironment();
 			    testNode.addMainProcess();
 			    testNodeWithPhysicalLocality.addMainProcess();
 			  }
@@ -110,11 +121,17 @@ class XklaimCompilerTest {
 		'''
 		package foo
 		net TestNet physical "tcp-127.0.0.1:9999" {
-			node TestNode logical "bar" {
-				println("Hello")
+			node TestNode {
+				println("Hello from " + TestNode)
 			}
 			node TestNodeWithLogLoc logical "foo" {
-				println("Hello")
+				println("Hello from " + foo)
+			}
+			node TestNodeWithEmptyEnvironment [] {
+				
+			}
+			node TestNodeWithEnvironment [l1 -> TestNode, l2 -> foo] {
+				
 			}
 		}
 		'''.checkCompilation(
@@ -132,16 +149,24 @@ class XklaimCompilerTest {
 			
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
+			  private static final LogicalLocality TestNode = new LogicalLocality("TestNode");
+			  
+			  private static final LogicalLocality foo = new LogicalLocality("foo");
+			  
+			  private static final LogicalLocality TestNodeWithEmptyEnvironment = new LogicalLocality("TestNodeWithEmptyEnvironment");
+			  
+			  private static final LogicalLocality TestNodeWithEnvironment = new LogicalLocality("TestNodeWithEnvironment");
+			  
 			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
 			      public void executeProcess() {
-			        InputOutput.<String>println("Hello");
+			        InputOutput.<String>println(("Hello from " + TestNet.TestNode));
 			      }
 			    }
 			    
 			    public TestNode() {
-			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("bar"));
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("TestNode"));
 			    }
 			    
 			    public void addMainProcess() throws IMCException {
@@ -153,7 +178,7 @@ class XklaimCompilerTest {
 			    private static class TestNodeWithLogLocProcess extends KlavaNodeCoordinator {
 			      @Override
 			      public void executeProcess() {
-			        InputOutput.<String>println("Hello");
+			        InputOutput.<String>println(("Hello from " + TestNet.foo));
 			      }
 			    }
 			    
@@ -166,6 +191,47 @@ class XklaimCompilerTest {
 			    }
 			  }
 			  
+			  public static class TestNodeWithEmptyEnvironment extends ClientNode {
+			    private static class TestNodeWithEmptyEnvironmentProcess extends KlavaNodeCoordinator {
+			      @Override
+			      public void executeProcess() {
+			      }
+			    }
+			    
+			    public TestNodeWithEmptyEnvironment() {
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("TestNodeWithEmptyEnvironment"));
+			    }
+			    
+			    public void addMainProcess() throws IMCException {
+			      addNodeCoordinator(new TestNet.TestNodeWithEmptyEnvironment.TestNodeWithEmptyEnvironmentProcess());
+			    }
+			  }
+			  
+			  public static class TestNodeWithEnvironment extends ClientNode {
+			    private static class TestNodeWithEnvironmentProcess extends KlavaNodeCoordinator {
+			      @Override
+			      public void executeProcess() {
+			      }
+			    }
+			    
+			    private static final LogicalLocality l1 = new LogicalLocality("l1");
+			    
+			    private static final LogicalLocality l2 = new LogicalLocality("l2");
+			    
+			    public TestNodeWithEnvironment() {
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("TestNodeWithEnvironment"));
+			    }
+			    
+			    public void setupEnvironment() {
+			      addToEnvironment(l1, getPhysical(TestNet.TestNode));
+			      addToEnvironment(l2, getPhysical(TestNet.foo));
+			    }
+			    
+			    public void addMainProcess() throws IMCException {
+			      addNodeCoordinator(new TestNet.TestNodeWithEnvironment.TestNodeWithEnvironmentProcess());
+			    }
+			  }
+			  
 			  public TestNet() throws IMCException {
 			    super(new PhysicalLocality("tcp-127.0.0.1:9999"));
 			  }
@@ -173,8 +239,13 @@ class XklaimCompilerTest {
 			  public void addNodes() throws IMCException {
 			    TestNet.TestNode testNode = new TestNet.TestNode();
 			    TestNet.TestNodeWithLogLoc testNodeWithLogLoc = new TestNet.TestNodeWithLogLoc();
+			    TestNet.TestNodeWithEmptyEnvironment testNodeWithEmptyEnvironment = new TestNet.TestNodeWithEmptyEnvironment();
+			    TestNet.TestNodeWithEnvironment testNodeWithEnvironment = new TestNet.TestNodeWithEnvironment();
+			    testNodeWithEnvironment.setupEnvironment();
 			    testNode.addMainProcess();
 			    testNodeWithLogLoc.addMainProcess();
+			    testNodeWithEmptyEnvironment.addMainProcess();
+			    testNodeWithEnvironment.addMainProcess();
 			  }
 			}
 			''',
@@ -618,7 +689,11 @@ class XklaimCompilerTest {
 		net TestNet physical "tcp-127.0.0.1:9999" {
 			node TestNode logical "foo" {
 				val i = 10
-				out(proc { println(i + "" + self) }, i)@self
+				out(proc {
+					println(i + "" + self)
+					println(foo)
+				},
+				i)@self
 			}
 		}
 		'''.checkCompilation(
@@ -683,6 +758,8 @@ class XklaimCompilerTest {
 			
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
+			  private static final LogicalLocality foo = new LogicalLocality("foo");
+			  
 			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
@@ -695,9 +772,12 @@ class XklaimCompilerTest {
 			            return this;
 			          }
 			          @Override public void executeProcess() {
-			            String _plus = (Integer.valueOf(i) + "");
-			            String _plus_1 = (_plus + this.self);
-			            InputOutput.<String>println(_plus_1);
+			            {
+			              String _plus = (Integer.valueOf(i) + "");
+			              String _plus_1 = (_plus + this.self);
+			              InputOutput.<String>println(_plus_1);
+			              InputOutput.<LogicalLocality>println(TestNet.foo);
+			            }
 			          }
 			        }._initFields(i);
 			        out(new Tuple(new Object[] {_Proc, i}), this.self);
@@ -945,6 +1025,8 @@ class XklaimCompilerTest {
 			
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
+			  private static final LogicalLocality foo = new LogicalLocality("foo");
+			  
 			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override

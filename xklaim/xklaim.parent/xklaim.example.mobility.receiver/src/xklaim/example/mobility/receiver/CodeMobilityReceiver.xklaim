@@ -5,10 +5,9 @@ package xklaim.example.mobility.receiver
 /*
  * This is an example model
  */
-node Receiver {
-	val myLoc = new PhysicalLocality("tcp-127.0.0.1:9999")
+node Receiver physical "tcp-127.0.0.1:9999" {
 	while (true) {
 		val remote = new PhysicalLocality
-		accept(myLoc, remote)
+		accept(remote)
 	}
 }

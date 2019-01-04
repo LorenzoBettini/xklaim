@@ -3,28 +3,6 @@ NODECOORDINATOR
 check executed operations or retrieve generated Java compilation errors
 eval and out cannot specify node coordinators
 
-XklaimNet:
-	'net' name=ID
-	'physical' physicalLocality=STRING
-	(environment=XklaimNodeEnvironment)? '{'
-		nodes+=XklaimNetNode*
-	'}'
-;
-
-XklaimNetNode:
-	'node' name=ID
-	'logical' logicalLocality=STRING
-	body=XBlockExpression
-;
-
-XklaimAbstractNode: XklaimNode | XklaimNetNode;
-
-XklaimNodeEnvironment:
-	{XklaimNodeEnvironment} '['
-		(entries+=XklaimNodeEnvironmentEntry (',' entries+=XklaimNodeEnvironmentEntry))?
-	']'
-;
-
 PROCCALL
 
 KlavaProcess P_@procname@ = new @procname@();
@@ -36,3 +14,8 @@ NEWLOC
 HIERARCHICAL
 
 RUN AS
+
+UTILS
+
+static methods for creating logical locality and physical locality
+
