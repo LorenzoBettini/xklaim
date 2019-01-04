@@ -1,10 +1,5 @@
 node {
    def mvnHome
-   properties(
-     [buildDiscarder(
-       logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '30')
-     )]
-   )
    stage('Checkout') { // for display purposes
       checkout scm
    }
