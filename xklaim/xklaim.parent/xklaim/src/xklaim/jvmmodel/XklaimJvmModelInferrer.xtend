@@ -70,6 +70,7 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		val nodes = program.nodes
 		val nets = program.nets
 		val nodeClasses = newArrayList
+		val nodeWithEnvClasses = newArrayList
 		val netClasses = newArrayList
 		for (p : program.processes) {
 			p.toProcessClass(acceptor)
@@ -83,6 +84,9 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 							setMainPhysicalLocality(new «PhysicalLocality»("«node.physicalLocality»"));
 							'''
 						]
+					}
+					if (node.hasEnvironment) {
+						nodeWithEnvClasses += it
 					}
 				])
 			}
@@ -104,6 +108,9 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 					body = '''
 						«FOR nodeClass : nodeClasses»
 							«nodeClass» «nodeClass.simpleName.toFirstLower» = new «nodeClass»();
+						«ENDFOR»
+						«FOR nodeClass : nodeWithEnvClasses»
+							«nodeClass.simpleName.toFirstLower».setupEnvironment();
 						«ENDFOR»
 						«FOR nodeClass : nodeClasses»
 							«nodeClass.simpleName.toFirstLower».addMainProcess();
@@ -138,7 +145,26 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		accept(nodeClass) [
 			documentation = node.documentation
 			superTypes += clazz.typeRef()
+
+			val hasEnvironment = hasEnvironment(node)
+			if (hasEnvironment) {
+				for (e : node.environment.expressions.filter(XklaimNodeEnvironmentEntry)) {
+					members += e.toField(e.key, LogicalLocality.typeRef) [
+						static = true
+						final = true
+						initializer = '''new «LogicalLocality»("«e.key»")'''
+					]
+				}
+			}
+
 			typeEnricher.apply(it)
+
+			if (hasEnvironment) {
+				members += node.environment.toMethod("setupEnvironment", typeRef(Void.TYPE)) [
+					body = node.environment
+				]
+			}
+
 			members += node.toMethod("addMainProcess", typeRef(Void.TYPE)) [
 				exceptions += IMCException.typeRef()
 				body = '''
@@ -157,25 +183,12 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		val nodes = net.nodes
 		for (node : nodes) {
 			nodeClasses += toNodeClass(node, ClientNode, acceptor) [
-				val hasEnvironment = hasEnvironment(node)
-				if (hasEnvironment) {
-					for (e : node.environment.expressions.filter(XklaimNodeEnvironmentEntry)) {
-						members += e.toField(e.key, LogicalLocality.typeRef) [
-							static = true
-							final = true
-							initializer = '''new «LogicalLocality»("«e.key»")'''
-						]
-					}
-				}
 				members += node.toConstructor [
 					body = '''
 					super(new «PhysicalLocality»("«net.physicalLocality»"), new «LogicalLocality»("«getLogicalLocalityName(node)»"));
 					'''
 				]
-				if (hasEnvironment) {
-					members += node.environment.toMethod("setupEnvironment", typeRef(Void.TYPE)) [
-						body = node.environment
-					]
+				if (node.hasEnvironment) {
 					nodeWithEnvClasses += it
 				}
 			]
@@ -219,7 +232,7 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		netClass
 	}
 
-	private def boolean hasEnvironment(XklaimNetNode node) {
+	private def boolean hasEnvironment(XklaimAbstractNode node) {
 		node.environment !== null && !node.environment.expressions.empty
 	}
 

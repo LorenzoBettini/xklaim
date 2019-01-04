@@ -3,27 +3,15 @@ NODECOORDINATOR
 check executed operations or retrieve generated Java compilation errors
 eval and out cannot specify node coordinators
 
-XklaimNet:
-	'net' name=ID
-	'physical' physicalLocality=STRING
-	(environment=XklaimNodeEnvironment)? '{'
-		nodes+=XklaimNetNode*
-	'}'
-;
+with explicit physical locality
 
-XklaimNetNode:
-	'node' name=ID
-	'logical' logicalLocality=STRING
-	body=XBlockExpression
-;
-
-XklaimAbstractNode: XklaimNode | XklaimNetNode;
-
-XklaimNodeEnvironment:
-	{XklaimNodeEnvironment} '['
-		(entries+=XklaimNodeEnvironmentEntry (',' entries+=XklaimNodeEnvironmentEntry))?
-	']'
-;
+node Receiver {
+	val myLoc = new PhysicalLocality("tcp-127.0.0.1:9999")
+	while (true) {
+		val remote = new PhysicalLocality
+		accept(myLoc, remote)
+	}
+}
 
 net Net physical {
 
