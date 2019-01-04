@@ -24,6 +24,7 @@ import xklaim.xklaim.XklaimAbstractNode
 import xklaim.xklaim.XklaimModel
 import xklaim.xklaim.XklaimNet
 import xklaim.xklaim.XklaimNetNode
+import xklaim.xklaim.XklaimNodeEnvironmentEntry
 import xklaim.xklaim.XklaimProcess
 
 /**
@@ -152,18 +153,30 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		val netFQN = net.fullyQualifiedName
 		val netClass = net.toClass(netFQN)
 		val nodeClasses = newArrayList
+		val nodeWithEnvClasses = newArrayList
 		val nodes = net.nodes
 		for (node : nodes) {
 			nodeClasses += toNodeClass(node, ClientNode, acceptor) [
+				val hasEnvironment = hasEnvironment(node)
+				if (hasEnvironment) {
+					for (e : node.environment.expressions.filter(XklaimNodeEnvironmentEntry)) {
+						members += e.toField(e.key, LogicalLocality.typeRef) [
+							static = true
+							final = true
+							initializer = '''new «LogicalLocality»("«e.key»")'''
+						]
+					}
+				}
 				members += node.toConstructor [
 					body = '''
 					super(new «PhysicalLocality»("«net.physicalLocality»"), new «LogicalLocality»("«getLogicalLocalityName(node)»"));
 					'''
 				]
-				if (node.environment !== null && !node.environment.expressions.empty) {
+				if (hasEnvironment) {
 					members += node.environment.toMethod("setupEnvironment", typeRef(Void.TYPE)) [
 						body = node.environment
 					]
+					nodeWithEnvClasses += it
 				}
 			]
 		}
@@ -197,10 +210,17 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 					«FOR nodeClass : nodeClasses»
 						«nodeClass.simpleName.toFirstLower».addMainProcess();
 					«ENDFOR»
+					«FOR nodeClass : nodeWithEnvClasses»
+						«nodeClass.simpleName.toFirstLower».setupEnvironment();
+					«ENDFOR»
 				'''
 			]
 		]
 		netClass
+	}
+
+	private def boolean hasEnvironment(XklaimNetNode node) {
+		node.environment !== null && !node.environment.expressions.empty
 	}
 
 	private def String getLogicalLocalityName(XklaimNetNode node) {

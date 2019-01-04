@@ -116,6 +116,12 @@ class XklaimCompilerTest {
 			node TestNodeWithLogLoc logical "foo" {
 				println("Hello from " + foo)
 			}
+			node TestNodeWithEmptyEnvironment [] {
+				
+			}
+			node TestNodeWithEnvironment [l1 -> TestNode, l2 -> foo] {
+				
+			}
 		}
 		'''.checkCompilation(
 			"foo.TestNet" ->
@@ -135,6 +141,10 @@ class XklaimCompilerTest {
 			  private static final LogicalLocality TestNode = new LogicalLocality("TestNode");
 			  
 			  private static final LogicalLocality foo = new LogicalLocality("foo");
+			  
+			  private static final LogicalLocality TestNodeWithEmptyEnvironment = new LogicalLocality("TestNodeWithEmptyEnvironment");
+			  
+			  private static final LogicalLocality TestNodeWithEnvironment = new LogicalLocality("TestNodeWithEnvironment");
 			  
 			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaNodeCoordinator {
@@ -170,6 +180,47 @@ class XklaimCompilerTest {
 			    }
 			  }
 			  
+			  public static class TestNodeWithEmptyEnvironment extends ClientNode {
+			    private static class TestNodeWithEmptyEnvironmentProcess extends KlavaNodeCoordinator {
+			      @Override
+			      public void executeProcess() {
+			      }
+			    }
+			    
+			    public TestNodeWithEmptyEnvironment() {
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("TestNodeWithEmptyEnvironment"));
+			    }
+			    
+			    public void addMainProcess() throws IMCException {
+			      addNodeCoordinator(new TestNet.TestNodeWithEmptyEnvironment.TestNodeWithEmptyEnvironmentProcess());
+			    }
+			  }
+			  
+			  public static class TestNodeWithEnvironment extends ClientNode {
+			    private static class TestNodeWithEnvironmentProcess extends KlavaNodeCoordinator {
+			      @Override
+			      public void executeProcess() {
+			      }
+			    }
+			    
+			    private static final LogicalLocality l1 = new LogicalLocality("l1");
+			    
+			    private static final LogicalLocality l2 = new LogicalLocality("l2");
+			    
+			    public TestNodeWithEnvironment() {
+			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("TestNodeWithEnvironment"));
+			    }
+			    
+			    public void setupEnvironment() {
+			      addToEnvironment(l1, getPhysical(TestNet.TestNode));
+			      addToEnvironment(l2, getPhysical(TestNet.foo));
+			    }
+			    
+			    public void addMainProcess() throws IMCException {
+			      addNodeCoordinator(new TestNet.TestNodeWithEnvironment.TestNodeWithEnvironmentProcess());
+			    }
+			  }
+			  
 			  public TestNet() throws IMCException {
 			    super(new PhysicalLocality("tcp-127.0.0.1:9999"));
 			  }
@@ -177,8 +228,13 @@ class XklaimCompilerTest {
 			  public void addNodes() throws IMCException {
 			    TestNet.TestNode testNode = new TestNet.TestNode();
 			    TestNet.TestNodeWithLogLoc testNodeWithLogLoc = new TestNet.TestNodeWithLogLoc();
+			    TestNet.TestNodeWithEmptyEnvironment testNodeWithEmptyEnvironment = new TestNet.TestNodeWithEmptyEnvironment();
+			    TestNet.TestNodeWithEnvironment testNodeWithEnvironment = new TestNet.TestNodeWithEnvironment();
 			    testNode.addMainProcess();
 			    testNodeWithLogLoc.addMainProcess();
+			    testNodeWithEmptyEnvironment.addMainProcess();
+			    testNodeWithEnvironment.addMainProcess();
+			    testNodeWithEnvironment.setupEnvironment();
 			  }
 			}
 			''',
