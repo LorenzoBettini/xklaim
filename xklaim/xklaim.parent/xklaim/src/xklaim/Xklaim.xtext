@@ -27,7 +27,18 @@ XklaimNet:
 XklaimNetNode:
 	'node' name=ID
 	('logical' logicalLocality=STRING)?
+	(environment=XklaimNodeEnvironment)?
 	body=XBlockExpression
+;
+
+XklaimNodeEnvironment returns xbase::XBlockExpression:
+	{XklaimNodeEnvironment} '['
+		(expressions+=XklaimNodeEnvironmentEntry (',' expressions+=XklaimNodeEnvironmentEntry))?
+	']'
+;
+
+XklaimNodeEnvironmentEntry returns xbase::XExpression:
+	{XklaimNodeEnvironmentEntry} key=ValidID '->' value=XExpression
 ;
 
 XklaimAbstractNode: XklaimNode | XklaimNetNode;
