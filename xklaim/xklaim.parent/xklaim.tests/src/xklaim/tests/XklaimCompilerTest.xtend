@@ -689,7 +689,11 @@ class XklaimCompilerTest {
 		net TestNet physical "tcp-127.0.0.1:9999" {
 			node TestNode logical "foo" {
 				val i = 10
-				out(proc { println(i + "" + self) }, i)@self
+				out(proc {
+					println(i + "" + self)
+					println(foo)
+				},
+				i)@self
 			}
 		}
 		'''.checkCompilation(
@@ -768,9 +772,12 @@ class XklaimCompilerTest {
 			            return this;
 			          }
 			          @Override public void executeProcess() {
-			            String _plus = (Integer.valueOf(i) + "");
-			            String _plus_1 = (_plus + this.self);
-			            InputOutput.<String>println(_plus_1);
+			            {
+			              String _plus = (Integer.valueOf(i) + "");
+			              String _plus_1 = (_plus + this.self);
+			              InputOutput.<String>println(_plus_1);
+			              InputOutput.<LogicalLocality>println(TestNet.foo);
+			            }
 			          }
 			        }._initFields(i);
 			        out(new Tuple(new Object[] {_Proc, i}), this.self);
