@@ -4,7 +4,9 @@
 package xklaim
 
 import org.eclipse.xtext.xbase.compiler.XbaseCompiler
+import org.eclipse.xtext.xbase.scoping.batch.ImplicitlyImportedFeatures
 import xklaim.compiler.XklaimXbaseCompiler
+import xklaim.scoping.XklaimImplicitlyImportedFeatures
 import xklaim.typesystem.XklaimTypeComputer
 
 /**
@@ -18,5 +20,9 @@ class XklaimRuntimeModule extends AbstractXklaimRuntimeModule {
 
 	def Class<? extends XbaseCompiler> bindXbaseCompiler() {
 		XklaimXbaseCompiler
+	}
+
+	def Class<? extends ImplicitlyImportedFeatures> bindImplicitlyImportedFeatures() {
+		return XklaimImplicitlyImportedFeatures
 	}
 }

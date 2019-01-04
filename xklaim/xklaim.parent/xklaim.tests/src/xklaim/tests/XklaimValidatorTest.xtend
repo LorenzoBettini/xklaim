@@ -326,6 +326,18 @@ class XklaimValidatorTest {
 		'''.parse.assertErrorsAsStrings("Type mismatch: cannot convert from String to Locality")
 	}
 
+	@Test
+	def void testCanAccessXklaimRuntimeUtilityMethods() {
+		'''
+		package foo
+		proc Test() {
+			val ll = logloc("test_log_loc")
+			val pl = phyloc("test_phy_loc")
+			println("" + ll + pl)
+		}
+		'''.parse.assertNoIssues
+	}
+
 	def private assertErrorsAsStrings(EObject o, CharSequence expected) {
 		expected.toString.trim.assertEquals(
 			o.validate.filter[severity == Severity.ERROR].map[message].sort.join(System.lineSeparator))
