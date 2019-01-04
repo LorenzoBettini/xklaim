@@ -26,9 +26,8 @@ class XklaimCompilerTest {
 	@Test
 	def void testProgramWithNodes() {
 		'''
-		import klava.PhysicalLocality
 		package foo
-		node TestNode [other -> new PhysicalLocality("localhost:9999")] {
+		node TestNode [other -> phyloc("localhost:9999")] {
 			println("Hello")
 		}
 		node TestNodeWithPhysicalLocality physical "localhost:9999" {
@@ -45,6 +44,7 @@ class XklaimCompilerTest {
 			import klava.topology.KlavaNodeCoordinator;
 			import org.eclipse.xtext.xbase.lib.InputOutput;
 			import org.mikado.imc.common.IMCException;
+			import xklaim.runtime.util.XklaimRuntimeUtil;
 			
 			@SuppressWarnings("all")
 			public class TestNode extends KlavaNode {
@@ -58,8 +58,8 @@ class XklaimCompilerTest {
 			  private static final LogicalLocality other = new LogicalLocality("other");
 			  
 			  public void setupEnvironment() {
-			    PhysicalLocality _physicalLocality = new PhysicalLocality("localhost:9999");
-			    addToEnvironment(other, getPhysical(_physicalLocality));
+			    PhysicalLocality _phyloc = XklaimRuntimeUtil.phyloc("localhost:9999");
+			    addToEnvironment(other, getPhysical(_phyloc));
 			  }
 			  
 			  public void addMainProcess() throws IMCException {
@@ -307,7 +307,7 @@ class XklaimCompilerTest {
 			in(s, var Integer i, val Boolean b)@self
 			println(i)
 			println(b)
-			read(s, var Integer i2, val Boolean b2)@self
+			read(s, var Integer i2, val KlavaProcess b2)@self
 			println(i2)
 			println(b2)
 		}
@@ -340,13 +340,13 @@ class XklaimCompilerTest {
 			    InputOutput.<Integer>println(i);
 			    InputOutput.<Boolean>println(b);
 			    Integer i2 = null;
-			    final Boolean b2;
-			    Tuple _Tuple_1 = new Tuple(new Object[] {this.s, Integer.class, Boolean.class});
+			    final KlavaProcess b2;
+			    Tuple _Tuple_1 = new Tuple(new Object[] {this.s, Integer.class, KlavaProcess.class});
 			    read(_Tuple_1, this.self);
 			    i2 = (Integer) _Tuple_1.getItem(1);
-			    b2 = (Boolean) _Tuple_1.getItem(2);
+			    b2 = (KlavaProcess) _Tuple_1.getItem(2);
 			    InputOutput.<Integer>println(i2);
-			    InputOutput.<Boolean>println(b2);
+			    InputOutput.<KlavaProcess>println(b2);
 			  }
 			}
 			'''

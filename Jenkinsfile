@@ -1,5 +1,8 @@
 node {
    def mvnHome
+   properties([
+     [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', numToKeepStr: '30']]
+   ])
    stage('Checkout') { // for display purposes
       checkout scm
    }

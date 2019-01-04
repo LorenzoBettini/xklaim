@@ -8,6 +8,7 @@ import klava.topology.KlavaNodeCoordinator;
 import klava.topology.KlavaProcess;
 import org.eclipse.xtext.xbase.lib.InputOutput;
 import org.mikado.imc.common.IMCException;
+import xklaim.runtime.util.XklaimRuntimeUtil;
 
 /**
  * This is an example model
@@ -44,8 +45,8 @@ public class Sender extends KlavaNode {
   private static final LogicalLocality server = new LogicalLocality("server");
   
   public void setupEnvironment() {
-    PhysicalLocality _physicalLocality = new PhysicalLocality("tcp-127.0.0.1:9999");
-    addToEnvironment(server, getPhysical(_physicalLocality));
+    PhysicalLocality _phyloc = XklaimRuntimeUtil.phyloc("tcp-127.0.0.1:9999");
+    addToEnvironment(server, getPhysical(_phyloc));
   }
   
   public void addMainProcess() throws IMCException {
