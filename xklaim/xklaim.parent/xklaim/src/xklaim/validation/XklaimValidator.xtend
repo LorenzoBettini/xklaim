@@ -3,14 +3,14 @@
  */
 package xklaim.validation
 
-import org.eclipse.xtext.xbase.XExpression
-import xklaim.xklaim.XklaimAbstractOperation
 import org.eclipse.emf.ecore.EObject
-import org.eclipse.xtext.xbase.XVariableDeclaration
-
-import org.eclipse.xtext.xbase.XbasePackage.Literals
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
+import org.eclipse.xtext.xbase.XExpression
+import org.eclipse.xtext.xbase.XVariableDeclaration
+import org.eclipse.xtext.xbase.XbasePackage.Literals
 import org.eclipse.xtext.xbase.validation.IssueCodes
+import xklaim.xklaim.XklaimAbstractOperation
+import xklaim.xklaim.XklaimNodeEnvironmentEntry
 
 /**
  * This class contains custom validation rules. 
@@ -23,7 +23,11 @@ class XklaimValidator extends AbstractXklaimValidator {
 	public static val WRONG_FORMAL_INITIALIZATION = PREFIX + "WrongFormalInitialization";
 
 	override protected isValueExpectedRecursive(XExpression expr) {
-		return expr.eContainer instanceof XklaimAbstractOperation || super.isValueExpectedRecursive(expr)
+		val container = expr.eContainer
+		return
+			container instanceof XklaimAbstractOperation ||
+			container instanceof XklaimNodeEnvironmentEntry ||
+			super.isValueExpectedRecursive(expr)
 	}
 
 	override protected boolean isLocallyUsed(EObject target, EObject containerToFindUsage) {

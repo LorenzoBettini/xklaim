@@ -160,6 +160,11 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 					super(new «PhysicalLocality»("«net.physicalLocality»"), new «LogicalLocality»("«getLogicalLocalityName(node)»"));
 					'''
 				]
+				if (node.environment !== null && !node.environment.expressions.empty) {
+					members += node.environment.toMethod("setupEnvironment", typeRef(Void.TYPE)) [
+						body = node.environment
+					]
+				}
 			]
 		}
 		accept(netClass) [

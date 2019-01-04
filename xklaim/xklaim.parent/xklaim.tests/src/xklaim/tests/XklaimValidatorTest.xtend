@@ -296,6 +296,36 @@ class XklaimValidatorTest {
 		'''.parse.assertNoIssues
 	}
 
+	@Test
+	def void testNetNodeWithEnvironment() {
+		'''
+		package foo
+		net TestNet physical "tcp-127.0.0.1:9999" {
+			node TestNodeWithEmptyEnvironment [] {
+				println("Hello from " + TestNodeWithEmptyEnvironment)
+			}
+			node TestNodeWithEnvironment [next -> foo] {
+				println("Hello from " + TestNodeWithEnvironment)
+			}
+			node TestNodeWithLogLoc logical "foo" {
+				println("Hello from " + foo)
+			}
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testNetNodeWithInvalidEnvironmentMappingToNonLocality() {
+		'''
+		package foo
+		net TestNet physical "tcp-127.0.0.1:9999" {
+			node TestNodeWithEnvironment [next -> "wrong"] {
+				println("Hello from " + TestNodeWithEnvironment)
+			}
+		}
+		'''.parse.assertErrorsAsStrings("Type mismatch: cannot convert from String to Locality")
+	}
+
 	def private assertErrorsAsStrings(EObject o, CharSequence expected) {
 		expected.toString.trim.assertEquals(
 			o.validate.filter[severity == Severity.ERROR].map[message].sort.join(System.lineSeparator))
