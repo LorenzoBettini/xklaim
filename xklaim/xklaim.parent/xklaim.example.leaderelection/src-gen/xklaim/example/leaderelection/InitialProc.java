@@ -1,6 +1,7 @@
 package xklaim.example.leaderelection;
 
 import klava.LogicalLocality;
+import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.topology.KlavaProcess;
 import org.eclipse.xtext.xbase.lib.InputOutput;
@@ -17,7 +18,8 @@ public class InitialProc extends KlavaProcess {
   
   @Override
   public void executeProcess() {
-    final LogicalLocality rg = new LogicalLocality("rg");
+    LogicalLocality _logicalLocality = new LogicalLocality("rg");
+    final PhysicalLocality rg = this.getPhysical(_logicalLocality);
     final LogicalLocality next = new LogicalLocality("next");
     Integer xid = null;
     Tuple _Tuple = new Tuple(new Object[] {"ID", Integer.class});

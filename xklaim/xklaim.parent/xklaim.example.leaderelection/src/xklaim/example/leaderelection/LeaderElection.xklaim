@@ -3,7 +3,7 @@ import klava.LogicalLocality
 package xklaim.example.leaderelection
 
 proc InitialProc(String nodeName) {
-	val rg = new LogicalLocality("rg")
+	val rg = getPhysical(new LogicalLocality("rg"))
 	val next = new LogicalLocality("next")
 	in("ID", var Integer xid)@rg
 	out("ID", xid)@self
