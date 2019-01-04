@@ -1,5 +1,3 @@
-import klava.topology.KlavaProcess
-
 package xklaim.examples.helloremote
  
 net HelloFromReceivedProcNet physical "tcp-127.0.0.1:9999" {

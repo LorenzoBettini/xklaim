@@ -1,5 +1,3 @@
-import klava.PhysicalLocality
-
 package xklaim.example.mobility.receiver
 
 /*
