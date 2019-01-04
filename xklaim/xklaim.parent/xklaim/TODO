@@ -3,16 +3,6 @@ NODECOORDINATOR
 check executed operations or retrieve generated Java compilation errors
 eval and out cannot specify node coordinators
 
-with explicit physical locality
-
-node Receiver {
-	val myLoc = new PhysicalLocality("tcp-127.0.0.1:9999")
-	while (true) {
-		val remote = new PhysicalLocality
-		accept(myLoc, remote)
-	}
-}
-
 net Net physical {
 
 	node L1 [...] {...}
