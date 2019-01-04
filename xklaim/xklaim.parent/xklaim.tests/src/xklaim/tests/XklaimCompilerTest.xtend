@@ -26,9 +26,8 @@ class XklaimCompilerTest {
 	@Test
 	def void testProgramWithNodes() {
 		'''
-		import klava.PhysicalLocality
 		package foo
-		node TestNode [other -> new PhysicalLocality("localhost:9999")] {
+		node TestNode [other -> phyloc("localhost:9999")] {
 			println("Hello")
 		}
 		node TestNodeWithPhysicalLocality physical "localhost:9999" {
@@ -45,6 +44,7 @@ class XklaimCompilerTest {
 			import klava.topology.KlavaNodeCoordinator;
 			import org.eclipse.xtext.xbase.lib.InputOutput;
 			import org.mikado.imc.common.IMCException;
+			import xklaim.runtime.util.XklaimRuntimeUtil;
 			
 			@SuppressWarnings("all")
 			public class TestNode extends KlavaNode {
@@ -58,8 +58,8 @@ class XklaimCompilerTest {
 			  private static final LogicalLocality other = new LogicalLocality("other");
 			  
 			  public void setupEnvironment() {
-			    PhysicalLocality _physicalLocality = new PhysicalLocality("localhost:9999");
-			    addToEnvironment(other, getPhysical(_physicalLocality));
+			    PhysicalLocality _phyloc = XklaimRuntimeUtil.phyloc("localhost:9999");
+			    addToEnvironment(other, getPhysical(_phyloc));
 			  }
 			  
 			  public void addMainProcess() throws IMCException {
