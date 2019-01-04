@@ -11,6 +11,7 @@ node Sender [server -> new PhysicalLocality("tcp-127.0.0.1:9999")] {
 	eval({
 		println("Hello...")
 		println("...from a process coming from " + myLoc)
+		// println(server)
 		out("DONE")@myLoc
 	})@server
 	in("DONE")@self

@@ -180,3 +180,24 @@ preprocess inner processes in the inferrer as static private nested classes and
 also associate the XExpression as the body of the inferred "executeProcess" method
 
 No it does not work: make KlavaNodeCoordinator serializable DONE
+
+net Net physical {
+
+	node L1 [...] {...}
+	node L2 [...] {...}
+
+}
+
+automatically defines a field in the Net class of type LogicalLocality
+
+after starting the nodes, in the net, also modifies their environments as specified in the DSL
+
+... node L1 [ next -> L2 ]
+
+"next" defines a LogicalLocality in the node class and L2 must be a Locality (e.g., reference to an existing one)
+
+the compiled code will generate
+
+addToNodeEnvironment(new LogicalLocality("next"), getPhysical(L2))
+
+DONE
