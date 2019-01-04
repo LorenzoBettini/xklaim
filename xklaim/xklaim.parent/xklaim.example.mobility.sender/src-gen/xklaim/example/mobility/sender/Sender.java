@@ -1,5 +1,6 @@
 package xklaim.example.mobility.sender;
 
+import klava.LogicalLocality;
 import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.topology.KlavaNode;
@@ -16,8 +17,7 @@ public class Sender extends KlavaNode {
   private static class SenderProcess extends KlavaNodeCoordinator {
     @Override
     public void executeProcess() {
-      final PhysicalLocality server = new PhysicalLocality("tcp-127.0.0.1:9999");
-      this.login(server);
+      this.login(Sender.server);
       final PhysicalLocality myLoc = this.getPhysical(this.self);
       KlavaProcess _Proc = new KlavaProcess() {
         PhysicalLocality myLoc;
@@ -33,12 +33,19 @@ public class Sender extends KlavaNode {
           }
         }
       }._initFields(myLoc);
-      eval(_Proc, server);
+      eval(_Proc, Sender.server);
       in(new Tuple(new Object[] {"DONE"}), this.self);
       InputOutput.<String>println("Remote process has done its job");
-      this.logout(server);
+      this.logout(Sender.server);
       System.exit(0);
     }
+  }
+  
+  private static final LogicalLocality server = new LogicalLocality("server");
+  
+  public void setupEnvironment() {
+    PhysicalLocality _physicalLocality = new PhysicalLocality("tcp-127.0.0.1:9999");
+    addToEnvironment(server, getPhysical(_physicalLocality));
   }
   
   public void addMainProcess() throws IMCException {
