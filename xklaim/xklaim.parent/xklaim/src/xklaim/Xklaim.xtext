@@ -5,8 +5,8 @@ import "http://www.eclipse.org/xtext/xbase/Xbase" as xbase
 generate xklaim "http://www.Xklaim.xklaim"
 
 XklaimModel:
-	importSection=XImportSection?
 	('package' name=QualifiedName)?
+	importSection=XImportSection?
 	processes+=XklaimProcess*
 	nodes+=XklaimNode*
 	nets+=XklaimNet*;
