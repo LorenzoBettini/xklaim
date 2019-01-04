@@ -1,16 +1,14 @@
-import klava.LogicalLocality
 import klava.topology.KlavaProcess
 
 package xklaim.examples.helloremote
  
 net HelloFromReceivedProcNet physical "tcp-127.0.0.1:9999" {
 	node Reader logical "reader" {
-		val writerLoc = new LogicalLocality("writer")
 		out(proc {
 			in(var String s)@self
 			println(s)
 			System.exit(0)
-		})@writerLoc
+		})@writer
 	}
 	node Writer logical "writer" {
 		out("Hello World")@self

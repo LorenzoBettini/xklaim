@@ -12,11 +12,14 @@ import org.mikado.imc.common.IMCException;
 
 @SuppressWarnings("all")
 public class HelloFromReceivedProcNet extends LogicalNet {
+  private static final LogicalLocality reader = new LogicalLocality("reader");
+  
+  private static final LogicalLocality writer = new LogicalLocality("writer");
+  
   public static class Reader extends ClientNode {
     private static class ReaderProcess extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
-        final LogicalLocality writerLoc = new LogicalLocality("writer");
         KlavaProcess _Proc = new KlavaProcess() {
           private KlavaProcess _initFields() {
             return this;
@@ -32,7 +35,7 @@ public class HelloFromReceivedProcNet extends LogicalNet {
             }
           }
         }._initFields();
-        out(new Tuple(new Object[] {_Proc}), writerLoc);
+        out(new Tuple(new Object[] {_Proc}), HelloFromReceivedProcNet.writer);
       }
     }
     

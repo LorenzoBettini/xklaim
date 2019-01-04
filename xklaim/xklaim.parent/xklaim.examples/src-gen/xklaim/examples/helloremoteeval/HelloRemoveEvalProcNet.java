@@ -12,20 +12,21 @@ import org.mikado.imc.common.IMCException;
 
 @SuppressWarnings("all")
 public class HelloRemoveEvalProcNet extends LogicalNet {
+  private static final LogicalLocality reader = new LogicalLocality("reader");
+  
+  private static final LogicalLocality writer = new LogicalLocality("writer");
+  
   public static class Reader extends ClientNode {
     private static class ReaderProcess extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
-        final LogicalLocality writerLoc = new LogicalLocality("writer");
         KlavaProcess _Proc = new KlavaProcess() {
-          LogicalLocality writerLoc;
-          private KlavaProcess _initFields(LogicalLocality writerLoc) {
-            this.writerLoc = writerLoc;
+          private KlavaProcess _initFields() {
             return this;
           }
           @Override public void executeProcess() {
             {
-              PhysicalLocality _physical = this.getPhysical(writerLoc);
+              PhysicalLocality _physical = this.getPhysical(HelloRemoveEvalProcNet.writer);
               String _plus = ("executing at " + _physical);
               InputOutput.<String>println(_plus);
               String s = null;
@@ -36,8 +37,8 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
               System.exit(0);
             }
           }
-        }._initFields(writerLoc);
-        eval(_Proc, writerLoc);
+        }._initFields();
+        eval(_Proc, HelloRemoveEvalProcNet.writer);
       }
     }
     
