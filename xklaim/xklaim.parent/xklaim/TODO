@@ -55,3 +55,8 @@ NEWLOC
 HIERARCHICAL
 
 RUN AS
+
+UTILS
+
+static methods for creating logical locality and physical locality
+
