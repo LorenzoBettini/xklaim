@@ -6,6 +6,7 @@ import klava.Tuple;
 import klava.topology.KlavaProcess;
 import org.eclipse.xtext.xbase.lib.InputOutput;
 import xklaim.example.leaderelection.CheckerProc;
+import xklaim.runtime.util.XklaimRuntimeUtil;
 
 @SuppressWarnings("all")
 public class InitialProc extends KlavaProcess {
@@ -18,9 +19,8 @@ public class InitialProc extends KlavaProcess {
   
   @Override
   public void executeProcess() {
-    LogicalLocality _logicalLocality = new LogicalLocality("rg");
-    final PhysicalLocality rg = this.getPhysical(_logicalLocality);
-    final LogicalLocality next = new LogicalLocality("next");
+    final PhysicalLocality rg = this.getPhysical(XklaimRuntimeUtil.logloc("rg"));
+    final LogicalLocality next = XklaimRuntimeUtil.logloc("next");
     Integer xid = null;
     Tuple _Tuple = new Tuple(new Object[] {"ID", Integer.class});
     in(_Tuple, rg);
