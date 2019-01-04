@@ -9,9 +9,8 @@ node Sender [server -> new PhysicalLocality("tcp-127.0.0.1:9999")] {
 	login(server)
 	val myLoc = getPhysical(self)
 	eval({
-		println("Hello...")
+		println(String.format("Hello %s...", server))
 		println("...from a process coming from " + myLoc)
-		// println(server)
 		out("DONE")@myLoc
 	})@server
 	in("DONE")@self

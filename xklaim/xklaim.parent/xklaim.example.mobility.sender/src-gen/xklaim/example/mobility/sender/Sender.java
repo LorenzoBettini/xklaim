@@ -27,7 +27,7 @@ public class Sender extends KlavaNode {
         }
         @Override public void executeProcess() {
           {
-            InputOutput.<String>println("Hello...");
+            InputOutput.<String>println(String.format("Hello %s...", Sender.server));
             InputOutput.<String>println(("...from a process coming from " + myLoc));
             out(new Tuple(new Object[] {"DONE"}), myLoc);
           }
