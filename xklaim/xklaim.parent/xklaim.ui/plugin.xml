@@ -641,4 +641,70 @@
 			<newWizardShortcut id="xklaim.ui.wizard.XklaimNewProjectWizard"/>
 		</perspectiveExtension>
 	</extension>
+	<!-- Custom extension points -->
+	<extension
+		point="org.eclipse.debug.core.launchConfigurationTypes">
+		<launchConfigurationType
+			id="xklaim.ui.XklaimLaunchConfigurationType"
+			modes="run, debug"
+			name="Xklaim Launch"
+			delegate="xklaim.ui.launch.XklaimLaunchDelegate"
+			sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
+			sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer"/>
+	</extension>
+	<extension
+		point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+		<launchConfigurationTabGroup
+			class="xklaim.ui.launch.XklaimLaunchTabGroup"
+			id="xklaim.ui.XklaimLaunchConfigurationTabGroup"
+			type="xklaim.ui.XklaimLaunchConfigurationType">
+			<launchMode 
+				mode="debug"
+				perspective="org.eclipse.debug.ui.DebugPerspective"
+				description="Debug a Xklaim File">
+			</launchMode>
+			<launchMode
+				mode="run"
+				description="Run a Xklaim File">
+			</launchMode>
+		</launchConfigurationTabGroup>
+	</extension>
+	<extension
+		point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+		<launchConfigurationTypeImage
+			configTypeID="xklaim.ui.XklaimLaunchConfigurationType"
+			icon="icons/etool16/java_app.gif"
+			id="xklaim.ui.XklaimLaunchConfigurationTypeImage"/>
+	</extension>
+	<extension
+		point="org.eclipse.debug.ui.launchShortcuts">
+		<shortcut
+			class="xklaim.ui.launch.XklaimLaunchShortcut"
+			description="Launches a Xklaim File"
+			icon="icons/etool16/java_app.gif"
+			id="xklaim.ui.launch.shortcut1"
+			label="Xklaim"
+			modes="run, debug">
+			<contextualLaunch>
+				<enablement>
+					<with variable="selection">
+					<count value="1"/>
+					<iterate
+						ifEmpty="false"
+						operator="and">
+						<adapt type="org.eclipse.core.resources.IFile"/>
+						<test property="org.eclipse.debug.ui.matchesPattern"
+							value="*.xklaim"/>
+					</iterate>
+					</with>
+				</enablement>
+				<contextLabel
+					mode="run"
+					label="Xklaim Application"/>
+				<contextLabel
+					mode="debug"
+					label="Xklaim Application"/>
+			</contextualLaunch>
+		</shortcut>
+	</extension>
 </plugin>
