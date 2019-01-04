@@ -119,12 +119,12 @@ public class LeaderElectionNet extends LogicalNet {
     LeaderElectionNet.L2 l2 = new LeaderElectionNet.L2();
     LeaderElectionNet.L3 l3 = new LeaderElectionNet.L3();
     LeaderElectionNet.RG rG = new LeaderElectionNet.RG();
+    l1.setupEnvironment();
+    l2.setupEnvironment();
+    l3.setupEnvironment();
     l1.addMainProcess();
     l2.addMainProcess();
     l3.addMainProcess();
     rG.addMainProcess();
-    l1.setupEnvironment();
-    l2.setupEnvironment();
-    l3.setupEnvironment();
   }
 }
