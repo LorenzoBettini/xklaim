@@ -33,7 +33,7 @@ XklaimNetNode:
 
 XklaimNodeEnvironment returns xbase::XBlockExpression:
 	{XklaimNodeEnvironment} '['
-		(expressions+=XklaimNodeEnvironmentEntry (',' expressions+=XklaimNodeEnvironmentEntry))?
+		(expressions+=XklaimNodeEnvironmentEntry (',' expressions+=XklaimNodeEnvironmentEntry)*)?
 	']'
 ;
 
