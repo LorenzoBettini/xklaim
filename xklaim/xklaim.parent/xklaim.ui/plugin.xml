@@ -699,7 +699,6 @@
                  <and>
                    <not><adapt type="org.eclipse.jdt.core.IJavaElement"/></not>
                    <adapt type="xklaim.ui.launching.XklaimJavaElementDelegateMainLaunch">
-<!--
                      <and>
                        <adapt type="org.eclipse.jdt.core.IJavaElement">
                          <test property="org.eclipse.jdt.core.isInJavaProject"/>
@@ -711,7 +710,6 @@
                          <test property="org.eclipse.jdt.launching.isPackageFragmentRoot"/>
                        </or>
                      </and>
---> 
                    </adapt>
                  </and>
                </iterate>
