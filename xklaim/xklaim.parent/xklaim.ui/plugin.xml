@@ -660,43 +660,23 @@
 	
    <extension point="org.eclipse.core.runtime.adapters">
      <factory 
-        class="xklaim.ui.XklaimExecutableExtensionFactory:org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateAdapterFactory"
+        class="xklaim.ui.XklaimExecutableExtensionFactory:xklaim.ui.launching.XklaimJavaElementDelegateAdapterFactory"
         adaptableType="org.eclipse.ui.IFileEditorInput">
-        <adapter type="org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateJunitLaunch"/>
+        <adapter type="xklaim.ui.launching.XklaimJavaElementDelegateMainLaunch"/>
      </factory>
      <factory 
-        class="xklaim.ui.XklaimExecutableExtensionFactory:org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateAdapterFactory"
+        class="xklaim.ui.XklaimExecutableExtensionFactory:xklaim.ui.launching.XklaimJavaElementDelegateAdapterFactory"
         adaptableType="org.eclipse.ui.IEditorPart">
-        <adapter type="org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateJunitLaunch"/>
+        <adapter type="xklaim.ui.launching.XklaimJavaElementDelegateMainLaunch"/>
      </factory>
      <factory 
-        class="xklaim.ui.XklaimExecutableExtensionFactory:org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateAdapterFactory" 
+        class="xklaim.ui.XklaimExecutableExtensionFactory:xklaim.ui.launching.XklaimJavaElementDelegateAdapterFactory" 
         adaptableType="org.eclipse.core.resources.IResource">
-        <adapter type="org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateJunitLaunch"/>
+        <adapter type="xklaim.ui.launching.XklaimJavaElementDelegateMainLaunch"/>
      </factory>
      <factory 
-        class="xklaim.ui.XklaimExecutableExtensionFactory:org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateAdapterFactory"
-        adaptableType="org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateJunitLaunch">
-        <adapter type="org.eclipse.jdt.core.IJavaElement"/>
-     </factory>
-     <factory 
-        class="xklaim.ui.XklaimExecutableExtensionFactory:org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateAdapterFactory"
-        adaptableType="org.eclipse.ui.IFileEditorInput">
-        <adapter type="org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateMainLaunch"/>
-     </factory>
-     <factory 
-        class="xklaim.ui.XklaimExecutableExtensionFactory:org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateAdapterFactory"
-        adaptableType="org.eclipse.ui.IEditorPart">
-        <adapter type="org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateMainLaunch"/>
-     </factory>
-     <factory 
-        class="xklaim.ui.XklaimExecutableExtensionFactory:org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateAdapterFactory" 
-        adaptableType="org.eclipse.core.resources.IResource">
-        <adapter type="org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateMainLaunch"/>
-     </factory>
-     <factory 
-        class="xklaim.ui.XklaimExecutableExtensionFactory:org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateAdapterFactory"
-        adaptableType="org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateMainLaunch">
+        class="xklaim.ui.XklaimExecutableExtensionFactory:xklaim.ui.launching.XklaimJavaElementDelegateAdapterFactory"
+        adaptableType="xklaim.ui.launching.XklaimJavaElementDelegateMainLaunch">
         <adapter type="org.eclipse.jdt.core.IJavaElement"/>
      </factory>
   </extension>
@@ -704,7 +684,7 @@
 	    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
       <shortcut
-            class="org.eclipse.xtext.xbase.ui.launching.JavaApplicationLaunchShortcut"
+            class="xklaim.ui.launching.XklaimJavaApplicationLaunchShortcut"
             description="Launches a local Xklaim application"
             helpContextId="org.eclipse.jdt.debug.ui.shortcut_local_java_application"
             icon="icons/etool16/java_app.gif"
@@ -718,7 +698,7 @@
                <iterate>
                  <and>
                    <not><adapt type="org.eclipse.jdt.core.IJavaElement"/></not>
-                   <adapt type="org.eclipse.xtext.xbase.ui.launching.JavaElementDelegateMainLaunch">
+                   <adapt type="xklaim.ui.launching.XklaimJavaElementDelegateMainLaunch">
 <!--
                      <and>
                        <adapt type="org.eclipse.jdt.core.IJavaElement">
