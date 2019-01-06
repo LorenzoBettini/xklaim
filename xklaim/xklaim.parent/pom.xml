@@ -72,6 +72,11 @@
             <goals>
               <goal>source-feature</goal>
             </goals>
+            <configuration>
+              <excludes>
+                <plugin id="xklaim.ui.examples" />
+              </excludes>
+            </configuration>
           </execution>
         </executions>
       </plugin>
