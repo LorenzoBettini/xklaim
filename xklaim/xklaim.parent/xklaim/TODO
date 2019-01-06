@@ -12,3 +12,8 @@ P_@procname@.join();
 NEWLOC
 
 HIERARCHICAL
+
+Project Wizard: generates an Hello world with a net (executable)
+and comment about Run As.
+
+Import Examples
