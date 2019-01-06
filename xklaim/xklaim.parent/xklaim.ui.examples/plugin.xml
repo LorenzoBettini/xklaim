@@ -34,17 +34,17 @@
 		</wizard>
 	</extension>
 
-   <extension
-         point="org.eclipse.emf.common.ui.examples">
-      <example
-            pageImage="icons/genproject.gif"
-            wizardID="xklaim.examples.XklaimExampleWizard">
-         <projectDescriptor
-               contentURI="contents/xklaim.examples.zip"
-               description="Some Xklaim Examples"
-               name="xklaim.examples">
-         </projectDescriptor>
-      </example>
-   </extension>
+	<extension
+		point="org.eclipse.emf.common.ui.examples">
+		<example
+			pageImage="icons/genproject.gif"
+			wizardID="xklaim.examples.XklaimExampleWizard">
+			<projectDescriptor
+				contentURI="contents/xklaim.examples.zip"
+				description="Some Xklaim Examples"
+				name="xklaim.examples">
+			</projectDescriptor>
+		</example>
+	</extension>
 
 </plugin>
