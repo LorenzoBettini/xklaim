@@ -16,7 +16,10 @@
 	</macrodef>
 
 	<target name="zip_all_examples">
-		<zip_example name="javamm.examples" />
+		<zip_example name="xklaim.examples" />
+		<zip_example name="xklaim.example.leaderelection" />
+		<zip_example name="xklaim.example.mobility.receiver" />
+		<zip_example name="xklaim.example.mobility.sender" />
 	</target>
 
 	<target name="clean">
