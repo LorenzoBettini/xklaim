@@ -25,6 +25,7 @@
     <module>imc.tests</module>
     <module>klava</module>
     <module>klava.tests</module>
+    <module>xklaim.target</module>
     <module>xklaim.runtime</module>
     <module>xklaim</module>
     <module>xklaim.ide</module>
@@ -33,7 +34,7 @@
     <module>xklaim.example.mobility.receiver</module>
     <module>xklaim.example.mobility.sender</module>
     <module>xklaim.example.leaderelection</module>
-    <module>xklaim.target</module>
+    <module>xklaim.ui.examples</module>
     <module>xklaim.feature</module>
     <module>xklaim.repository</module>
     <module>xklaim.tests</module>
