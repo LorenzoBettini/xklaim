@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+	<extension point="org.eclipse.ui.newWizards">
+		<category id="xklaim.ui.Examples" 
+				  name="Xklaim Examples" 
+				  parentCategory="org.eclipse.ui.Examples" />
+	</extension>
+	<extension point="org.eclipse.ui.newWizards">
+		<category id="xklaim.project.Examples" 
+				  name="Examples" 
+				  parentCategory="xklaim.ui.category" />
+	</extension>
+
+	<extension point="org.eclipse.ui.newWizards">
+		<wizard	id="xklaim.examples.XklaimExampleWizard" 
+			name="Some Xklaim Examples" 
+			class="org.eclipse.emf.common.ui.wizard.ExampleInstallerWizard" 
+			category="org.eclipse.ui.Examples/xklaim.ui.Examples"
+			icon="icons/genproject.gif" 
+			project="true">
+			<description>Some Xklaim Examples</description>
+		</wizard>
+	</extension>
+
+	<extension point="org.eclipse.ui.newWizards">
+		<wizard	id="xklaim.examples.XklaimExampleWizard" 
+			name="Some Xklaim Examples" 
+			class="org.eclipse.emf.common.ui.wizard.ExampleInstallerWizard" 
+			category="xklaim.ui.category/xklaim.project.Examples"
+			icon="icons/genproject.gif" 
+			project="true">
+			<description>Some Xklaim Examples</description>
+		</wizard>
+	</extension>
+
+   <extension
+         point="org.eclipse.emf.common.ui.examples">
+      <example
+            pageImage="icons/genproject.gif"
+            wizardID="xklaim.examples.XklaimExampleWizard">
+         <projectDescriptor
+               contentURI="contents/xklaim.examples.zip"
+               description="Some Xklaim Examples"
+               name="xklaim.examples">
+         </projectDescriptor>
+      </example>
+   </extension>
+
+</plugin>
