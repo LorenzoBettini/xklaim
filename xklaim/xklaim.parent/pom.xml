@@ -71,6 +71,7 @@
     <module>xklaim.example.leaderelection</module>
     <module>xklaim.ui.examples</module>
     <module>xklaim.feature</module>
+    <module>xklaim.product.ui.feature</module>
     <module>xklaim.repository</module>
     <module>xklaim.tests</module>
     <module>xklaim.ui.tests</module>
