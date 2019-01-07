@@ -154,7 +154,7 @@
           <target>
             <artifact>
               <groupId>xklaim</groupId>
-              <artifactId>xklaim-${eclipseVersion}-xtext-${xtextVersion}.target</artifactId>
+              <artifactId>xklaim.target</artifactId>
               <version>${project.version}</version>
             </artifact>
           </target>
