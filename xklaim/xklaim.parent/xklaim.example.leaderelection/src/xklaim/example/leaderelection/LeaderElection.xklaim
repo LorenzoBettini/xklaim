@@ -32,6 +32,11 @@ proc NotifierProc(Integer myId) {
 	}
 }
 
+/**
+ * Leader election example in Xklaim.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
 net LeaderElectionNet physical "localhost:9999" {
 	node L1 [next -> L2] {
 		eval(new InitialProc("L1"))@self
