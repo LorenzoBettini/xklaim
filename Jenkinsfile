@@ -1,8 +1,8 @@
 node {
    def mvnHome
-   def mavenProfiles = params.MAVEN_PROFILES
-   if (mavenProfiles == null) {
-     mavenProfiles = ""
+   def mavenProfiles = ""
+   if (env.JOB_NAME.endsWith("release") {
+     mavenProfiles = "-Prelease-composite"
    }
    properties([
      [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', numToKeepStr: '30']]
