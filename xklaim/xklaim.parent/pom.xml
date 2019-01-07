@@ -9,6 +9,7 @@
 
   <properties>
     <xtextVersion>2.16.0</xtextVersion>
+    <eclipseVersion>2018-12</eclipseVersion>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -19,6 +20,38 @@
     <moduleProperties></moduleProperties>
     <systemProperties></systemProperties>
     <tycho.testArgLine></tycho.testArgLine>
+
+    <ant-files-path>${project.basedir}/../releng/releasing</ant-files-path>
+
+    <!-- pass "-n" to perform a trial run with no changes made -->
+    <dryrun></dryrun>
+
+    <!-- for deployment on bintray -->
+    <!-- The name of your own Bintray repository -->
+    <bintray.repo>xklaim</bintray.repo>
+    <!-- The name of your own Bintray repository's package for releases -->
+    <bintray.package>releases</bintray.package>
+    <!-- The label for the Composite sites -->
+    <site.label>Xklaim Site</site.label>
+
+    <!-- If the Bintray repository is owned by someone different from your 
+      user, then specify the bintray.owner explicitly -->
+    <bintray.owner>${bintray.user}</bintray.owner>
+    <!-- Define bintray.user and bintray.apikey in some secret place, like 
+      .m2/settings.xml -->
+
+    <!-- Default values for remote directories -->
+    <bintray.base.path></bintray.base.path>
+    <bintray.releases.path>${bintray.base.path}releases</bintray.releases.path>
+    <bintray.composite.path>${bintray.base.path}updates</bintray.composite.path>
+    <bintray.zip.path>${bintray.base.path}zipped</bintray.zip.path>
+    <bintray.products.path>${bintray.base.path}products</bintray.products.path>
+    <!-- note that the following must be consistent with the path schema 
+      used to publish child composite repositories and actual released p2 repositories -->
+    <child.repository.path.prefix>../../releases/</child.repository.path.prefix>
+
+    <!-- for deployment on Sourceforge -->
+    <remote.dir>lbettini@frs.sourceforge.net:/home/frs/project/xklaim</remote.dir>
   </properties>
   <modules>
     <module>imc</module>
@@ -121,7 +154,7 @@
           <target>
             <artifact>
               <groupId>xklaim</groupId>
-              <artifactId>xklaim.target</artifactId>
+              <artifactId>xklaim-${eclipseVersion}-${xtextVersion}.target</artifactId>
               <version>${project.version}</version>
             </artifact>
           </target>
