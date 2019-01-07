@@ -72,11 +72,13 @@
             <goals>
               <goal>source-feature</goal>
             </goals>
+            <!--
             <configuration>
               <excludes>
                 <plugin id="xklaim.ui.examples" />
               </excludes>
             </configuration>
+            -->
           </execution>
         </executions>
       </plugin>
@@ -247,6 +249,19 @@
                       <goal>build-qualifier-aggregator</goal>
                       <goal>validate-id</goal>
                       <goal>validate-version</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <versionRange>[1.8,)</versionRange>
+                    <goals>
+                      <goal>run</goal>
                     </goals>
                   </pluginExecutionFilter>
                   <action>

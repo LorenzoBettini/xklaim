@@ -3,34 +3,74 @@
 <plugin>
 	<extension point="org.eclipse.ui.newWizards">
 		<category id="xklaim.ui.Examples" 
-				  name="Xklaim Examples" 
-				  parentCategory="org.eclipse.ui.Examples" />
+				name="Xklaim Examples" 
+				parentCategory="org.eclipse.ui.Examples" />
 	</extension>
 	<extension point="org.eclipse.ui.newWizards">
 		<category id="xklaim.project.Examples" 
-				  name="Examples" 
-				  parentCategory="xklaim.ui.category" />
+				name="Examples" 
+				parentCategory="xklaim.ui.category" />
 	</extension>
 
 	<extension point="org.eclipse.ui.newWizards">
-		<wizard	id="xklaim.examples.XklaimExampleWizard" 
-			name="Some Xklaim Examples" 
-			class="org.eclipse.emf.common.ui.wizard.ExampleInstallerWizard" 
+		<wizard id="xklaim.examples.XklaimExampleWizard" 
+			name="Some Xklaim Examples"
+			class="xklaim.ui.examples.XklaimExampleInstallerWizard"
 			category="org.eclipse.ui.Examples/xklaim.ui.Examples"
-			icon="icons/genproject.gif" 
+			icon="icons/genproject.gif"
 			project="true">
 			<description>Some Xklaim Examples</description>
 		</wizard>
 	</extension>
+	<extension point="org.eclipse.ui.newWizards">
+		<wizard id="xklaim.examples.XklaimLeaderElectionExampleWizard"
+			name="Leader Election Xklaim Example"
+			class="xklaim.ui.examples.XklaimExampleInstallerWizard"
+			category="org.eclipse.ui.Examples/xklaim.ui.Examples"
+			icon="icons/genproject.gif"
+			project="true">
+			<description>Leader Election Xklaim Example</description>
+		</wizard>
+	</extension>
+	<extension point="org.eclipse.ui.newWizards">
+		<wizard id="xklaim.examples.XklaimCodeMobilityExampleWizard"
+			name="Code Mobility Xklaim Example"
+			class="xklaim.ui.examples.XklaimExampleInstallerWizard"
+			category="org.eclipse.ui.Examples/xklaim.ui.Examples"
+			icon="icons/genproject.gif"
+			project="true">
+			<description>Code Mobility Xklaim Example</description>
+		</wizard>
+	</extension>
 
 	<extension point="org.eclipse.ui.newWizards">
-		<wizard	id="xklaim.examples.XklaimExampleWizard" 
-			name="Some Xklaim Examples" 
-			class="org.eclipse.emf.common.ui.wizard.ExampleInstallerWizard" 
+		<wizard id="xklaim.examples.XklaimExampleWizard"
+			name="Some Xklaim Examples"
+			class="xklaim.ui.examples.XklaimExampleInstallerWizard"
 			category="xklaim.ui.category/xklaim.project.Examples"
-			icon="icons/genproject.gif" 
+			icon="icons/genproject.gif"
 			project="true">
 			<description>Some Xklaim Examples</description>
+		</wizard>
+	</extension>
+	<extension point="org.eclipse.ui.newWizards">
+		<wizard id="xklaim.examples.XklaimLeaderElectionExampleWizard"
+			name="Leader Election Xklaim Example"
+			class="xklaim.ui.examples.XklaimExampleInstallerWizard"
+			category="xklaim.ui.category/xklaim.project.Examples"
+			icon="icons/genproject.gif"
+			project="true">
+			<description>Leader Election Xklaim Example</description>
+		</wizard>
+	</extension>
+	<extension point="org.eclipse.ui.newWizards">
+		<wizard id="xklaim.examples.XklaimCodeMobilityExampleWizard"
+			name="Code Mobility Xklaim Example"
+			class="xklaim.ui.examples.XklaimExampleInstallerWizard"
+			category="xklaim.ui.category/xklaim.project.Examples"
+			icon="icons/genproject.gif"
+			project="true">
+			<description>Code Mobility Xklaim Example</description>
 		</wizard>
 	</extension>
 
@@ -43,6 +83,35 @@
 				contentURI="contents/xklaim.examples.zip"
 				description="Some Xklaim Examples"
 				name="xklaim.examples">
+			</projectDescriptor>
+		</example>
+	</extension>
+	<extension
+		point="org.eclipse.emf.common.ui.examples">
+		<example
+			pageImage="icons/genproject.gif"
+			wizardID="xklaim.examples.XklaimLeaderElectionExampleWizard">
+			<projectDescriptor
+				contentURI="contents/xklaim.example.leaderelection.zip"
+				description="Leader Election Xklaim Example"
+				name="xklaim.example.leaderelection">
+			</projectDescriptor>
+		</example>
+	</extension>
+	<extension
+		point="org.eclipse.emf.common.ui.examples">
+		<example
+			pageImage="icons/genproject.gif"
+			wizardID="xklaim.examples.XklaimCodeMobilityExampleWizard">
+			<projectDescriptor
+				contentURI="contents/xklaim.example.mobility.receiver.zip"
+				description="Code Mobility Xklaim Example (Receiver)"
+				name="xklaim.example.mobility.receiver">
+			</projectDescriptor>
+			<projectDescriptor
+				contentURI="contents/xklaim.example.mobility.sender.zip"
+				description="Code Mobility Xklaim Example (Sender)"
+				name="xklaim.example.mobility.sender">
 			</projectDescriptor>
 		</example>
 	</extension>
