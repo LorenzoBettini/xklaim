@@ -14,7 +14,7 @@ node {
       wrap([$class: 'Xvfb', autoDisplayName: true, debug: false]) {
         // Run the maven build
         // don't make the build fail in case of test failures...
-        sh "./mvnw -Dmaven.test.failure.ignore=true -Dmaven.repo.local=.m2 -fae clean verify ${mavenProfiles}"
+        sh "./mvnw -Dmaven.test.failure.ignore=true -fae clean verify ${mavenProfiles}"
       }
    }
    stage('Results') {
