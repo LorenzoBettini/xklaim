@@ -390,6 +390,15 @@
         <moduleProperties>--add-modules=ALL-SYSTEM</moduleProperties>
       </properties>
     </profile>
+    <profile>
+      <id>release-composite</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
   </profiles>
 
   <dependencies>
