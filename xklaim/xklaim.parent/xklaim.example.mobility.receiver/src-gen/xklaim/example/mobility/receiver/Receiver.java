@@ -3,6 +3,7 @@ package xklaim.example.mobility.receiver;
 import klava.PhysicalLocality;
 import klava.topology.KlavaNode;
 import klava.topology.KlavaNodeCoordinator;
+import org.eclipse.xtext.xbase.lib.InputOutput;
 import org.mikado.imc.common.IMCException;
 
 /**
@@ -16,6 +17,7 @@ public class Receiver extends KlavaNode {
   private static class ReceiverProcess extends KlavaNodeCoordinator {
     @Override
     public void executeProcess() {
+      InputOutput.<String>println("Receiver started");
       while (true) {
         {
           final PhysicalLocality remote = new PhysicalLocality();

@@ -7,6 +7,7 @@ package xklaim.example.mobility.receiver
  * Right click on the file and select "Run As" -> "Xklaim Application".
  */
 node Receiver physical "tcp-127.0.0.1:9999" {
+	println("Receiver started")
 	while (true) {
 		val remote = new PhysicalLocality
 		accept(remote)
