@@ -1,6 +1,15 @@
 package xklaim.examples.helloremoteeval
- 
+
+/**
+ * The Writer node adds a tuple to its tuple space, the Reader evaluates a
+ * process to the Writer node to retrieve the tuple.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
 net HelloRemoveEvalProcNet physical "tcp-127.0.0.1:9999" {
+	/**
+	 * Evaluates a process to the Writer node to retrieve the tuple
+	 */
 	node Reader logical "reader" {
 		eval({
 			println("executing at " + getPhysical(writer))

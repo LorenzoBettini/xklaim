@@ -1,6 +1,15 @@
 package xklaim.examples.hello
- 
+
+/**
+ * The Writer node adds a tuple to its tuple space, the Reader node tries
+ * to retrieve it from Writer.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
 net HelloNet physical "tcp-127.0.0.1:9999" {
+	/**
+	 * Tries to retrieve a matching tuple from the Writer node.
+	 */
 	node Reader logical "reader" [writerLoc -> writer] {
 		in(var String s)@writerLoc
 		println(s)
