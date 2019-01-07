@@ -21,7 +21,7 @@
     <systemProperties></systemProperties>
     <tycho.testArgLine></tycho.testArgLine>
 
-    <target-file-name>xklaim-${eclipseVersion}-${xtextVersion}</target-file-name>
+    <target-file-name>xklaim-${eclipseVersion}-xtext-${xtextVersion}</target-file-name>
 
     <ant-files-path>${project.basedir}/../releng/releasing</ant-files-path>
 
