@@ -11,7 +11,11 @@ import org.mikado.imc.common.IMCException;
 import xklaim.runtime.util.XklaimRuntimeUtil;
 
 /**
- * This is an example model
+ * This contains the sender of mobile code which first have to login to the remote Net.
+ * 
+ * Make sure you have already started the Receiver application in the mobility.sender project.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
  */
 @SuppressWarnings("all")
 public class Sender extends KlavaNode {

@@ -6,7 +6,10 @@ import klava.topology.KlavaNodeCoordinator;
 import org.mikado.imc.common.IMCException;
 
 /**
- * This is an example model
+ * This contains the Net where the senders of mobile code have to
+ * login before evaluating their mobile code in this net.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
  */
 @SuppressWarnings("all")
 public class Receiver extends KlavaNode {
