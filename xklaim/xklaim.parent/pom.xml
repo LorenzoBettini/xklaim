@@ -73,6 +73,7 @@
     <module>xklaim.feature</module>
     <module>xklaim.product.ui.feature</module>
     <module>xklaim.repository</module>
+    <module>xklaim.product.repository</module>
     <module>xklaim.tests</module>
     <module>xklaim.ui.tests</module>
   </modules>
@@ -393,6 +394,33 @@
     </profile>
     <profile>
       <id>release-composite</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>release-ide-composite</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>deploy-ide-composite</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>build-ide</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
