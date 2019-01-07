@@ -60,12 +60,19 @@ final class HelloWorldProject {
 			folders += "src"
 			folders += "src-gen"
 			requiredBundles += "xklaim.runtime"
-			addFile('''src/«path»/Model.xklaim''', '''
+			addFile('''src/«path»/Hello.xklaim''', '''
+				package «path»
+				
 				/*
-				 * This is an example model
+				 * This is an example Xklaim application.
+				 *
+				 * Right click on the file and select "Run As" -> "Xklaim Application".
 				 */
-				node Hello {
-					
+				net HelloNet physical "localhost:9999" {
+					node Hello {
+						println("Hello World!")
+						System.exit(0)
+					}
 				}
 			''')
 		])
