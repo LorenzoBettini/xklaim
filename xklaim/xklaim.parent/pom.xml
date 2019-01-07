@@ -21,6 +21,8 @@
     <systemProperties></systemProperties>
     <tycho.testArgLine></tycho.testArgLine>
 
+    <target-file-name>xklaim-${eclipseVersion}-${xtextVersion}</target-file-name>
+
     <ant-files-path>${project.basedir}/../releng/releasing</ant-files-path>
 
     <!-- pass "-n" to perform a trial run with no changes made -->
@@ -155,6 +157,7 @@
             <artifact>
               <groupId>xklaim</groupId>
               <artifactId>xklaim.target</artifactId>
+              <classifier>${target-file-name}</classifier>
               <version>${project.version}</version>
             </artifact>
           </target>
@@ -219,6 +222,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
           <version>1.8</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
