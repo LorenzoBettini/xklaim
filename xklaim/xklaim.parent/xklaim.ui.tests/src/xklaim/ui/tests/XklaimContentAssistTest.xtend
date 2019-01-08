@@ -6,9 +6,6 @@ import org.eclipse.xtext.ui.testing.AbstractContentAssistTest
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * @author Jan Koehnlein - copied and adapted from Xtend
- */
 @RunWith(XtextRunner)
 @InjectWith(XklaimUiInjectorProvider)
 class XklaimContentAssistTest extends AbstractContentAssistTest {
