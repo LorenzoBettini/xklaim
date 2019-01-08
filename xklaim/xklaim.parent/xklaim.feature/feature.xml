@@ -32,14 +32,7 @@
          unpack="false"/>
 
    <plugin
-         id="imc"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="klava"
+         id="xklaim.runtime"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -53,7 +46,14 @@
          unpack="false"/>
 
    <plugin
-         id="xklaim.runtime"
+         id="imc"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="klava"
          download-size="0"
          install-size="0"
          version="0.0.0"
