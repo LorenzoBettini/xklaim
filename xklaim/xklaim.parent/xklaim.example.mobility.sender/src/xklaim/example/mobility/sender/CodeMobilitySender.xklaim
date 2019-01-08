@@ -1,0 +1,22 @@
+package xklaim.example.mobility.sender
+
+/**
+ * This contains the sender of mobile code which first have to login to the remote Net.
+ * 
+ * Make sure you have already started the Receiver application in the mobility.sender project.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
+node Sender [server -> phyloc("tcp-127.0.0.1:9999")] {
+	login(server)
+	val myLoc = getPhysical(self)
+	eval({
+		println(String.format("Hello %s...", server))
+		println("...from a process coming from " + myLoc)
+		out("DONE")@myLoc
+	})@server
+	in("DONE")@self
+	println("Remote process has done its job")
+	logout(server)
+	System.exit(0)
+}

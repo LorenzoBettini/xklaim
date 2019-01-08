@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="xklaim.product.ui.feature"
+      label="Xklaim IDE External Components"
+      version="2.0.0.qualifier"
+      provider-name="Lorenzo Bettini">
+
+   <requires>
+      <import feature="org.eclipse.jdt" version="3.16.0.v20181206-1038" match="greaterOrEqual"/>
+      <import feature="org.eclipse.platform" version="4.10.0.v20181206-0815" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.sdk"/>
+   </requires>
+
+</feature>

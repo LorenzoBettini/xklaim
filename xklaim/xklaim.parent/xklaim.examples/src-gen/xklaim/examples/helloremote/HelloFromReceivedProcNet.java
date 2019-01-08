@@ -4,18 +4,32 @@ import klava.LogicalLocality;
 import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.topology.ClientNode;
+import klava.topology.KlavaNodeCoordinator;
 import klava.topology.KlavaProcess;
 import klava.topology.LogicalNet;
 import org.eclipse.xtext.xbase.lib.InputOutput;
 import org.mikado.imc.common.IMCException;
 
+/**
+ * The Writer node adds a tuple to its tuple space, the Reader sends a
+ * process to the Writer node to retrieve the tuple. The Writer node retrieves
+ * the migrating process and executes it locally.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
 @SuppressWarnings("all")
 public class HelloFromReceivedProcNet extends LogicalNet {
+  private static final LogicalLocality reader = new LogicalLocality("reader");
+  
+  private static final LogicalLocality writer = new LogicalLocality("writer");
+  
+  /**
+   * Sends a process to the Writer node to retrieve the tuple
+   */
   public static class Reader extends ClientNode {
-    private static class ReaderProcess extends KlavaProcess {
+    private static class ReaderProcess extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
-        final LogicalLocality writerLoc = new LogicalLocality("writer");
         KlavaProcess _Proc = new KlavaProcess() {
           private KlavaProcess _initFields() {
             return this;
@@ -31,7 +45,7 @@ public class HelloFromReceivedProcNet extends LogicalNet {
             }
           }
         }._initFields();
-        out(new Tuple(new Object[] {_Proc}), writerLoc);
+        out(new Tuple(new Object[] {_Proc}), HelloFromReceivedProcNet.writer);
       }
     }
     
@@ -40,12 +54,15 @@ public class HelloFromReceivedProcNet extends LogicalNet {
     }
     
     public void addMainProcess() throws IMCException {
-      addNodeProcess(new HelloFromReceivedProcNet.Reader.ReaderProcess());
+      addNodeCoordinator(new HelloFromReceivedProcNet.Reader.ReaderProcess());
     }
   }
   
+  /**
+   * Retrieves the migrating process and executes it locally.
+   */
   public static class Writer extends ClientNode {
-    private static class WriterProcess extends KlavaProcess {
+    private static class WriterProcess extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
         out(new Tuple(new Object[] {"Hello World"}), this.self);
@@ -63,7 +80,7 @@ public class HelloFromReceivedProcNet extends LogicalNet {
     }
     
     public void addMainProcess() throws IMCException {
-      addNodeProcess(new HelloFromReceivedProcNet.Writer.WriterProcess());
+      addNodeCoordinator(new HelloFromReceivedProcNet.Writer.WriterProcess());
     }
   }
   

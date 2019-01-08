@@ -137,4 +137,11 @@ public class KlavaNodeCoordinatorProxy extends NodeCoordinatorProxy {
     public void closeSessions(PhysicalLocality physicalLocality) {
         klavaNode.closeSessions(physicalLocality);
     }
+
+    /**
+     *@see klava.topology.KlavaNode#addToEnvironment(LogicalLocality, PhysicalLocality)
+     */
+    public boolean addToEnvironment(LogicalLocality logicalLocality, PhysicalLocality physicalLocality) {
+        return klavaNode.addToEnvironment(logicalLocality, physicalLocality);
+    }
 }

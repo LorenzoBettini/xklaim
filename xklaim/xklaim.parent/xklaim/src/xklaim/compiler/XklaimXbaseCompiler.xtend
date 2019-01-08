@@ -20,6 +20,7 @@ import xklaim.util.XklaimModelUtil
 import xklaim.xklaim.XklaimAbstractOperation
 import xklaim.xklaim.XklaimEvalOperation
 import xklaim.xklaim.XklaimInlineProcess
+import xklaim.xklaim.XklaimNodeEnvironmentEntry
 
 class XklaimXbaseCompiler extends XbaseCompiler {
 
@@ -36,6 +37,9 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 			}
 			XklaimInlineProcess: {
 				compileInnerProcess(appendable, e)
+			}
+			XklaimNodeEnvironmentEntry: {
+				compileNodeEnvironmentEntry(e, appendable, isReferenced)
 			}
 			default:
 				super.doInternalToJavaStatement(e, appendable, isReferenced)
@@ -193,6 +197,17 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		compileAsInnerProcess(proc.body, appendable, procVarName)
 	}
 
+	private def ITreeAppendable compileNodeEnvironmentEntry(XklaimNodeEnvironmentEntry e, ITreeAppendable appendable,
+			boolean isReferenced) {
+		e.value.internalToJavaStatement(appendable, true)
+		appendable.newLine
+		appendable.append("addToEnvironment(")
+		appendable.append(e.key)
+		appendable.append(", getPhysical(")
+		e.value.internalToJavaExpression(appendable)
+		appendable.append("));")
+	}
+
 	private def String declareSyntheticVariableForInnerProcess(XExpression e, ITreeAppendable appendable) {
 		appendable.declareSyntheticVariable(e, "_Proc")
 	}
@@ -340,4 +355,5 @@ class XklaimXbaseCompiler extends XbaseCompiler {
 		}
 		appendable
 	}
+
 }

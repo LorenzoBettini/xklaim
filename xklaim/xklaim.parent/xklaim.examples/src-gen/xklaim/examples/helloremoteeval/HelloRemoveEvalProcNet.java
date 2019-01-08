@@ -1,31 +1,41 @@
 package xklaim.examples.helloremoteeval;
 
-import klava.Locality;
 import klava.LogicalLocality;
 import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.topology.ClientNode;
+import klava.topology.KlavaNodeCoordinator;
 import klava.topology.KlavaProcess;
 import klava.topology.LogicalNet;
 import org.eclipse.xtext.xbase.lib.InputOutput;
 import org.mikado.imc.common.IMCException;
 
+/**
+ * The Writer node adds a tuple to its tuple space, the Reader evaluates a
+ * process to the Writer node to retrieve the tuple.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
 @SuppressWarnings("all")
 public class HelloRemoveEvalProcNet extends LogicalNet {
+  private static final LogicalLocality reader = new LogicalLocality("reader");
+  
+  private static final LogicalLocality writer = new LogicalLocality("writer");
+  
+  /**
+   * Evaluates a process to the Writer node to retrieve the tuple
+   */
   public static class Reader extends ClientNode {
-    private static class ReaderProcess extends KlavaProcess {
+    private static class ReaderProcess extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
-        final LogicalLocality writerLoc = new LogicalLocality("writer");
         KlavaProcess _Proc = new KlavaProcess() {
-          LogicalLocality writerLoc;
-          private KlavaProcess _initFields(LogicalLocality writerLoc) {
-            this.writerLoc = writerLoc;
+          private KlavaProcess _initFields() {
             return this;
           }
           @Override public void executeProcess() {
             {
-              Locality _physical = this.getPhysical(writerLoc);
+              PhysicalLocality _physical = this.getPhysical(HelloRemoveEvalProcNet.writer);
               String _plus = ("executing at " + _physical);
               InputOutput.<String>println(_plus);
               String s = null;
@@ -36,8 +46,8 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
               System.exit(0);
             }
           }
-        }._initFields(writerLoc);
-        eval(_Proc, writerLoc);
+        }._initFields();
+        eval(_Proc, HelloRemoveEvalProcNet.writer);
       }
     }
     
@@ -46,12 +56,12 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
     }
     
     public void addMainProcess() throws IMCException {
-      addNodeProcess(new HelloRemoveEvalProcNet.Reader.ReaderProcess());
+      addNodeCoordinator(new HelloRemoveEvalProcNet.Reader.ReaderProcess());
     }
   }
   
   public static class Writer extends ClientNode {
-    private static class WriterProcess extends KlavaProcess {
+    private static class WriterProcess extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
         out(new Tuple(new Object[] {"Hello World"}), this.self);
@@ -63,7 +73,7 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
     }
     
     public void addMainProcess() throws IMCException {
-      addNodeProcess(new HelloRemoveEvalProcNet.Writer.WriterProcess());
+      addNodeCoordinator(new HelloRemoveEvalProcNet.Writer.WriterProcess());
     }
   }
   

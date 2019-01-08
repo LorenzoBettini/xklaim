@@ -641,4 +641,91 @@
 			<newWizardShortcut id="xklaim.ui.wizard.XklaimNewProjectWizard"/>
 		</perspectiveExtension>
 	</extension>
+	<!-- Custom extension points -->
+   <extension point="org.eclipse.ui.commands">
+      <command
+            name="Debug Xklaim Application"
+            description="Debug Xklaim Application"
+            categoryId="org.eclipse.debug.ui.category.run"
+            id="xklaim.ui.launching.localJavaShortcut.debug">
+      </command>
+      <command
+            name="Run Xklaim Application"
+            description="Run Xklaim Application"
+            categoryId="org.eclipse.debug.ui.category.run"
+            id="xklaim.ui.launching.localJavaShortcut.run">
+      </command>
+   </extension>
+
+   <extension point="org.eclipse.core.runtime.adapters">
+     <factory 
+        class="xklaim.ui.XklaimExecutableExtensionFactory:xklaim.ui.launching.XklaimJavaElementDelegateAdapterFactory"
+        adaptableType="org.eclipse.ui.IFileEditorInput">
+        <adapter type="xklaim.ui.launching.XklaimJavaElementDelegateMainLaunch"/>
+     </factory>
+     <factory 
+        class="xklaim.ui.XklaimExecutableExtensionFactory:xklaim.ui.launching.XklaimJavaElementDelegateAdapterFactory"
+        adaptableType="org.eclipse.ui.IEditorPart">
+        <adapter type="xklaim.ui.launching.XklaimJavaElementDelegateMainLaunch"/>
+     </factory>
+     <factory 
+        class="xklaim.ui.XklaimExecutableExtensionFactory:xklaim.ui.launching.XklaimJavaElementDelegateAdapterFactory" 
+        adaptableType="org.eclipse.core.resources.IResource">
+        <adapter type="xklaim.ui.launching.XklaimJavaElementDelegateMainLaunch"/>
+     </factory>
+     <factory 
+        class="xklaim.ui.XklaimExecutableExtensionFactory:xklaim.ui.launching.XklaimJavaElementDelegateAdapterFactory"
+        adaptableType="xklaim.ui.launching.XklaimJavaElementDelegateMainLaunch">
+        <adapter type="org.eclipse.jdt.core.IJavaElement"/>
+     </factory>
+  </extension>
+
+    <extension
+         point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+            class="xklaim.ui.launching.XklaimJavaApplicationLaunchShortcut"
+            description="Launches a local Xklaim application"
+            helpContextId="org.eclipse.jdt.debug.ui.shortcut_local_java_application"
+            icon="icons/etool16/java_app.gif"
+            id="xklaim.ui.launching.localJavaShortcut"
+            label="Xklaim Application"
+            modes="run, debug">
+         <contextualLaunch>
+            <enablement>
+             <with variable="selection">
+               <count value="1"/>
+               <iterate>
+                 <and>
+                   <not><adapt type="org.eclipse.jdt.core.IJavaElement"/></not>
+                   <adapt type="xklaim.ui.launching.XklaimJavaElementDelegateMainLaunch">
+                     <and>
+                       <adapt type="org.eclipse.jdt.core.IJavaElement">
+                         <test property="org.eclipse.jdt.core.isInJavaProject"/>
+                       </adapt>
+                       <or>
+                         <test property="org.eclipse.jdt.launching.hasMain"/>
+                         <test property="org.eclipse.jdt.launching.isContainer"/>
+                         <test property="org.eclipse.jdt.launching.isPackageFragment"/>
+                         <test property="org.eclipse.jdt.launching.isPackageFragmentRoot"/>
+                       </or>
+                     </and>
+                   </adapt>
+                 </and>
+               </iterate>
+             </with>
+           </enablement>
+         </contextualLaunch>
+         <configurationType
+               id="org.eclipse.jdt.launching.localJavaApplication">
+         </configurationType>
+         <description
+               description="Run Xklaim Application"
+               mode="run">
+         </description>
+         <description
+               description="Debug Xklaim Application"
+               mode="debug">
+         </description>
+      </shortcut>
+    </extension>
 </plugin>

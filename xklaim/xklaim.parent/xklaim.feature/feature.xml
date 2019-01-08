@@ -32,6 +32,20 @@
          unpack="false"/>
 
    <plugin
+         id="xklaim.runtime"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="xklaim.ui.examples"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
          id="imc"
          download-size="0"
          install-size="0"
@@ -40,13 +54,6 @@
 
    <plugin
          id="klava"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="xklaim.runtime"
          download-size="0"
          install-size="0"
          version="0.0.0"

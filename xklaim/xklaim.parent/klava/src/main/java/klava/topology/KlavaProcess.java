@@ -296,13 +296,13 @@ public abstract class KlavaProcess extends NodeProcess {
      *         locality itself if the translation cannot be done
      * @throws KlavaException
      */
-    protected Locality getPhysical(Locality locality) throws KlavaException {
+    protected PhysicalLocality getPhysical(Locality locality) throws KlavaException {
         /*
          * make sure that, if we refer to self, we actually use the self of the
          * process (which can be already closed)
          */
-        if (locality.toString().equals("self")) {
-            locality = self;
+        if (locality.toString().equals("self") && self instanceof PhysicalLocality) {
+            return (PhysicalLocality) self;
         }
 
         if (locality instanceof LogicalLocality) {
@@ -314,7 +314,7 @@ public abstract class KlavaProcess extends NodeProcess {
                 return klavaNodeProcessProxy.getPhysical(locality);
         }
 
-        return locality;
+        return (PhysicalLocality) locality;
     }
 
     /**

@@ -1,0 +1,55 @@
+package xklaim.example.leaderelection
+
+proc InitialProc(String nodeName) {
+	val rg = getPhysical(logloc("rg"))
+	val next = logloc("next")
+	in("ID", var Integer xid)@rg
+	out("ID", xid)@self
+	eval(new CheckerProc(xid))@next
+	in(var String result)@self
+	println(nodeName + ": result is " + result)
+}
+
+proc CheckerProc(Integer myId) {
+	val next = logloc("next")
+	read("ID", var Integer x)@self
+	if (myId < x) {
+		eval(new CheckerProc(myId))@next
+	} else if (myId > x) {
+		eval(new NotifierProc(myId))@next
+	} else {
+		out("LEADER")@self
+	}
+}
+
+proc NotifierProc(Integer myId) {
+	val next = logloc("next")
+	read("ID", var Integer x)@self
+	if (x == myId) {
+		out("FOLLOWER")@self
+	} else {
+		eval(new NotifierProc(myId))@next
+	}
+}
+
+/**
+ * Leader election example in Xklaim.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
+net LeaderElectionNet physical "localhost:9999" {
+	node L1 [next -> L2] {
+		eval(new InitialProc("L1"))@self
+	}
+	node L2 [next -> L3] {
+		eval(new InitialProc("L2"))@self
+	}
+	node L3 [next -> L1] {
+		eval(new InitialProc("L3"))@self
+	}
+	node RG logical "rg" {
+		out("ID", 0)@self
+		out("ID", 1)@self
+		out("ID", 2)@self
+	}
+}

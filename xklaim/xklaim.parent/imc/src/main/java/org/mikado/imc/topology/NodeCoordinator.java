@@ -4,6 +4,8 @@
  */
 package org.mikado.imc.topology;
 
+import java.io.Serializable;
+
 import org.mikado.imc.common.IMCException;
 import org.mikado.imc.events.EventManager;
 import org.mikado.imc.protocols.Protocol;
@@ -18,7 +20,12 @@ import org.mikado.imc.protocols.SessionStarter;
  * @author Lorenzo Bettini
  * @version $Revision: 1.21 $
  */
-public abstract class NodeCoordinator extends Thread {
+public abstract class NodeCoordinator extends Thread implements Serializable {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     /** The proxy for the node. */
     protected transient NodeCoordinatorProxy nodeCoordinatorProxy;
 

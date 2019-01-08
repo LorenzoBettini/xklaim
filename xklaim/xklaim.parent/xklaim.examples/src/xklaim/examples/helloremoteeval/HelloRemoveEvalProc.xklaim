@@ -1,16 +1,22 @@
-import klava.LogicalLocality
-
 package xklaim.examples.helloremoteeval
- 
+
+/**
+ * The Writer node adds a tuple to its tuple space, the Reader evaluates a
+ * process to the Writer node to retrieve the tuple.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
 net HelloRemoveEvalProcNet physical "tcp-127.0.0.1:9999" {
+	/**
+	 * Evaluates a process to the Writer node to retrieve the tuple
+	 */
 	node Reader logical "reader" {
-		val writerLoc = new LogicalLocality("writer")
 		eval({
-			println("executing at " + getPhysical(writerLoc))
+			println("executing at " + getPhysical(writer))
 			in(var String s)@self
 			println(s)
 			System.exit(0)
-		})@writerLoc
+		})@writer
 	}
 	node Writer logical "writer" {
 		out("Hello World")@self

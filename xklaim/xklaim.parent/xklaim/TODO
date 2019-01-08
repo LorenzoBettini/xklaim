@@ -1,5 +1,8 @@
 NODECOORDINATOR
 
+check executed operations or retrieve generated Java compilation errors
+eval and out cannot specify node coordinators
+
 PROCCALL
 
 KlavaProcess P_@procname@ = new @procname@();
@@ -10,4 +13,6 @@ NEWLOC
 
 HIERARCHICAL
 
-RUN AS
+COLLECT ALL MENTIONED CLASSES?
+
+and the compile can generate a method for explicitly registering such classes?

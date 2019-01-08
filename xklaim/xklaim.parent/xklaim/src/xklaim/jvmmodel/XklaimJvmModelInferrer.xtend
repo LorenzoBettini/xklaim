@@ -8,6 +8,7 @@ import klava.LogicalLocality
 import klava.PhysicalLocality
 import klava.topology.ClientNode
 import klava.topology.KlavaNode
+import klava.topology.KlavaNodeCoordinator
 import klava.topology.KlavaProcess
 import klava.topology.LogicalNet
 import org.eclipse.xtext.common.types.JvmAnnotationTarget
@@ -22,6 +23,8 @@ import org.mikado.imc.common.IMCException
 import xklaim.xklaim.XklaimAbstractNode
 import xklaim.xklaim.XklaimModel
 import xklaim.xklaim.XklaimNet
+import xklaim.xklaim.XklaimNetNode
+import xklaim.xklaim.XklaimNodeEnvironmentEntry
 import xklaim.xklaim.XklaimProcess
 
 /**
@@ -67,13 +70,25 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		val nodes = program.nodes
 		val nets = program.nets
 		val nodeClasses = newArrayList
+		val nodeWithEnvClasses = newArrayList
 		val netClasses = newArrayList
 		for (p : program.processes) {
 			p.toProcessClass(acceptor)
 		}
 		if (!nodes.empty || !nets.empty) {
 			for (node : nodes) {
-				nodeClasses += toNodeClass(node, KlavaNode, acceptor, [])
+				nodeClasses += toNodeClass(node, KlavaNode, acceptor, [
+					if (node.physicalLocality !== null) {
+						members += node.toConstructor [
+							body = '''
+							setMainPhysicalLocality(new «PhysicalLocality»("«node.physicalLocality»"));
+							'''
+						]
+					}
+					if (node.hasEnvironment) {
+						nodeWithEnvClasses += it
+					}
+				])
 			}
 			for (net : nets) {
 				netClasses += toNetClass(net, acceptor)
@@ -93,6 +108,9 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 					body = '''
 						«FOR nodeClass : nodeClasses»
 							«nodeClass» «nodeClass.simpleName.toFirstLower» = new «nodeClass»();
+						«ENDFOR»
+						«FOR nodeClass : nodeWithEnvClasses»
+							«nodeClass.simpleName.toFirstLower».setupEnvironment();
 						«ENDFOR»
 						«FOR nodeClass : nodeClasses»
 							«nodeClass.simpleName.toFirstLower».addMainProcess();
@@ -118,7 +136,7 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 			declaringType = nodeClass
 			static = true
 			visibility = JvmVisibility.PRIVATE
-			superTypes += KlavaProcess.typeRef()
+			superTypes += KlavaNodeCoordinator.typeRef()
 			members += node.toMethod("executeProcess", typeRef(Void.TYPE)) [
 				addOverrideAnnotation()
 				body = node.body
@@ -127,11 +145,30 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		accept(nodeClass) [
 			documentation = node.documentation
 			superTypes += clazz.typeRef()
+
+			val hasEnvironment = hasEnvironment(node)
+			if (hasEnvironment) {
+				for (e : node.environment.expressions.filter(XklaimNodeEnvironmentEntry)) {
+					members += e.toField(e.key, LogicalLocality.typeRef) [
+						static = true
+						final = true
+						initializer = '''new «LogicalLocality»("«e.key»")'''
+					]
+				}
+			}
+
 			typeEnricher.apply(it)
+
+			if (hasEnvironment) {
+				members += node.environment.toMethod("setupEnvironment", typeRef(Void.TYPE)) [
+					body = node.environment
+				]
+			}
+
 			members += node.toMethod("addMainProcess", typeRef(Void.TYPE)) [
 				exceptions += IMCException.typeRef()
 				body = '''
-					addNodeProcess(new «nodeProcessClass»());
+					addNodeCoordinator(new «nodeProcessClass»());
 				'''
 			]
 		]
@@ -142,25 +179,31 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 		val netFQN = net.fullyQualifiedName
 		val netClass = net.toClass(netFQN)
 		val nodeClasses = newArrayList
+		val nodeWithEnvClasses = newArrayList
 		val nodes = net.nodes
 		for (node : nodes) {
 			nodeClasses += toNodeClass(node, ClientNode, acceptor) [
 				members += node.toConstructor [
-					if (node.logicalLocality !== null) {
-						body = '''
-						super(new «PhysicalLocality»("«net.physicalLocality»"), new «LogicalLocality»("«node.logicalLocality»"));
-						'''
-					} else {
-						body = '''
-						super(new «PhysicalLocality»("«net.physicalLocality»"));
-						'''
-					}
+					body = '''
+					super(new «PhysicalLocality»("«net.physicalLocality»"), new «LogicalLocality»("«getLogicalLocalityName(node)»"));
+					'''
 				]
+				if (node.hasEnvironment) {
+					nodeWithEnvClasses += it
+				}
 			]
 		}
 		accept(netClass) [
 			documentation = net.documentation
 			superTypes += LogicalNet.typeRef()
+			for (node : nodes) {
+				val nodeLocFieldName = getLogicalLocalityName(node)
+				members += node.toField(nodeLocFieldName, LogicalLocality.typeRef) [
+					static = true
+					final = true
+					initializer = '''new «LogicalLocality»("«nodeLocFieldName»")'''
+				]
+			}
 			for (nodeClass : nodeClasses) {
 				nodeClass.declaringType = netClass
 				nodeClass.static = true
@@ -177,6 +220,9 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 					«FOR nodeClass : nodeClasses»
 						«nodeClass» «nodeClass.simpleName.toFirstLower» = new «nodeClass»();
 					«ENDFOR»
+					«FOR nodeClass : nodeWithEnvClasses»
+						«nodeClass.simpleName.toFirstLower».setupEnvironment();
+					«ENDFOR»
 					«FOR nodeClass : nodeClasses»
 						«nodeClass.simpleName.toFirstLower».addMainProcess();
 					«ENDFOR»
@@ -184,6 +230,14 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 			]
 		]
 		netClass
+	}
+
+	private def boolean hasEnvironment(XklaimAbstractNode node) {
+		node.environment !== null && !node.environment.expressions.empty
+	}
+
+	private def String getLogicalLocalityName(XklaimNetNode node) {
+		node.logicalLocality ?: node.name
 	}
 
 	def private toProcessClass(XklaimProcess process, extension IJvmDeclaredTypeAcceptor acceptor) {

@@ -281,6 +281,76 @@ class XklaimValidatorTest {
 		'''.parse.assertNoIssues
 	}
 
+	@Test
+	def void testCanAccessImplicitNetLogicalLocalities() {
+		'''
+		package foo
+		net TestNet physical "tcp-127.0.0.1:9999" {
+			node TestNode {
+				println("Hello from " + TestNode)
+			}
+			node TestNodeWithLogLoc logical "foo" {
+				println("Hello from " + foo)
+			}
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testNetNodeWithEnvironment() {
+		'''
+		package foo
+		net TestNet physical "tcp-127.0.0.1:9999" {
+			node TestNodeWithEmptyEnvironment [] {
+				println("Hello from " + TestNodeWithEmptyEnvironment)
+			}
+			node TestNodeWithEnvironment [next -> foo] {
+				println("Hello from " + TestNodeWithEnvironment)
+			}
+			node TestNodeWithLogLoc logical "foo" {
+				println("Hello from " + foo)
+			}
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testNetNodeWithInvalidEnvironmentMappingToNonLocality() {
+		'''
+		package foo
+		net TestNet physical "tcp-127.0.0.1:9999" {
+			node TestNodeWithEnvironment [next -> "wrong"] {
+				println("Hello from " + TestNodeWithEnvironment)
+			}
+		}
+		'''.parse.assertErrorsAsStrings("Type mismatch: cannot convert from String to Locality")
+	}
+
+	@Test
+	def void testCanAccessXklaimRuntimeUtilityMethods() {
+		'''
+		package foo
+		proc Test() {
+			val ll = logloc("test_log_loc")
+			val pl = phyloc("test_phy_loc")
+			println("" + ll + pl)
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testCanAccessKlavaClassesWithoutImport() {
+		'''
+		package foo
+		proc Test() {
+			val e = new Environment()
+			val ee = new Environment.EnvironmentEntry(null, null)
+			val KlavaProcess p = null
+			println("" + e + ee + p)
+		}
+		'''.parse.assertNoIssues
+	}
+
 	def private assertErrorsAsStrings(EObject o, CharSequence expected) {
 		expected.toString.trim.assertEquals(
 			o.validate.filter[severity == Severity.ERROR].map[message].sort.join(System.lineSeparator))
