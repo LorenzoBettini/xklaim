@@ -44,6 +44,10 @@ Workflow {
 			projectWizard = {
 				generate = true
 			}
+			formatter = {
+				generateStub = true
+				generateXtendStub = true
+			}
 		}
 	}
 }
