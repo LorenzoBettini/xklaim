@@ -4,8 +4,14 @@
 package xklaim.ui.labeling
 
 import com.google.inject.Inject
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider
+import org.eclipse.xtext.common.types.JvmGenericType
+import org.eclipse.xtext.xbase.jvmmodel.IJvmModelAssociations
 import org.eclipse.xtext.xbase.ui.labeling.XbaseLabelProvider
+import xklaim.xklaim.XklaimProcess
+import xklaim.xklaim.XklaimAbstractNode
+import xklaim.xklaim.XklaimNet
 
 /**
  * Provides labels for EObjects.
@@ -14,18 +20,38 @@ import org.eclipse.xtext.xbase.ui.labeling.XbaseLabelProvider
  */
 class XklaimLabelProvider extends XbaseLabelProvider {
 
+	@Inject extension IJvmModelAssociations
+
 	@Inject
 	new(AdapterFactoryLabelProvider delegate) {
 		super(delegate);
 	}
 
-	// Labels and icons can be computed like this:
-	
-//	def text(Greeting ele) {
-//		'A greeting to ' + ele.name
-//	}
-//
-//	def image(Greeting ele) {
-//		'Greeting.gif'
-//	}
+	def text(XklaimProcess p) {
+		text(p.inferredJavaType)
+	}
+
+	def image(XklaimProcess p) {
+		"process_obj.gif"
+	}
+
+	def text(XklaimAbstractNode p) {
+		text(p.inferredJavaType)
+	}
+
+	def image(XklaimAbstractNode p) {
+		"node_obj.gif"
+	}
+
+	def text(XklaimNet p) {
+		text(p.inferredJavaType)
+	}
+
+	def image(XklaimNet p) {
+		"net_obj.gif"
+	}
+
+	private def inferredJavaType(EObject e) {
+		e.jvmElements.filter(JvmGenericType).head
+	}
 }
