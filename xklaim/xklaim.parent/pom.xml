@@ -424,6 +424,15 @@
         <activeByDefault>false</activeByDefault>
       </activation>
     </profile>
+    <profile>
+      <id>test-ide</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <modules>
+        <module>xklaim.swtbot.tests</module>
+      </modules>
+    </profile>
   </profiles>
 
   <dependencies>
