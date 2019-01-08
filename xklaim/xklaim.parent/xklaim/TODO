@@ -12,3 +12,7 @@ P_@procname@.join();
 NEWLOC
 
 HIERARCHICAL
+
+COLLECT ALL MENTIONED CLASSES?
+
+and the compile can generate a method for explicitly registering such classes?

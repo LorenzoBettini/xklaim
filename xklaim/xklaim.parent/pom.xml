@@ -9,6 +9,7 @@
 
   <properties>
     <xtextVersion>2.16.0</xtextVersion>
+    <eclipseVersion>2018-12</eclipseVersion>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -19,12 +20,47 @@
     <moduleProperties></moduleProperties>
     <systemProperties></systemProperties>
     <tycho.testArgLine></tycho.testArgLine>
+
+    <target-file-name>xklaim-${eclipseVersion}-xtext-${xtextVersion}</target-file-name>
+
+    <ant-files-path>${project.basedir}/../releng/releasing</ant-files-path>
+
+    <!-- pass "-n" to perform a trial run with no changes made -->
+    <dryrun></dryrun>
+
+    <!-- for deployment on bintray -->
+    <!-- The name of your own Bintray repository -->
+    <bintray.repo>xklaim</bintray.repo>
+    <!-- The name of your own Bintray repository's package for releases -->
+    <bintray.package>releases</bintray.package>
+    <!-- The label for the Composite sites -->
+    <site.label>Xklaim Site</site.label>
+
+    <!-- If the Bintray repository is owned by someone different from your 
+      user, then specify the bintray.owner explicitly -->
+    <bintray.owner>${bintray.user}</bintray.owner>
+    <!-- Define bintray.user and bintray.apikey in some secret place, like 
+      .m2/settings.xml -->
+
+    <!-- Default values for remote directories -->
+    <bintray.base.path></bintray.base.path>
+    <bintray.releases.path>${bintray.base.path}releases</bintray.releases.path>
+    <bintray.composite.path>${bintray.base.path}updates</bintray.composite.path>
+    <bintray.zip.path>${bintray.base.path}zipped</bintray.zip.path>
+    <bintray.products.path>${bintray.base.path}products</bintray.products.path>
+    <!-- note that the following must be consistent with the path schema 
+      used to publish child composite repositories and actual released p2 repositories -->
+    <child.repository.path.prefix>../../releases/</child.repository.path.prefix>
+
+    <!-- for deployment on Sourceforge -->
+    <remote.dir>lbettini@frs.sourceforge.net:/home/frs/project/xklaim</remote.dir>
   </properties>
   <modules>
     <module>imc</module>
     <module>imc.tests</module>
     <module>klava</module>
     <module>klava.tests</module>
+    <module>xklaim.target</module>
     <module>xklaim.runtime</module>
     <module>xklaim</module>
     <module>xklaim.ide</module>
@@ -33,9 +69,11 @@
     <module>xklaim.example.mobility.receiver</module>
     <module>xklaim.example.mobility.sender</module>
     <module>xklaim.example.leaderelection</module>
-    <module>xklaim.target</module>
+    <module>xklaim.ui.examples</module>
     <module>xklaim.feature</module>
+    <module>xklaim.product.ui.feature</module>
     <module>xklaim.repository</module>
+    <module>xklaim.product.repository</module>
     <module>xklaim.tests</module>
     <module>xklaim.ui.tests</module>
   </modules>
@@ -71,6 +109,13 @@
             <goals>
               <goal>source-feature</goal>
             </goals>
+            <!--
+            <configuration>
+              <excludes>
+                <plugin id="xklaim.ui.examples" />
+              </excludes>
+            </configuration>
+            -->
           </execution>
         </executions>
       </plugin>
@@ -114,6 +159,7 @@
             <artifact>
               <groupId>xklaim</groupId>
               <artifactId>xklaim.target</artifactId>
+              <classifier>${target-file-name}</classifier>
               <version>${project.version}</version>
             </artifact>
           </target>
@@ -173,6 +219,16 @@
               </fileset>
             </filesets>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.8</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
@@ -242,6 +298,19 @@
                     <ignore></ignore>
                   </action>
                 </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <versionRange>[1.8,)</versionRange>
+                    <goals>
+                      <goal>run</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
               </pluginExecutions>
             </lifecycleMappingMetadata>
           </configuration>
@@ -266,8 +335,7 @@
           <version>${tycho-version}</version>
           <configuration>
             <!-- THE FOLLOWING LINE MUST NOT BE BROKEN BY AUTOFORMATTING -->
-            <argLine>${tycho.testArgLine} ${platformSystemProperties}
-              ${systemProperties} ${moduleProperties}</argLine>
+            <argLine>${tycho.testArgLine} ${platformSystemProperties} ${systemProperties} ${moduleProperties}</argLine>
             <failIfNoTests>false</failIfNoTests>
             <useUIHarness>false</useUIHarness>
           </configuration>
@@ -322,6 +390,48 @@
       <properties>
         <moduleProperties>--add-modules=ALL-SYSTEM</moduleProperties>
       </properties>
+    </profile>
+    <profile>
+      <id>release-composite</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>release-ide-composite</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>deploy-ide-composite</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>build-ide</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+    </profile>
+    <profile>
+      <id>test-ide</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <modules>
+        <module>xklaim.swtbot.tests</module>
+      </modules>
     </profile>
   </profiles>
 

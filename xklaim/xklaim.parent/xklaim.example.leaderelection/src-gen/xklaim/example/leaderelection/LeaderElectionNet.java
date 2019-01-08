@@ -9,6 +9,11 @@ import klava.topology.LogicalNet;
 import org.mikado.imc.common.IMCException;
 import xklaim.example.leaderelection.InitialProc;
 
+/**
+ * Leader election example in Xklaim.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
 @SuppressWarnings("all")
 public class LeaderElectionNet extends LogicalNet {
   private static final LogicalLocality L1 = new LogicalLocality("L1");

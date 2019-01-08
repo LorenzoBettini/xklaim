@@ -4,6 +4,12 @@
       label="Xklaim Feature "
       version="2.0.0.qualifier">
 
+   <requires>
+      <import feature="org.eclipse.xtext.xbase" version="2.16.0" match="equivalent"/>
+      <import feature="org.eclipse.xtext.ui" version="2.16.0" match="equivalent"/>
+      <import plugin="org.eclipse.pde.ui"/>
+   </requires>
+
    <plugin
          id="xklaim"
          download-size="0"
@@ -20,6 +26,20 @@
 
    <plugin
          id="xklaim.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="xklaim.runtime"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="xklaim.ui.examples"
          download-size="0"
          install-size="0"
          version="0.0.0"

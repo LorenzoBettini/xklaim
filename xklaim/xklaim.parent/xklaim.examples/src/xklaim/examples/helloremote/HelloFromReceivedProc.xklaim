@@ -1,6 +1,16 @@
 package xklaim.examples.helloremote
- 
+
+/**
+ * The Writer node adds a tuple to its tuple space, the Reader sends a
+ * process to the Writer node to retrieve the tuple. The Writer node retrieves
+ * the migrating process and executes it locally.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
 net HelloFromReceivedProcNet physical "tcp-127.0.0.1:9999" {
+	/**
+	 * Sends a process to the Writer node to retrieve the tuple
+	 */
 	node Reader logical "reader" {
 		out(proc {
 			in(var String s)@self
@@ -8,6 +18,9 @@ net HelloFromReceivedProcNet physical "tcp-127.0.0.1:9999" {
 			System.exit(0)
 		})@writer
 	}
+	/**
+	 * Retrieves the migrating process and executes it locally.
+	 */
 	node Writer logical "writer" {
 		out("Hello World")@self
 		in(var KlavaProcess P)@self

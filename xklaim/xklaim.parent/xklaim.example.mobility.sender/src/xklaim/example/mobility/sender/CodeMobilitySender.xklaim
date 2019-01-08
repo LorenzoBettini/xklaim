@@ -1,7 +1,11 @@
 package xklaim.example.mobility.sender
 
-/*
- * This is an example model
+/**
+ * This contains the sender of mobile code which first have to login to the remote Net.
+ * 
+ * Make sure you have already started the Receiver application in the mobility.sender project.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
  */
 node Sender [server -> phyloc("tcp-127.0.0.1:9999")] {
 	login(server)

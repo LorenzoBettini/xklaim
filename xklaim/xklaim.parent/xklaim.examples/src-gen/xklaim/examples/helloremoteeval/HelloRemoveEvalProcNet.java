@@ -10,12 +10,21 @@ import klava.topology.LogicalNet;
 import org.eclipse.xtext.xbase.lib.InputOutput;
 import org.mikado.imc.common.IMCException;
 
+/**
+ * The Writer node adds a tuple to its tuple space, the Reader evaluates a
+ * process to the Writer node to retrieve the tuple.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
 @SuppressWarnings("all")
 public class HelloRemoveEvalProcNet extends LogicalNet {
   private static final LogicalLocality reader = new LogicalLocality("reader");
   
   private static final LogicalLocality writer = new LogicalLocality("writer");
   
+  /**
+   * Evaluates a process to the Writer node to retrieve the tuple
+   */
   public static class Reader extends ClientNode {
     private static class ReaderProcess extends KlavaNodeCoordinator {
       @Override
