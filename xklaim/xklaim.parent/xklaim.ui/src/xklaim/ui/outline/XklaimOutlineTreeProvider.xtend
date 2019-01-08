@@ -4,12 +4,22 @@
 package xklaim.ui.outline
 
 import org.eclipse.xtext.ui.editor.outline.impl.DefaultOutlineTreeProvider
+import xklaim.xklaim.XklaimAbstractNode
+import xklaim.xklaim.XklaimProcess
 
 /**
  * Customization of the default outline structure.
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#outline
  */
 class XklaimOutlineTreeProvider extends DefaultOutlineTreeProvider {
+
+	def _isLeaf(XklaimProcess o) {
+		true
+	}
+
+	def _isLeaf(XklaimAbstractNode o) {
+		true
+	}
 
 }
