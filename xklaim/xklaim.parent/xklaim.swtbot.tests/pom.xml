@@ -41,7 +41,7 @@
           <useUIHarness>true</useUIHarness>
           <useUIThread>false</useUIThread>
           <!-- <product>xklaim.eclipse.sdk.product</product> -->
-          <argLine>${additionalTestArgLine} ${os-jvm-flags} ${memoryArgs} -Dorg.eclipse.swtbot.search.timeout=180000</argLine>
+          <argLine>${tycho.testArgLine} ${platformSystemProperties} ${systemProperties} ${moduleProperties} -Dorg.eclipse.swtbot.search.timeout=10000</argLine>
           <testRuntime>p2Installed</testRuntime>
           <work>${test-work-directory}</work>
         </configuration>
@@ -62,7 +62,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>${project.groupId}</groupId>
-                  <artifactId>xklaim.product.site</artifactId>
+                  <artifactId>xklaim.product.repository</artifactId>
                   <version>${project.version}</version>
                   <type>zip</type>
                   <classifier>${tycho.env.osgi.os}.${tycho.env.osgi.ws}.${tycho.env.osgi.arch}</classifier>
