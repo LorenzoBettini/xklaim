@@ -21,9 +21,17 @@ class XklaimFormatterTest {
 					while (true) {
 					}
 				}
+				
+				node MyNode physical "tcp-127.0.0.1:9999" {
+					println("Hello")
+					while (true) {
+					}
+				}
 			'''
 			toBeFormatted = '''
 				proc MyProc(String s) { println("Hello") while(true) {} }
+				
+				node MyNode physical "tcp-127.0.0.1:9999" { println("Hello") while(true) {}}
 			'''
 		]
 	}
