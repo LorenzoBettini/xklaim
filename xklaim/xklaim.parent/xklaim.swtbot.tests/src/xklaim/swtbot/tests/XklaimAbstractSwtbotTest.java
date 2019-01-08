@@ -28,7 +28,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-public abstract class XklaimJavammSwtbotTest {
+public abstract class XklaimAbstractSwtbotTest {
 
 	protected static final String TEST_PROJECT = "MyTestProject";
 	protected static final String PROJECT_EXPLORER = "Project Explorer";

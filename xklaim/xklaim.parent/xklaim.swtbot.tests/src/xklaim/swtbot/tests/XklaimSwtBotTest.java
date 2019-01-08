@@ -13,7 +13,7 @@ import org.junit.runner.RunWith;
  *
  */
 @RunWith(SWTBotJunit4ClassRunner.class)
-public class JavammSwtBotTest extends XklaimJavammSwtbotTest {
+public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 
 	private static final String HELLO_WORLD_XKLAIM = "Hello.xklaim";
 
