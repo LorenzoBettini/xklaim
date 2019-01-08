@@ -13,8 +13,6 @@ NEWLOC
 
 HIERARCHICAL
 
-SWTBOT TESTS?
-
 COLLECT ALL MENTIONED CLASSES?
 
 and the compile can generate a method for explicitly registering such classes?
