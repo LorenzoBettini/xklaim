@@ -1,7 +1,9 @@
 node {
    def mvnHome
    def mavenProfiles = ""
-   if (env.JOB_NAME.endsWith("release")) {
+   if (env.JOB_NAME.endsWith("release-ide")) {
+     mavenProfiles = "-Prelease-ide-composite,deploy-ide-composite"
+   } else if (env.JOB_NAME.endsWith("release")) {
      mavenProfiles = "-Prelease-composite"
    }
    properties([
