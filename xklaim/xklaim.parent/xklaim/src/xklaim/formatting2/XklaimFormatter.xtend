@@ -6,6 +6,7 @@ package xklaim.formatting2
 import org.eclipse.xtext.formatting2.IFormattableDocument
 import org.eclipse.xtext.xbase.annotations.formatting2.XbaseWithAnnotationsFormatter
 import xklaim.xklaim.XklaimModel
+import xklaim.xklaim.XklaimNet
 
 class XklaimFormatter extends XbaseWithAnnotationsFormatter {
 	
@@ -22,10 +23,14 @@ class XklaimFormatter extends XbaseWithAnnotationsFormatter {
 		}
 	}
 
-//	def dispatch void format(XklaimNode xklaimNode, extension IFormattableDocument document) {
-//		xklaimNode.environment.format
-//		xklaimNode.body.format
-//	}
-	
-	// TODO: implement for XklaimNet, XklaimNetNode, XklaimNodeEnvironment, XklaimNodeEnvironmentEntry, XklaimProcess, XklaimOutOperation, XklaimInOperation, XklaimNonBlockingInOperation, XklaimReadOperation, XklaimNonBlockingReadOperation, XklaimEvalOperation, XklaimInlineProcess
+	def dispatch void format(XklaimNet n, extension IFormattableDocument document) {
+		val open = n.regionFor.keyword("{")
+		val close = n.regionFor.keyword("}")
+		open.append[newLine]
+		interior(open, close)[indent]
+		for (element : n.nodes) {
+			element.format
+			element.append[setNewLines(1, 1, 2)]
+		}
+	}
 }
