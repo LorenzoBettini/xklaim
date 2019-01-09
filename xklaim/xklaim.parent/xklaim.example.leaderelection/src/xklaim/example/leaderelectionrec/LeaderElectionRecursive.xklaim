@@ -1,0 +1,52 @@
+package xklaim.example.leaderelectionrec
+
+proc InitialProc(String nodeName) {
+	val rg = getPhysical(logloc("rg"))
+	val next = logloc("next")
+	in("ID", var Integer myId)@rg
+	out("ID", myId)@self
+	eval({ // anonymous process (1)
+		read("ID", var Integer x)@self
+		if (myId < x) {
+			eval(this)@next // this refers to (1)
+		} else if (myId > x) {
+			eval({ // anonymous process 2
+				read("ID", var Integer x1)@self
+				if (x1 == myId) {
+					out("FOLLOWER")@self
+				} else {
+					eval(this)@next // this refers to (2)
+				}
+			})@next
+		} else {
+			out("LEADER")@self
+		}
+	})@next
+	in(var String result)@self
+	println(nodeName + ": result is " + result)
+}
+
+/**
+ * Leader election example in Xklaim.
+ * 
+ * This variant demonstrates recursive (possibly anonymous) processes
+ * in Xklaim.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
+net LeaderElectionRecursiveNet physical "localhost:9999" {
+	node L1 [next -> L2] {
+		eval(new InitialProc("L1"))@self
+	}
+	node L2 [next -> L3] {
+		eval(new InitialProc("L2"))@self
+	}
+	node L3 [next -> L1] {
+		eval(new InitialProc("L3"))@self
+	}
+	node RG logical "rg" {
+		out("ID", 0)@self
+		out("ID", 1)@self
+		out("ID", 2)@self
+	}
+}
