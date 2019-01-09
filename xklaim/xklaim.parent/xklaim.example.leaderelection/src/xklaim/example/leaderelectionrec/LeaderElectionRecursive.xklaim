@@ -10,7 +10,7 @@ proc InitialProc(String nodeName) {
 		if (myId < x) {
 			eval(this)@next // this refers to (1)
 		} else if (myId > x) {
-			eval({ // anonymous process 2
+			eval({ // anonymous nested process (2)
 				read("ID", var Integer x1)@self
 				if (x1 == myId) {
 					out("FOLLOWER")@self
