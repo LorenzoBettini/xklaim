@@ -5,18 +5,24 @@ package org.mikado.imc.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+
+import javax.swing.JPanel;
 import java.awt.HeadlessException;
 import java.awt.event.KeyEvent;
 
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
-import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
+import javax.swing.JMenu;
 import javax.swing.JScrollPane;
-
+import javax.swing.LookAndFeel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import org.mikado.imc.common.IMCException;
+
+import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
+
+import javax.swing.JMenuItem;
 
 public class DesktopFrame extends JFrame {
 
@@ -39,6 +45,10 @@ public class DesktopFrame extends JFrame {
 
     private JMenu optionMenu = null;
 
+    private JMenu lookAndFeelMenu = null;
+
+    private JMenuItem systemLFMenuItem = null;
+
     private JMenu viewMenu = null;
 
     private JScrollPane scrollPane;
@@ -59,6 +69,14 @@ public class DesktopFrame extends JFrame {
         }
         return fileMenu;
     }
+
+    private JMenuItem windowsLFMenu = null;
+
+    private JMenuItem gtkLFMenuItem = null;
+
+    private JMenuItem javaLFMenuItem = null;
+
+    private JMenuItem motifLFMenuItem = null;
 
     public DesktopFrame() throws HeadlessException {
         initialize();
@@ -230,8 +248,157 @@ public class DesktopFrame extends JFrame {
             optionMenu = new JMenu();
             optionMenu.setText("Options");
             optionMenu.setMnemonic(KeyEvent.VK_O);
+            optionMenu.add(getLookAndFeelMenu());
         }
         return optionMenu;
+    }
+
+    /**
+     * This method initializes lookAndFeelMenu
+     * 
+     * @return javax.swing.JMenu
+     */
+    private JMenu getLookAndFeelMenu() {
+        if (lookAndFeelMenu == null) {
+            lookAndFeelMenu = new JMenu();
+            lookAndFeelMenu.setText("Look & Feel");
+            lookAndFeelMenu.add(getSystemLFMenuItem());
+            lookAndFeelMenu.add(getGtkLFMenuItem());
+            lookAndFeelMenu.add(getWindowsLFMenu());
+            lookAndFeelMenu.add(getJavaLFMenuItem());
+            lookAndFeelMenu.add(getMotifLFMenuItem());
+        }
+        return lookAndFeelMenu;
+    }
+
+    /**
+     * This method initializes systemLFMenuItem
+     * 
+     * @return javax.swing.JMenuItem
+     */
+    private JMenuItem getSystemLFMenuItem() {
+        if (systemLFMenuItem == null) {
+            systemLFMenuItem = new JMenuItem();
+            systemLFMenuItem.setText("System Look & Feel");
+            systemLFMenuItem
+                    .addActionListener(new java.awt.event.ActionListener() {
+                        public void actionPerformed(java.awt.event.ActionEvent e) {
+                            setLookAndFeel(UIManager
+                                    .getSystemLookAndFeelClassName());
+                        }
+                    });
+        }
+        return systemLFMenuItem;
+    }
+
+    /**
+     * Sets the look and feel of the application
+     * 
+     * @param lnfName
+     *            the look and feel name
+     */
+    protected void setLookAndFeel(String lnfName) {
+        try {
+            UIManager.setLookAndFeel(lnfName);
+
+            SwingUtilities.updateComponentTreeUI(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showException(e);
+        }
+    }
+
+    /**
+     * Sets the look and feel of the application
+     * 
+     * @param lookAndFeel
+     */
+    protected void setLookAndFeel(LookAndFeel lookAndFeel) {
+        try {
+            UIManager.setLookAndFeel(lookAndFeel);
+
+            SwingUtilities.updateComponentTreeUI(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showException(e);
+        }
+    }
+
+    /**
+     * This method initializes windowsLFMenu
+     * 
+     * @return javax.swing.JMenuItem
+     */
+    private JMenuItem getWindowsLFMenu() {
+        if (windowsLFMenu == null) {
+            windowsLFMenu = new JMenuItem();
+            windowsLFMenu.setText("Windows");
+            windowsLFMenu
+                    .addActionListener(new java.awt.event.ActionListener() {
+                        public void actionPerformed(java.awt.event.ActionEvent e) {
+                            setLookAndFeel(new WindowsLookAndFeel());
+                        }
+                    });
+        }
+        return windowsLFMenu;
+    }
+
+    /**
+     * This method initializes gtkLFMenuItem
+     * 
+     * @return javax.swing.JMenuItem
+     */
+    private JMenuItem getGtkLFMenuItem() {
+        if (gtkLFMenuItem == null) {
+            gtkLFMenuItem = new JMenuItem();
+            gtkLFMenuItem.setText("GTK+");
+            gtkLFMenuItem
+                    .addActionListener(new java.awt.event.ActionListener() {
+                        public void actionPerformed(java.awt.event.ActionEvent e) {
+                            setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+                        }
+                    });
+        }
+        return gtkLFMenuItem;
+    }
+
+    /**
+     * This method initializes javaLFMenuItem
+     * 
+     * @return javax.swing.JMenuItem
+     */
+    private JMenuItem getJavaLFMenuItem() {
+        if (javaLFMenuItem == null) {
+            javaLFMenuItem = new JMenuItem();
+            javaLFMenuItem.setText("Java");
+            javaLFMenuItem
+                    .addActionListener(new java.awt.event.ActionListener() {
+                        public void actionPerformed(java.awt.event.ActionEvent e) {
+                            setLookAndFeel(UIManager
+                                    .getCrossPlatformLookAndFeelClassName());
+                        }
+                    });
+        }
+        return javaLFMenuItem;
+    }
+
+    /**
+     * This method initializes motifLFMenuItem
+     * 
+     * @return javax.swing.JMenuItem
+     */
+    private JMenuItem getMotifLFMenuItem() {
+        if (motifLFMenuItem == null) {
+            motifLFMenuItem = new JMenuItem();
+            motifLFMenuItem.setText("Motif");
+            motifLFMenuItem
+                    .addActionListener(new java.awt.event.ActionListener() {
+                        public void actionPerformed(java.awt.event.ActionEvent e) {
+                            setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
+                        }
+                    });
+        }
+        return motifLFMenuItem;
     }
 
     /**
