@@ -20,6 +20,8 @@
     <moduleProperties></moduleProperties>
     <systemProperties></systemProperties>
     <tycho.testArgLine></tycho.testArgLine>
+    <skip.imc.tests>false</skip.imc.tests>
+    <skip.klava.tests>false</skip.klava.tests>
 
     <target-file-name>xklaim-${eclipseVersion}-xtext-${xtextVersion}</target-file-name>
 

@@ -11,6 +11,10 @@
   <artifactId>imc.tests</artifactId>
   <packaging>jar</packaging>
 
+  <properties>
+    <skipTests>${skip.imc.tests}</skipTests>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>

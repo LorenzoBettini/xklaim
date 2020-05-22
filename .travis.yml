@@ -28,6 +28,6 @@ before_install:
 
 # Build on MacOSX is triggered only for pull requests and merge of pull requests
 script:
- - ./mvnw clean verify $ADDITIONAL
+ - ./mvnw clean verify $ADDITIONAL -Dskip.imc.tests=true -Dskip.klava.tests=true
 
 

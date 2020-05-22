@@ -11,6 +11,10 @@
   <artifactId>klava.tests</artifactId>
   <packaging>jar</packaging>
 
+  <properties>
+    <skipTests>${skip.klava.tests}</skipTests>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>klava</groupId>
