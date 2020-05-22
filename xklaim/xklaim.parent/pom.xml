@@ -20,6 +20,8 @@
     <moduleProperties></moduleProperties>
     <systemProperties></systemProperties>
     <tycho.testArgLine></tycho.testArgLine>
+    <skip.imc.tests>false</skip.imc.tests>
+    <skip.klava.tests>false</skip.klava.tests>
 
     <target-file-name>xklaim-${eclipseVersion}-xtext-${xtextVersion}</target-file-name>
 
@@ -63,8 +65,10 @@
     <module>xklaim.target</module>
     <module>xklaim.runtime</module>
     <module>xklaim</module>
+    <module>xklaim.tests</module>
     <module>xklaim.ide</module>
     <module>xklaim.ui</module>
+    <module>xklaim.ui.tests</module>
     <module>xklaim.examples</module>
     <module>xklaim.example.mobility.receiver</module>
     <module>xklaim.example.mobility.sender</module>
@@ -74,8 +78,6 @@
     <module>xklaim.product.ui.feature</module>
     <module>xklaim.repository</module>
     <module>xklaim.product.repository</module>
-    <module>xklaim.tests</module>
-    <module>xklaim.ui.tests</module>
   </modules>
   <build>
     <plugins>
