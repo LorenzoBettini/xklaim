@@ -58,29 +58,113 @@
     <!-- for deployment on Sourceforge -->
     <remote.dir>lbettini@frs.sourceforge.net:/home/frs/project/xklaim</remote.dir>
   </properties>
+
+  <!-- The modules common to all profiles. These also correspond
+    to the Maven artifacts to be deployed on Maven Central -->
   <modules>
     <module>imc</module>
-    <module>imc.tests</module>
     <module>klava</module>
-    <module>klava.tests</module>
     <module>xklaim.target</module>
     <module>xklaim.runtime</module>
     <module>xklaim</module>
-    <module>xklaim.tests</module>
-    <module>xklaim.ide</module>
-    <module>xklaim.ui</module>
-    <module>xklaim.ui.tests</module>
-    <module>xklaim.examples</module>
-    <module>xklaim.example.mobility.receiver</module>
-    <module>xklaim.example.mobility.sender</module>
-    <module>xklaim.example.leaderelection</module>
-    <module>xklaim.ui.examples</module>
-    <module>xklaim.feature</module>
-    <module>xklaim.product.ui.feature</module>
-    <module>xklaim.repository</module>
-    <module>xklaim.product.repository</module>
   </modules>
-  <build>
+
+  <profiles>
+    <profile>
+      <!-- Standard development profile, including Eclipse specific
+        bundles and tests -->
+      <id>development</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+        <!-- Passing the property from an Eclipse m2e launch
+          does not seem to work: the profile must be deactivated
+          explicitly with !development -->
+        <property>
+          <name>!activate-maven-profile</name>
+        </property>
+      </activation>
+      <modules>
+        <module>imc.tests</module>
+        <module>klava.tests</module>
+        <module>xklaim.tests</module>
+        <module>xklaim.ide</module>
+        <module>xklaim.ui</module>
+        <module>xklaim.ui.tests</module>
+        <module>xklaim.examples</module>
+        <module>xklaim.example.mobility.receiver</module>
+        <module>xklaim.example.mobility.sender</module>
+        <module>xklaim.example.leaderelection</module>
+        <module>xklaim.ui.examples</module>
+        <module>xklaim.feature</module>
+        <module>xklaim.product.ui.feature</module>
+        <module>xklaim.repository</module>
+        <module>xklaim.product.repository</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>macos</id>
+      <activation>
+        <os>
+          <family>mac</family>
+        </os>
+      </activation>
+      <properties>
+        <!-- THE FOLLOWING LINE MUST NOT BE BROKEN BY AUTOFORMATTING -->
+        <platformSystemProperties>-XstartOnFirstThread</platformSystemProperties>
+      </properties>
+    </profile>
+    <profile>
+      <id>jdk9-or-newer</id>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <properties>
+        <moduleProperties>--add-modules=ALL-SYSTEM</moduleProperties>
+      </properties>
+    </profile>
+    <profile>
+      <id>release-composite</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>release-ide-composite</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>deploy-ide-composite</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>build-ide</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+    </profile>
+    <profile>
+      <id>test-ide</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <modules>
+        <module>xklaim.swtbot.tests</module>
+      </modules>
+    </profile>
+  </profiles><build>
     <plugins>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
@@ -372,71 +456,7 @@
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
-  <profiles>
-    <profile>
-      <id>macos</id>
-      <activation>
-        <os>
-          <family>mac</family>
-        </os>
-      </activation>
-      <properties>
-        <!-- THE FOLLOWING LINE MUST NOT BE BROKEN BY AUTOFORMATTING -->
-        <platformSystemProperties>-XstartOnFirstThread</platformSystemProperties>
-      </properties>
-    </profile>
-    <profile>
-      <id>jdk9-or-newer</id>
-      <activation>
-        <jdk>[9,)</jdk>
-      </activation>
-      <properties>
-        <moduleProperties>--add-modules=ALL-SYSTEM</moduleProperties>
-      </properties>
-    </profile>
-    <profile>
-      <id>release-composite</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
-    </profile>
-    <profile>
-      <id>release-ide-composite</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
-    </profile>
-    <profile>
-      <id>deploy-ide-composite</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
-    </profile>
-    <profile>
-      <id>build-ide</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-    </profile>
-    <profile>
-      <id>test-ide</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <modules>
-        <module>xklaim.swtbot.tests</module>
-      </modules>
-    </profile>
-  </profiles>
+  
 
   <dependencies>
   </dependencies>
