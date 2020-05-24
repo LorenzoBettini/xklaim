@@ -7,6 +7,41 @@
   <artifactId>xklaim.parent</artifactId>
   <packaging>pom</packaging>
 
+  <name>XKlaim Parent</name>
+  <url>https://github.com/LorenzoBettini/xklaim</url>
+  <description>XKlaim, implementation of the Klaim programming model.</description>
+
+  <licenses>
+    <license>
+      <name>Eclipse Public License</name>
+      <url>http://www.eclipse.org/legal/epl-v10.html</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Lorenzo Bettini</name>
+      <email>lorenzo.bettini@gmail.com</email>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <organization>DISIA Dipartimento di Statistica, Informatica, Applicazioni</organization>
+      <organizationUrl>https://www.disia.unifi.it/</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>git@github.com:LorenzoBettini/xklaim.git</url>
+    <developerConnection>scm:git:https://github.com/LorenzoBettini/xklaim.git</developerConnection>
+    <connection>scm:git:git@github.com/LorenzoBettini/xklaim.git</connection>
+  </scm>
+
+  <issueManagement>
+    <system>Github</system>
+    <url>https://github.com/LorenzoBettini/xklaim/issues</url>
+  </issueManagement>
+
   <properties>
     <xtextVersion>2.21.0</xtextVersion>
     <mwe2Version>2.11.2</mwe2Version>
