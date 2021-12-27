@@ -45,7 +45,7 @@
   <properties>
     <xtextVersion>2.25.0</xtextVersion>
     <mwe2Version>2.12.1</mwe2Version>
-    <eclipseVersion>2020-03</eclipseVersion>
+    <eclipseVersion>2021-12</eclipseVersion>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
