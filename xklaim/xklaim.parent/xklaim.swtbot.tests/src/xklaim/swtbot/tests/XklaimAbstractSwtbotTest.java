@@ -173,8 +173,6 @@ public abstract class XklaimAbstractSwtbotTest {
 		// creation of a project might require some time
 		bot.waitUntil(shellCloses(shell), SWTBotPreferences.TIMEOUT);
 		assertProjectCreated(projectName);
-
-		waitForBuild();
 	}
 
 	protected void assertProjectCreated(String projectName) {

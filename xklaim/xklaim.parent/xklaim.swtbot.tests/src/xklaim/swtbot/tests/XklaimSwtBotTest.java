@@ -1,8 +1,11 @@
 package xklaim.swtbot.tests;
 
+import static org.eclipse.xtext.ui.testing.util.IResourcesSetupUtil.waitForBuild;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
+import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.Before;
@@ -20,11 +23,14 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 
 	@Before
 	public void createANewXklaimProject() throws CoreException {
-		createProjectAndAssertNoErrorMarker();
+		createProject();
 	}
 
 	@Test
 	public void canRunAnXklaimFileAsJavaApplication() throws CoreException {
+		System.out.println("**** WAITING FOR BUILD...");
+		waitForBuild();
+		assertErrorsInProject(0);
 		SWTBotTreeItem tree = getProjectTreeItem(TEST_PROJECT)
 				.expand()
 				.expandNode("src")
@@ -39,9 +45,10 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 			// depending on the installed features, on a new workbench, any file has "Run As
 			// Java Application" as the
 			// first menu, so we need to look for the second entry
-			contextMenu.menu("1 Xklaim Application");
+			contextMenu.menu(WidgetMatcherFactory.withRegex("\\d Xklaim Application"), false, 0);
 		} catch (WidgetNotFoundException e) {
-			contextMenu.menu("2 Xklaim Application");
+			System.out.println("MENUS: " + contextMenu.menuItems());
+			throw e;
 		}
 	}
 
