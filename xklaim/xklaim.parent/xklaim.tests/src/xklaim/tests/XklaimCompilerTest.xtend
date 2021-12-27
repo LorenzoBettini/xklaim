@@ -99,9 +99,6 @@ class XklaimCompilerTest {
 			'''
 			package foo;
 			
-			import foo.TestNode;
-			import foo.TestNodeWithPhysicalLocality;
-			
 			@SuppressWarnings("all")
 			public class MyFile {
 			  public static void main(final String[] args) throws Exception {
@@ -252,8 +249,6 @@ class XklaimCompilerTest {
 			"foo.MyFile" ->
 			'''
 			package foo;
-			
-			import foo.TestNet;
 			
 			@SuppressWarnings("all")
 			public class MyFile {
@@ -652,7 +647,6 @@ class XklaimCompilerTest {
 			'''
 			package foo;
 			
-			import foo.AnotherProcess;
 			import klava.Tuple;
 			import klava.topology.KlavaProcess;
 			
@@ -945,7 +939,6 @@ class XklaimCompilerTest {
 			'''
 			package foo;
 			
-			import foo.P;
 			import klava.topology.KlavaProcess;
 			import org.eclipse.xtext.xbase.lib.InputOutput;
 			
