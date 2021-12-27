@@ -41,7 +41,7 @@
           <useUIHarness>true</useUIHarness>
           <useUIThread>false</useUIThread>
           <!-- <product>xklaim.eclipse.sdk.product</product> -->
-          <argLine>${tycho.testArgLine} ${platformSystemProperties} ${systemProperties} ${moduleProperties} -Dorg.eclipse.swtbot.search.timeout=10000</argLine>
+          <argLine>${tycho.testArgLine} ${platformSystemProperties} ${systemProperties} ${moduleProperties} -Dorg.eclipse.swtbot.search.timeout=50000</argLine>
           <testRuntime>p2Installed</testRuntime>
           <work>${test-work-directory}</work>
         </configuration>
