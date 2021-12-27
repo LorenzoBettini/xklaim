@@ -5,6 +5,7 @@ import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -17,14 +18,13 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 
 	private static final String HELLO_WORLD_XKLAIM = "Hello.xklaim";
 
-	@Test
-	public void canCreateANewXklaimProject() throws CoreException {
+	@Before
+	public void createANewXklaimProject() throws CoreException {
 		createProjectAndAssertNoErrorMarker();
 	}
 
 	@Test
 	public void canRunAnXklaimFileAsJavaApplication() throws CoreException {
-		createProjectAndAssertNoErrorMarker();
 		SWTBotTreeItem tree = getProjectTreeItem(TEST_PROJECT)
 				.expand()
 				.expandNode("src")
