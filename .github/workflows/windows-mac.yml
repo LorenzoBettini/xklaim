@@ -41,7 +41,7 @@ jobs:
         .\mvnw.cmd
         -f xklaim/xklaim.parent/pom.xml
         verify
-        -Dskip.imc.tests=true -Dskip.klava.tests=true
+        '-Dskip.imc.tests=true' '-Dskip.klava.tests=true'
         '-Pbuild-ide,test-ide'
       if: runner.os == 'Windows'
     - name: Archive Test Results
