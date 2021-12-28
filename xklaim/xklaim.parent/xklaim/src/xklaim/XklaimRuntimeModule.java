@@ -37,7 +37,7 @@ public class XklaimRuntimeModule extends AbstractXklaimRuntimeModule {
 
 	@Override
 	public void configureIScopeProviderDelegate(final Binder binder) {
-		binder.<IScopeProvider>bind(IScopeProvider.class)
+		binder.bind(IScopeProvider.class)
 				.annotatedWith(Names.named(AbstractDeclarativeScopeProvider.NAMED_DELEGATE))
 				.to(XklaimImportedNamespaceScopeProvider.class);
 	}
