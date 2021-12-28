@@ -28,7 +28,7 @@ Require-Bundle: xklaim,
  org.eclipse.ui.forms,
  org.eclipse.jdt.launching
 Import-Package: org.apache.log4j
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: xklaim.ui.contentassist,
  xklaim.ui.internal,
  xklaim.ui.quickfix,

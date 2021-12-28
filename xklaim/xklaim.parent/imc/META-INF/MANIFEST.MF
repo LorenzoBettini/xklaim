@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: imc
 Bundle-SymbolicName: imc
 Bundle-Version: 2.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: org.mikado.imc.common,
  org.mikado.imc.events,
  org.mikado.imc.gui,
