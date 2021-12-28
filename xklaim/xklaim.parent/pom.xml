@@ -164,6 +164,8 @@
       </activation>
       <properties>
         <skipTests>true</skipTests>
+        <skip.imc.tests>true</skip.imc.tests>
+        <skip.klava.tests>true</skip.klava.tests>
       </properties>
     </profile>
     <profile>
