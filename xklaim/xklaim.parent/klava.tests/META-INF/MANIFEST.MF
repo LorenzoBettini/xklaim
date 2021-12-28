@@ -3,6 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: klava.tests
 Bundle-SymbolicName: klava.tests
 Bundle-Version: 2.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-Vendor: Lorenzo Bettini
 Automatic-Module-Name: klava
