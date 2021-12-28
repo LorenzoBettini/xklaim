@@ -11,6 +11,7 @@
       <import plugin="org.eclipse.sdk"/>
       <import feature="org.eclipse.m2e.feature" version="1.15.0.20200310-1832" match="greaterOrEqual"/>
       <import feature="org.sonatype.m2e.buildhelper.feature" version="0.15.0.201207090124" match="greaterOrEqual"/>
+      <import feature="org.eclipse.m2e.sse.ui.feature" version="1.18.2.20211002-1029"/>
    </requires>
 
 </feature>
