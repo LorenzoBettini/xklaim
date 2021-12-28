@@ -4,9 +4,11 @@
 
 Java 11 is required.
 
-Eclipse update site: https://dl.bintray.com/lorenzobettini/xklaim/updates/
+Eclipse update site: https://lorenzobettini.github.io/xklaim-releases/
 
 Eclipse distributions with Xklaim installed: https://sourceforge.net/projects/xklaim/files/products/
+
+**IMPORTANT**: _the old Bintray update site does not work anymore, make sure you use the new one and remove the old one_. If you had downloaded an Xklaim Eclipse distribution earlier than 2.1 you won't be able to update it; please download a brand new Xklaim Eclipse distribution.
 
 **Publications:**
 
