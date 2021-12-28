@@ -135,7 +135,6 @@
         <module>xklaim.feature</module>
         <module>xklaim.product.ui.feature</module>
         <module>xklaim.repository</module>
-        <module>xklaim.product.repository</module>
       </modules>
     </profile>
     <profile>

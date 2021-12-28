@@ -60,7 +60,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>${project.groupId}</groupId>
-                  <artifactId>xklaim.product.repository</artifactId>
+                  <artifactId>xklaim.repository</artifactId>
                   <version>${project.version}</version>
                   <type>zip</type>
                   <classifier>${tycho.env.osgi.os}.${tycho.env.osgi.ws}.${tycho.env.osgi.arch}</classifier>
