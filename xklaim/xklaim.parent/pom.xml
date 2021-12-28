@@ -53,7 +53,7 @@
   </issueManagement>
 
   <properties>
-    <eclipseVersion>2021-12</eclipseVersion>
+    <eclipse-version>2021-12</eclipse-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
@@ -63,36 +63,25 @@
 
     <target-file-name>xklaim</target-file-name>
 
+    <!-- since this could be used in the pluginManagement section, we need 
+      to make sure the path always points to this pom's directory; project.basedir 
+      will always point to the directory of the pom where the pluginManagement's 
+      plugins are used -->
     <ant-files-path>${project.basedir}/../releng/releasing</ant-files-path>
 
     <!-- pass "-n" to perform a trial run with no changes made -->
-    <dryrun></dryrun>
+    <dryrun/>
 
-    <!-- for deployment on bintray -->
-    <!-- The name of your own Bintray repository -->
-    <bintray.repo>xklaim</bintray.repo>
-    <!-- The name of your own Bintray repository's package for releases -->
-    <bintray.package>releases</bintray.package>
+    <!-- properties for deploying the composite update site
+      on GitHub Pages -->
+    <github-update-repo>git@github.com:LorenzoBettini/xklaim-releases.git</github-update-repo>
+    <github-local-clone>${project.build.directory}/checkout</github-local-clone>
+    <releases-directory>${github-local-clone}/releases</releases-directory>
+    <current-release-directory>${releases-directory}/${qualifiedVersion}</current-release-directory>
     <!-- The label for the Composite sites -->
     <site.label>Xklaim Site</site.label>
 
-    <!-- If the Bintray repository is owned by someone different from your 
-      user, then specify the bintray.owner explicitly -->
-    <bintray.owner>${bintray.user}</bintray.owner>
-    <!-- Define bintray.user and bintray.apikey in some secret place, like 
-      .m2/settings.xml -->
-
-    <!-- Default values for remote directories -->
-    <bintray.base.path></bintray.base.path>
-    <bintray.releases.path>${bintray.base.path}releases</bintray.releases.path>
-    <bintray.composite.path>${bintray.base.path}updates</bintray.composite.path>
-    <bintray.zip.path>${bintray.base.path}zipped</bintray.zip.path>
-    <bintray.products.path>${bintray.base.path}products</bintray.products.path>
-    <!-- note that the following must be consistent with the path schema 
-      used to publish child composite repositories and actual released p2 repositories -->
-    <child.repository.path.prefix>../../releases/</child.repository.path.prefix>
-
-    <!-- for deployment on Sourceforge -->
+    <!-- for deployment of Eclipse products on Sourceforge -->
     <remote.dir>lbettini@frs.sourceforge.net:/home/frs/project/xklaim</remote.dir>
   </properties>
 
@@ -169,7 +158,7 @@
       </build>
     </profile>
     <profile>
-      <id>release-composite</id>
+      <id>release-composite</id> <!-- release composite update site on GitHub Pages -->
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
@@ -178,28 +167,46 @@
       </properties>
     </profile>
     <profile>
-      <id>release-ide-composite</id>
+      <id>release-ide</id> <!-- release IDE products on Sourceforge -->
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
       <properties>
         <skipTests>true</skipTests>
       </properties>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <artifactId>maven-install-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>default-install</id>
+                  <phase>none</phase>
+                </execution>
+              </executions>
+            </plugin>
+            <plugin>
+              <artifactId>maven-deploy-plugin</artifactId>
+              <configuration>
+                <skip>true</skip>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
     </profile>
     <profile>
-      <id>deploy-ide-composite</id>
+      <!-- This assumes that release-composite is enabled as well -->
+      <id>release-snapshots</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
       <properties>
-        <skipTests>true</skipTests>
+        <github-update-repo>git@github.com:LorenzoBettini/xklaim-snapshots.git</github-update-repo>
+        <site.label>Xklaim Snapshot Site</site.label>
+        <remote.dir>lbettini@frs.sourceforge.net:/home/frs/project/xklaim/snapshots</remote.dir>
       </properties>
-    </profile>
-    <profile>
-      <id>build-ide</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
     </profile>
     <profile>
       <id>test-ide</id>

@@ -34,7 +34,7 @@ jobs:
         -f xklaim/xklaim.parent/pom.xml
         verify
         -Dskip.imc.tests=true -Dskip.klava.tests=true
-        -Pbuild-ide,test-ide
+        -Ptest-ide
       if: runner.os == 'macOS'
     - name: Build with Maven
       run: >
@@ -42,7 +42,7 @@ jobs:
         -f xklaim/xklaim.parent/pom.xml
         verify
         '-Dskip.imc.tests=true' '-Dskip.klava.tests=true'
-        '-Pbuild-ide,test-ide'
+        '-Ptest-ide'
       if: runner.os == 'Windows'
     - name: Archive Test Results
       uses: actions/upload-artifact@v2
