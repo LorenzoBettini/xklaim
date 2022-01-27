@@ -2,7 +2,7 @@
 <feature
       id="xklaim.feature"
       label="Xklaim Feature "
-      version="2.1.0.qualifier">
+      version="2.2.0.qualifier">
 
    <requires>
       <import feature="org.eclipse.xtext.xbase" version="2.25.0" match="equivalent"/>

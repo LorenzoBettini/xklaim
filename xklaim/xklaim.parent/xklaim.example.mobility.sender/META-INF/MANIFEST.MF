@@ -3,7 +3,7 @@ Automatic-Module-Name: xklaim.example.mobility.sender
 Bundle-ManifestVersion: 2
 Bundle-Name: xklaim.example.mobility.sender
 Bundle-Vendor: Lorenzo Bettini
-Bundle-Version: 2.1.0.qualifier
+Bundle-Version: 2.2.0.qualifier
 Bundle-SymbolicName: xklaim.example.mobility.sender; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: xklaim.runtime
