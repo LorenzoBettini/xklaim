@@ -9,6 +9,8 @@ Eclipse update site: https://lorenzobettini.github.io/xklaim-releases/
 
 Eclipse distributions with Xklaim installed: https://sourceforge.net/projects/xklaim/files/products/
 
+**For macOS users**: depending on the version of your macOS, when you try to run the `xklaim.app` you may run into an error that says "the application is damaged and can't be opened". This problem can be overcome by running the following command from the terminal (from the directory where the `xklaim.app` is located): `xattr -c xklaim.app`.
+
 **IMPORTANT**: _the old Bintray update site does not work anymore, make sure you use the new one and remove the old one_. If you had downloaded an Xklaim Eclipse distribution earlier than 2.1 you won't be able to update it; please download a brand new Xklaim Eclipse distribution.
 
 **Publications:**
