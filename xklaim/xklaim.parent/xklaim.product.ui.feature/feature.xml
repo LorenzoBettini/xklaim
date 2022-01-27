@@ -12,6 +12,7 @@
       <import feature="org.eclipse.m2e.feature" version="1.15.0.20200310-1832" match="greaterOrEqual"/>
       <import feature="org.sonatype.m2e.buildhelper.feature" version="0.15.0.201207090124" match="greaterOrEqual"/>
       <import feature="org.eclipse.m2e.sse.ui.feature" version="1.18.2.20211002-1029"/>
+      <import feature="org.eclipse.egit" version="6.0.0.202111291000-r" match="greaterOrEqual"/>
    </requires>
 
 </feature>
