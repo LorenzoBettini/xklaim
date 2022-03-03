@@ -13,7 +13,6 @@ public class InitialProc extends KlavaProcess {
   private String nodeName;
   
   public InitialProc(final String nodeName) {
-    super("xklaim.example.leaderelectionrec.InitialProc");
     this.nodeName = nodeName;
   }
   

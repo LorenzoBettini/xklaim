@@ -5,7 +5,6 @@ import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.topology.KlavaProcess;
 import org.eclipse.xtext.xbase.lib.InputOutput;
-import xklaim.example.leaderelection.CheckerProc;
 import xklaim.runtime.util.XklaimRuntimeUtil;
 
 @SuppressWarnings("all")
@@ -13,7 +12,6 @@ public class InitialProc extends KlavaProcess {
   private String nodeName;
   
   public InitialProc(final String nodeName) {
-    super("xklaim.example.leaderelection.InitialProc");
     this.nodeName = nodeName;
   }
   
