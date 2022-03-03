@@ -2,7 +2,7 @@
 <feature
       id="xklaim.product.ui.feature"
       label="Xklaim IDE External Components"
-      version="2.2.0.qualifier"
+      version="2.3.0.qualifier"
       provider-name="Lorenzo Bettini">
 
    <requires>

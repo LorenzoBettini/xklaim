@@ -8,6 +8,6 @@
 	</feature>
 	<category-def name="main" label="Xklaim" />
 	<category-def name="main.source" label="Xklaim (Sources)" />
-	<repository-reference location="https://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.25.0/" enabled="true" />
+	<repository-reference location="https://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.26.0/" enabled="true" />
 	<repository-reference location="https://download.eclipse.org/releases/2021-12/" enabled="true" />
 </site>
