@@ -11,7 +11,6 @@ public class NotifierProc extends KlavaProcess {
   private Integer myId;
   
   public NotifierProc(final Integer myId) {
-    super("xklaim.example.leaderelection.NotifierProc");
     this.myId = myId;
   }
   

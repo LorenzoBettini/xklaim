@@ -3,7 +3,6 @@ package xklaim.example.leaderelection;
 import klava.LogicalLocality;
 import klava.Tuple;
 import klava.topology.KlavaProcess;
-import xklaim.example.leaderelection.NotifierProc;
 import xklaim.runtime.util.XklaimRuntimeUtil;
 
 @SuppressWarnings("all")
@@ -11,7 +10,6 @@ public class CheckerProc extends KlavaProcess {
   private Integer myId;
   
   public CheckerProc(final Integer myId) {
-    super("xklaim.example.leaderelection.CheckerProc");
     this.myId = myId;
   }
   

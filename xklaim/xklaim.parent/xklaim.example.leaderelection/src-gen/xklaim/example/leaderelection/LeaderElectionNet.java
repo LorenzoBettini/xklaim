@@ -7,7 +7,6 @@ import klava.topology.ClientNode;
 import klava.topology.KlavaNodeCoordinator;
 import klava.topology.LogicalNet;
 import org.mikado.imc.common.IMCException;
-import xklaim.example.leaderelection.InitialProc;
 
 /**
  * Leader election example in Xklaim.
