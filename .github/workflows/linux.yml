@@ -33,12 +33,12 @@ jobs:
         verify
         -Dskip.imc.tests=true -Dskip.klava.tests=true
         -Ptest-ide
-    - name: Archive Test Results
-      uses: actions/upload-artifact@v2
-      if: ${{ failure() || cancelled() }}
-      with:
-        name: test-results-${{ runner.os }}
-        path: '**/*.tests/target'
+#    - name: Archive Test Results
+#      uses: actions/upload-artifact@v2
+#      if: ${{ failure() || cancelled() }}
+#      with:
+#        name: test-results-${{ runner.os }}
+#        path: '**/*.tests/target'
     - name: Archive UI Tests Screenshots
       uses: actions/upload-artifact@v2
       if: ${{ failure() || cancelled() }}
