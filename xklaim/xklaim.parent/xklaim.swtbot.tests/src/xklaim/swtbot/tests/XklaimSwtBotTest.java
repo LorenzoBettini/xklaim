@@ -2,7 +2,10 @@ package xklaim.swtbot.tests;
 
 import static org.eclipse.xtext.ui.testing.util.IResourcesSetupUtil.waitForBuild;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
@@ -30,7 +33,7 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 	}
 
 	@Test
-	public void canRunAnXklaimFileAsJavaApplication() throws CoreException {
+	public void canRunAnXklaimFileAsJavaApplication() throws CoreException, OperationCanceledException, InterruptedException {
 		bot.waitUntil(new ICondition() {
 			@Override
 			public boolean test() throws Exception {
@@ -49,6 +52,9 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 		});
 		System.out.println("**** WAITING FOR BUILD...");
 		waitForBuild();
+		Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_REFRESH, null);
+		Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+		System.out.println("**** BUILD DONE");
 		assertErrorsInProject(0);
 		SWTBotTreeItem tree = getProjectTreeItem(TEST_PROJECT)
 				.expand()
