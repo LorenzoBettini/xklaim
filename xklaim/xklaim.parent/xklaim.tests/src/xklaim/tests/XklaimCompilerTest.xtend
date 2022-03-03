@@ -280,7 +280,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  
@@ -319,7 +318,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  
@@ -377,7 +375,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  
@@ -431,7 +428,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  
@@ -485,7 +481,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  
@@ -552,7 +547,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  
@@ -609,7 +603,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  
@@ -655,7 +648,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  
@@ -704,7 +696,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  
@@ -823,7 +814,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  
@@ -877,7 +867,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  
@@ -947,7 +936,6 @@ class XklaimCompilerTest {
 			  private String s;
 			  
 			  public TestProcess(final String s) {
-			    super("foo.TestProcess");
 			    this.s = s;
 			  }
 			  

@@ -252,7 +252,6 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 					parameters += p.toParameter(p.name, p.parameterType)
 				}
 				body = '''
-				super("«process.fullyQualifiedName»");
 				«FOR p : process.params»
 				this.«p.name» = «p.name»;
 				«ENDFOR»
