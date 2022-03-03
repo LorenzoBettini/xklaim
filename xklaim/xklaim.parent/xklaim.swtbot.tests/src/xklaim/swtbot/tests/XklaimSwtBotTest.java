@@ -1,6 +1,6 @@
 package xklaim.swtbot.tests;
 
-import static org.eclipse.xtext.ui.testing.util.IResourcesSetupUtil.waitForBuild;
+import static org.eclipse.xtext.ui.testing.util.IResourcesSetupUtil.*;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -50,12 +50,27 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 				return "Failed waiting for inizialize of plugin models";
 			}
 		});
-		System.out.println("**** WAITING FOR BUILD...");
-		waitForBuild();
-		Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_REFRESH, null);
-		Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
-		System.out.println("**** BUILD DONE");
-		assertErrorsInProject(0);
+		bot.waitUntil(new ICondition() {
+			@Override
+			public boolean test() throws Exception {
+				System.out.println("**** WAITING FOR BUILD...");
+				waitForBuild();
+				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_REFRESH, null);
+				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+				System.out.println("**** BUILD DONE");
+				assertErrorsInProject(0);
+				return true;
+			}
+
+			@Override
+			public void init(SWTBot bot) {
+			}
+
+			@Override
+			public String getFailureMessage() {
+				return "build failed";
+			}
+		});
 		SWTBotTreeItem tree = getProjectTreeItem(TEST_PROJECT)
 				.expand()
 				.expandNode("src")
