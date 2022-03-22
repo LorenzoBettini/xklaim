@@ -11,7 +11,7 @@
   <parent>
     <groupId>io.github.lorenzobettini.xtextutils</groupId>
     <artifactId>xtext-tycho-parent</artifactId>
-    <version>0.7.0</version>
+    <version>0.7.1</version>
     <relativePath></relativePath>
   </parent>
 
@@ -264,6 +264,16 @@
              Caused by: java.lang.IllegalArgumentException: org.eclipse.equinox.launcher.cocoa.macosx.x86.64: Invalid module name: '64' is not a Java identifier
              -->
             <source>8</source>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.tycho</groupId>
+          <artifactId>tycho-packaging-plugin</artifactId>
+          <configuration>
+            <!-- required to have valid consumable Maven artifacts
+              https://github.com/LorenzoBettini/xklaim/issues/39
+              https://github.com/eclipse/tycho/issues/781 -->
+            <skipPomGeneration>true</skipPomGeneration>
           </configuration>
         </plugin>
       </plugins>
