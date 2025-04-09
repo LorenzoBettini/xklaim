@@ -13,6 +13,7 @@ Require-Bundle: xklaim.ui,
  org.eclipse.core.runtime,
  org.eclipse.ui.workbench;resolution:=optional,
  org.eclipse.xtext.ui.testing,
- org.eclipse.xtext.common.types.ui
+ org.eclipse.xtext.common.types.ui,
+ org.eclipse.xtext.xbase.ui.testing
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: xklaim.ui.tests;x-internal=true
