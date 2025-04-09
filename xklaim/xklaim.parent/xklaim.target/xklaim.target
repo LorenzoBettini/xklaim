@@ -18,10 +18,6 @@
 <repository location="https://download.eclipse.org/releases/2025-03"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.sonatype.m2e.buildhelper.feature.feature.group" version="0.0.0"/>
-<repository location="https://repo1.maven.org/maven2/.m2e/connectors/m2eclipse-buildhelper/0.15.0/N/0.15.0.201207090124/"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.emf.mwe2.launcher.feature.group" version="0.0.0"/>
 <repository location="https://download.eclipse.org/modeling/emft/mwe/updates/releases/2.21.0/"/>
 </location>
