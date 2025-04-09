@@ -7,7 +7,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IProgressMonitorWithBlocking;
 import org.eclipse.emf.common.ui.CommonUIPlugin;
 import org.eclipse.emf.common.ui.wizard.ExampleInstallerWizard;
 import org.eclipse.emf.common.util.BasicMonitor;
@@ -28,7 +27,7 @@ public class XklaimExampleInstallerWizard extends ExampleInstallerWizard {
 				.collect(Collectors.toList());
 		monitor.beginTask("Building projects", projects.size());
 		for (IProject project : projects) {
-			IProgressMonitorWithBlocking subProgress = BasicMonitor.subProgress(monitor, 1);
+			var subProgress = BasicMonitor.subProgress(monitor, 1);
 			subProgress.beginTask("Building project " + project.getName(), 1);
 			try {
 				project.build(IncrementalProjectBuilder.CLEAN_BUILD, subProgress);
