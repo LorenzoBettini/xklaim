@@ -3,17 +3,17 @@
  */
 package xklaim.tests
 
+import com.google.common.base.Joiner
 import com.google.inject.Inject
+import org.eclipse.xtext.diagnostics.Severity
 import org.eclipse.xtext.testing.InjectWith
+import org.eclipse.xtext.testing.TemporaryFolder
 import org.eclipse.xtext.testing.XtextRunner
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.Rule
-import org.eclipse.xtext.xbase.testing.TemporaryFolder
 import org.eclipse.xtext.xbase.testing.CompilationTestHelper
 import org.eclipse.xtext.xbase.testing.CompilationTestHelper.Result
-import org.eclipse.xtext.diagnostics.Severity
-import com.google.common.base.Joiner
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
 
 import static extension org.junit.Assert.*
 
@@ -54,14 +54,14 @@ class XklaimCompilerTest {
 			      InputOutput.<String>println("Hello");
 			    }
 			  }
-			  
+			
 			  private static final LogicalLocality other = new LogicalLocality("other");
-			  
+			
 			  public void setupEnvironment() {
 			    PhysicalLocality _phyloc = XklaimRuntimeUtil.phyloc("localhost:9999");
 			    addToEnvironment(other, getPhysical(_phyloc));
 			  }
-			  
+			
 			  public void addMainProcess() throws IMCException {
 			    addNodeCoordinator(new TestNode.TestNodeProcess());
 			  }
@@ -85,11 +85,11 @@ class XklaimCompilerTest {
 			      InputOutput.<String>println("Hello");
 			    }
 			  }
-			  
+			
 			  public TestNodeWithPhysicalLocality() {
 			    setMainPhysicalLocality(new PhysicalLocality("localhost:9999"));
 			  }
-			  
+			
 			  public void addMainProcess() throws IMCException {
 			    addNodeCoordinator(new TestNodeWithPhysicalLocality.TestNodeWithPhysicalLocalityProcess());
 			  }
@@ -147,13 +147,13 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
 			  private static final LogicalLocality TestNode = new LogicalLocality("TestNode");
-			  
+			
 			  private static final LogicalLocality foo = new LogicalLocality("foo");
-			  
+			
 			  private static final LogicalLocality TestNodeWithEmptyEnvironment = new LogicalLocality("TestNodeWithEmptyEnvironment");
-			  
+			
 			  private static final LogicalLocality TestNodeWithEnvironment = new LogicalLocality("TestNodeWithEnvironment");
-			  
+			
 			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
@@ -161,16 +161,16 @@ class XklaimCompilerTest {
 			        InputOutput.<String>println(("Hello from " + TestNet.TestNode));
 			      }
 			    }
-			    
+			
 			    public TestNode() {
 			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("TestNode"));
 			    }
-			    
+			
 			    public void addMainProcess() throws IMCException {
 			      addNodeCoordinator(new TestNet.TestNode.TestNodeProcess());
 			    }
 			  }
-			  
+			
 			  public static class TestNodeWithLogLoc extends ClientNode {
 			    private static class TestNodeWithLogLocProcess extends KlavaNodeCoordinator {
 			      @Override
@@ -178,61 +178,61 @@ class XklaimCompilerTest {
 			        InputOutput.<String>println(("Hello from " + TestNet.foo));
 			      }
 			    }
-			    
+			
 			    public TestNodeWithLogLoc() {
 			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("foo"));
 			    }
-			    
+			
 			    public void addMainProcess() throws IMCException {
 			      addNodeCoordinator(new TestNet.TestNodeWithLogLoc.TestNodeWithLogLocProcess());
 			    }
 			  }
-			  
+			
 			  public static class TestNodeWithEmptyEnvironment extends ClientNode {
 			    private static class TestNodeWithEmptyEnvironmentProcess extends KlavaNodeCoordinator {
 			      @Override
 			      public void executeProcess() {
 			      }
 			    }
-			    
+			
 			    public TestNodeWithEmptyEnvironment() {
 			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("TestNodeWithEmptyEnvironment"));
 			    }
-			    
+			
 			    public void addMainProcess() throws IMCException {
 			      addNodeCoordinator(new TestNet.TestNodeWithEmptyEnvironment.TestNodeWithEmptyEnvironmentProcess());
 			    }
 			  }
-			  
+			
 			  public static class TestNodeWithEnvironment extends ClientNode {
 			    private static class TestNodeWithEnvironmentProcess extends KlavaNodeCoordinator {
 			      @Override
 			      public void executeProcess() {
 			      }
 			    }
-			    
+			
 			    private static final LogicalLocality l1 = new LogicalLocality("l1");
-			    
+			
 			    private static final LogicalLocality l2 = new LogicalLocality("l2");
-			    
+			
 			    public TestNodeWithEnvironment() {
 			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("TestNodeWithEnvironment"));
 			    }
-			    
+			
 			    public void setupEnvironment() {
 			      addToEnvironment(l1, getPhysical(TestNet.TestNode));
 			      addToEnvironment(l2, getPhysical(TestNet.foo));
 			    }
-			    
+			
 			    public void addMainProcess() throws IMCException {
 			      addNodeCoordinator(new TestNet.TestNodeWithEnvironment.TestNodeWithEnvironmentProcess());
 			    }
 			  }
-			  
+			
 			  public TestNet() throws IMCException {
 			    super(new PhysicalLocality("tcp-127.0.0.1:9999"));
 			  }
-			  
+			
 			  public void addNodes() throws IMCException {
 			    TestNet.TestNode testNode = new TestNet.TestNode();
 			    TestNet.TestNodeWithLogLoc testNodeWithLogLoc = new TestNet.TestNodeWithLogLoc();
@@ -278,11 +278,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    InputOutput.<String>println(this.s);
@@ -316,11 +316,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    out(new Tuple(new Object[] {this.s, this.s}), this.self);
@@ -373,11 +373,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    Integer i = null;
@@ -426,11 +426,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    Integer i = null;
@@ -479,11 +479,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    Integer i = null;
@@ -545,11 +545,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    boolean _dowhile = false;
@@ -601,11 +601,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    Integer i = null;
@@ -646,11 +646,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    AnotherProcess _anotherProcess = new AnotherProcess(10);
@@ -694,11 +694,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    final int i = 10;
@@ -744,7 +744,7 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
 			  private static final LogicalLocality foo = new LogicalLocality("foo");
-			  
+			
 			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
@@ -768,20 +768,20 @@ class XklaimCompilerTest {
 			        out(new Tuple(new Object[] {_Proc, i}), this.self);
 			      }
 			    }
-			    
+			
 			    public TestNode() {
 			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("foo"));
 			    }
-			    
+			
 			    public void addMainProcess() throws IMCException {
 			      addNodeCoordinator(new TestNet.TestNode.TestNodeProcess());
 			    }
 			  }
-			  
+			
 			  public TestNet() throws IMCException {
 			    super(new PhysicalLocality("tcp-127.0.0.1:9999"));
 			  }
-			  
+			
 			  public void addNodes() throws IMCException {
 			    TestNet.TestNode testNode = new TestNet.TestNode();
 			    testNode.addMainProcess();
@@ -812,11 +812,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    final int i = 10;
@@ -865,11 +865,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    String nonFinalVar = "a";
@@ -934,11 +934,11 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestProcess extends KlavaProcess {
 			  private String s;
-			  
+			
 			  public TestProcess(final String s) {
 			    this.s = s;
 			  }
-			  
+			
 			  @Override
 			  public void executeProcess() {
 			    final int i = 10;
@@ -1007,7 +1007,7 @@ class XklaimCompilerTest {
 			@SuppressWarnings("all")
 			public class TestNet extends LogicalNet {
 			  private static final LogicalLocality foo = new LogicalLocality("foo");
-			  
+			
 			  public static class TestNode extends ClientNode {
 			    private static class TestNodeProcess extends KlavaNodeCoordinator {
 			      @Override
@@ -1028,20 +1028,20 @@ class XklaimCompilerTest {
 			        eval(_Proc, this.self);
 			      }
 			    }
-			    
+			
 			    public TestNode() {
 			      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("foo"));
 			    }
-			    
+			
 			    public void addMainProcess() throws IMCException {
 			      addNodeCoordinator(new TestNet.TestNode.TestNodeProcess());
 			    }
 			  }
-			  
+			
 			  public TestNet() throws IMCException {
 			    super(new PhysicalLocality("tcp-127.0.0.1:9999"));
 			  }
-			  
+			
 			  public void addNodes() throws IMCException {
 			    TestNet.TestNode testNode = new TestNet.TestNode();
 			    testNode.addMainProcess();
