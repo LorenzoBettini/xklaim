@@ -94,18 +94,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 				// the variable declaration has already been generated when the operation is
 				// used in an if or while so we must use hasName
 				if (xklaimModelUtil.isFormalField(a) && !appendable.hasName(a)) {
-					final var varDecl = (XVariableDeclaration) a;
-					if (varDecl.isWriteable()) {
-						internalToJavaStatement(varDecl, appendable, false);
-					} else {
-						// for final variables don't generate the assignment to the
-						// default literal: they will be initialized later after the matching
-						// and this is legal in Java (as long as the final variable hasn't been
-						// already initialized)
-						appendable.newLine();
-						appendVariableTypeAndName(varDecl, appendable);
-						appendable.append(";");
-					}
+					compileVariableForFormalField(a, appendable);
 				}
 			}
 			tupleName = appendable.declareSyntheticVariable(new Object(), "_Tuple");
@@ -166,6 +155,21 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 			}
 		}
 		return appendable;
+	}
+
+	private void compileVariableForFormalField(final XExpression exp, final ITreeAppendable appendable) {
+		final var varDecl = (XVariableDeclaration) exp;
+		if (varDecl.isWriteable()) {
+			internalToJavaStatement(varDecl, appendable, false);
+		} else {
+			// for final variables don't generate the assignment to the
+			// default literal: they will be initialized later after the matching
+			// and this is legal in Java (as long as the final variable hasn't been
+			// already initialized)
+			appendable.newLine();
+			appendVariableTypeAndName(varDecl, appendable);
+			appendable.append(";");
+		}
 	}
 
 	private ITreeAppendable compileXklaimEvalAsStatement(final XklaimEvalOperation e, final ITreeAppendable appendable,
@@ -369,7 +373,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		final var arguments = e.getArguments();
 		for (final XExpression a : arguments) {
 			if (xklaimModelUtil.isFormalField(a)) {
-				internalToJavaStatement(a, appendable, false);
+				compileVariableForFormalField(a, appendable);
 			}
 		}
 		return appendable;

@@ -410,7 +410,7 @@ class XklaimCompilerTest {
 		package foo
 		proc TestProcess(String s, int time) {
 			val timeout = 2000 + time
-			if ((in(var Integer i, s)@self within 1000) && (!in(var String l)@self within 1000)) {
+			if ((in(val Integer i, s)@self within 1000) && (!in(var String l)@self within 1000)) {
 				println(i)
 			} else {
 				val res = i
@@ -443,7 +443,7 @@ class XklaimCompilerTest {
 			  @Override
 			  public void executeProcess() {
 			    final int timeout = (2000 + this.time);
-			    Integer i = null;
+			    final Integer i;
 			    String l = null;
 			    boolean _and = false;
 			    Tuple _Tuple = new Tuple(new Object[] {Integer.class, this.s});
