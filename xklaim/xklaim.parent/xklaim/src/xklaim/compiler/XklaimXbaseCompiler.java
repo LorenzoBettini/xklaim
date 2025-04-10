@@ -26,6 +26,7 @@ import klava.Tuple;
 import klava.topology.KlavaProcess;
 import xklaim.util.XklaimModelUtil;
 import xklaim.xklaim.XklaimAbstractOperation;
+import xklaim.xklaim.XklaimBlockingRetrieveOperation;
 import xklaim.xklaim.XklaimEvalOperation;
 import xklaim.xklaim.XklaimInlineProcess;
 import xklaim.xklaim.XklaimNodeEnvironmentEntry;
@@ -120,6 +121,11 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 			}
 		}
 		internalToJavaStatement(e.getLocality(), appendable, true);
+		XExpression timeout = null;
+		if (e instanceof XklaimBlockingRetrieveOperation blockOp && blockOp.getTimeout() != null) {
+			timeout = blockOp.getTimeout();
+			internalToJavaStatement(timeout, appendable, true);
+		}
 		if (isReferenced) {
 			final var opVar = appendable.declareSyntheticVariable(e, "_" + e.getOp());
 			appendable.newLine();
@@ -128,7 +134,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		} else {
 			appendable.newLine();
 		}
-		appendable.append(e.getOp());
+		appendable.append(e.getOp() + (timeout != null ? "_t" : ""));
 		appendable.append("(");
 		if (hasFormalFields) {
 			appendable.append(tupleName);
@@ -137,6 +143,10 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		}
 		appendable.append(", ");
 		internalToJavaExpression(e.getLocality(), appendable);
+		if (timeout != null) {
+			appendable.append(", ");
+			internalToJavaExpression(timeout, appendable);
+		}
 		appendable.append(");");
 		if (hasFormalFields) {
 			var i = 0;

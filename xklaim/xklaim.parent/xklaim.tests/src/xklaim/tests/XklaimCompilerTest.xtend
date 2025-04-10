@@ -405,6 +405,80 @@ class XklaimCompilerTest {
 	}
 
 	@Test
+	def void testXklaimTimeoutOperationsInIfStatement() {
+		'''
+		package foo
+		proc TestProcess(String s, int time) {
+			val timeout = 2000 + time
+			if ((in(var Integer i, s)@self within 1000) && (!in(var String l)@self within 1000)) {
+				println(i)
+			} else {
+				val res = i
+			}
+			if (read(var Integer i, s)@self within timeout) {
+				println(i)
+			} else {
+				val res = i
+			}
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.Tuple;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			
+			  private int time;
+			
+			  public TestProcess(final String s, final int time) {
+			    this.s = s;
+			    this.time = time;
+			  }
+			
+			  @Override
+			  public void executeProcess() {
+			    final int timeout = (2000 + this.time);
+			    Integer i = null;
+			    String l = null;
+			    boolean _and = false;
+			    Tuple _Tuple = new Tuple(new Object[] {Integer.class, this.s});
+			    boolean _in = in_t(_Tuple, this.self, 1000);
+			    i = (Integer) _Tuple.getItem(0);
+			    if (!_in) {
+			      _and = false;
+			    } else {
+			      Tuple _Tuple_1 = new Tuple(new Object[] {String.class});
+			      boolean _in_1 = in_t(_Tuple_1, this.self, 1000);
+			      l = (String) _Tuple_1.getItem(0);
+			      boolean _not = (!_in_1);
+			      _and = _not;
+			    }
+			    if (_and) {
+			      InputOutput.<Integer>println(i);
+			    } else {
+			      final Integer res = i;
+			    }
+			    Integer i_1 = null;
+			    Tuple _Tuple_2 = new Tuple(new Object[] {Integer.class, this.s});
+			    boolean _read = read_t(_Tuple_2, this.self, timeout);
+			    i_1 = (Integer) _Tuple_2.getItem(0);
+			    if (_read) {
+			      InputOutput.<Integer>println(i_1);
+			    } else {
+			      final Integer res_1 = i_1;
+			    }
+			  }
+			}
+			'''
+		)
+	}
+
+	@Test
 	def void testXklaimNonBlockingOperationsInComplexBooleanExpression() {
 		'''
 		package foo
