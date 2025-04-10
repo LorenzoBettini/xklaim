@@ -94,7 +94,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 				// the variable declaration has already been generated when the operation is
 				// used in an if or while so we must use hasName
 				if (xklaimModelUtil.isFormalField(a) && !appendable.hasName(a)) {
-					final var varDecl = ((XVariableDeclaration) a);
+					final var varDecl = (XVariableDeclaration) a;
 					if (varDecl.isWriteable()) {
 						internalToJavaStatement(varDecl, appendable, false);
 					} else {
