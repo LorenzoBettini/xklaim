@@ -1299,7 +1299,7 @@ public class KlavaNode extends Node {
                 node = new ClientNode(physicalLocality);
             } else {
                 /* create an instance of node through the specified class name */
-                node = (KlavaNode) (Class.forName(className).newInstance());
+                node = (KlavaNode) (Class.forName(className).getDeclaredConstructor().newInstance());
 
                 /* and connect it to this creator node */
                 node.login(physicalLocality);
@@ -1316,19 +1316,7 @@ public class KlavaNode extends Node {
                 throw new KlavaConnectionException("failed on newloc");
 
             return newLoc;
-        } catch (ProtocolException e) {
-            throw new KlavaException(e);
-        } catch (InterruptedException e) {
-            throw new KlavaException(e);
-        } catch (IMCException e) {
-            throw new KlavaException(e);
-        } catch (InstantiationException e) {
-            throw new KlavaException(e);
-        } catch (IllegalAccessException e) {
-            throw new KlavaException(e);
-        } catch (ClassNotFoundException e) {
-            throw new KlavaException(e);
-        } catch (ClassCastException e) {
+        } catch (Exception e) {
             throw new KlavaException(e);
         }
 
