@@ -4,12 +4,17 @@
 package xklaim.validation;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.validation.ValidationMessageAcceptor;
 import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.XVariableDeclaration;
+import org.eclipse.xtext.xbase.XWhileExpression;
 import org.eclipse.xtext.xbase.XbasePackage;
 import org.eclipse.xtext.xbase.validation.IssueCodes;
 
+import com.google.inject.Inject;
+
+import xklaim.util.XklaimModelUtil;
 import xklaim.xklaim.XklaimAbstractOperation;
 import xklaim.xklaim.XklaimNodeEnvironmentEntry;
 
@@ -23,6 +28,10 @@ public class XklaimValidator extends AbstractXklaimValidator {
 	public static final String PREFIX = "xklaim.";
 
 	public static final String WRONG_FORMAL_INITIALIZATION = XklaimValidator.PREFIX + "WrongFormalInitialization";
+	public static final String INVALID_FINAL_FORMAL = XklaimValidator.PREFIX + "InvalidFinalFormal";
+
+	@Inject
+	private XklaimModelUtil xklaimModelUtil;
 
 	@Override
 	protected boolean isValueExpectedRecursive(final XExpression expr) {
@@ -59,6 +68,19 @@ public class XklaimValidator extends AbstractXklaimValidator {
 			}
 		} else {
 			super.checkVariableDeclaration(declaration);
+		}
+	}
+
+	@Check
+	public void checkNonFinalFormalFieldsInWhileLoop(final XWhileExpression e) {
+		var formalFields = xklaimModelUtil.getAllFormalFields(e);
+		for (var formalField : formalFields) {
+			if (!formalField.isWriteable()) {
+				error("use 'var' instead of 'val' for formal field in loop's expression",
+					formalField,
+					XbasePackage.Literals.XVARIABLE_DECLARATION__WRITEABLE,
+					XklaimValidator.INVALID_FINAL_FORMAL);
+			}
 		}
 	}
 }

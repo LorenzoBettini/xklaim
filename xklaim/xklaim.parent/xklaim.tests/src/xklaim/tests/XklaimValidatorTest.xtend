@@ -159,11 +159,23 @@ class XklaimValidatorTest {
 	}
 
 	@Test
-	def void testNonBlockingInOperationAsBooleanExpressionInWhileStatement() {
+	def void testNonBlockingInOperationAsBooleanExpressionInWhileStatementWithFinalVariable() {
 		'''
 		package foo
 		proc TestProcess(String s) {
 			while (in_nb(val Integer i, s)@self) {
+				println(i)
+			}
+		}
+		'''.parse.assertErrorsAsStrings("use 'var' instead of 'val' for formal field in loop's expression")
+	}
+
+	@Test
+	def void testNonBlockingInOperationAsBooleanExpressionInWhileStatement() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			while (in_nb(var Integer i, s)@self) {
 				println(i)
 			}
 		}
