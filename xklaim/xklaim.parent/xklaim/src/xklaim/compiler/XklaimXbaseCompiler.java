@@ -4,9 +4,9 @@ import static org.eclipse.xtext.EcoreUtil2.getAllContentsOfType;
 import static org.eclipse.xtext.xbase.lib.IterableExtensions.forEach;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.common.types.JvmField;
 import org.eclipse.xtext.common.types.JvmFormalParameter;
@@ -88,27 +88,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 			final ITreeAppendable appendable, final boolean isReferenced) {
 		final var arguments = e.getArguments();
 		final var hasFormalFields = xklaimModelUtil.containsFormalFields(e);
-		String tupleName = null;
-		if (hasFormalFields) {
-			for (final XExpression a : arguments) {
-				// the variable declaration has already been generated when the operation is
-				// used in an if or while so we must use hasName
-				if (xklaimModelUtil.isFormalField(a) && !appendable.hasName(a)) {
-					compileVariableForFormalField(a, appendable);
-				}
-			}
-			tupleName = appendable.declareSyntheticVariable(new Object(), "_Tuple");
-			appendable.newLine();
-			appendable.append(Tuple.class);
-			appendable.append(" " + tupleName + " = ");
-			compileNewTuple(appendable, arguments);
-			appendable.append(";");
-		}
-		for (final XExpression a : arguments) {
-			if (!xklaimModelUtil.isFormalField(a)) {
-				internalToJavaStatement(a, appendable, true);
-			}
-		}
+		String tupleName = preprocessTupleFields(arguments, hasFormalFields, appendable);
 		internalToJavaStatement(e.getLocality(), appendable, true);
 		XExpression timeout = null;
 		if (e instanceof XklaimBlockingRetrieveOperation blockOp && blockOp.getTimeout() != null) {
@@ -138,23 +118,73 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		}
 		appendable.append(");");
 		if (hasFormalFields) {
-			var i = 0;
-			for (final XExpression a : arguments) {
-				if (xklaimModelUtil.isFormalField(a)) {
-					final var formalField = (XVariableDeclaration) a;
-					appendable.newLine();
-					// don't use the var name directly since the original declaration
-					// might have been renamed to avoid duplication in generated code
-					// e.g., for blocks of the shape in(var String s)@self ; in(var Integer s)@self
-					// which are legal in Xklaim
-					appendable.append(appendable.getName(a) + " = (");
-					appendable.append(formalField.getType().getType());
-					appendable.append(") " + tupleName + ".getItem(" + Integer.valueOf(i) + ");");
-				}
-				i++;
-			}
+			assignValuesToFormalFields(arguments, tupleName, appendable);
 		}
 		return appendable;
+	}
+
+	/**
+	 * If the returned string is not null it means that a variable for the tuple
+	 * has been created because it contains formal fields; later, the formal fields
+	 * must be given the values retrieved through pattern matching.
+	 * 
+	 * See {@link #assignValuesToFormalFields(List, String, ITreeAppendable)}
+	 * 
+	 * @param arguments
+	 * @param hasFormalFields
+	 * @param appendable
+	 * @return
+	 */
+	private String preprocessTupleFields(final List<XExpression> arguments, final boolean hasFormalFields,
+			final ITreeAppendable appendable) {
+		String tupleName = null;
+		if (hasFormalFields) {
+			for (final XExpression a : arguments) {
+				// the variable declaration has already been generated when the operation is
+				// used in an if or while so we must use hasName
+				if (xklaimModelUtil.isFormalField(a) && !appendable.hasName(a)) {
+					compileVariableForFormalField(a, appendable);
+				}
+			}
+			tupleName = appendable.declareSyntheticVariable(new Object(), "_Tuple");
+			appendable.newLine();
+			appendable.append(Tuple.class);
+			appendable.append(" " + tupleName + " = ");
+			compileNewTuple(appendable, arguments);
+			appendable.append(";");
+		}
+		for (final XExpression a : arguments) {
+			if (!xklaimModelUtil.isFormalField(a)) {
+				internalToJavaStatement(a, appendable, true);
+			}
+		}
+		return tupleName;
+	}
+
+	/**
+	 * Generates the assignments to give values to formal fields after pattern matching.
+	 * 
+	 * @param arguments
+	 * @param tupleName
+	 * @param appendable
+	 */
+	private void assignValuesToFormalFields(final List<XExpression> arguments, String tupleName,
+			final ITreeAppendable appendable) {
+		var i = 0;
+		for (final XExpression a : arguments) {
+			if (xklaimModelUtil.isFormalField(a)) {
+				final var formalField = (XVariableDeclaration) a;
+				appendable.newLine();
+				// don't use the var name directly since the original declaration
+				// might have been renamed to avoid duplication in generated code
+				// e.g., for blocks of the shape in(var String s)@self ; in(var Integer s)@self
+				// which are legal in Xklaim
+				appendable.append(appendable.getName(a) + " = (");
+				appendable.append(formalField.getType().getType());
+				appendable.append(") " + tupleName + ".getItem(" + Integer.valueOf(i) + ");");
+			}
+			i++;
+		}
 	}
 
 	private void compileVariableForFormalField(final XExpression exp, final ITreeAppendable appendable) {
@@ -340,7 +370,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		return e.getSimpleName();
 	}
 
-	private ITreeAppendable compileNewTuple(final ITreeAppendable appendable, final EList<XExpression> arguments) {
+	private ITreeAppendable compileNewTuple(final ITreeAppendable appendable, final List<XExpression> arguments) {
 		appendable.append("new ");
 		appendable.append(Tuple.class);
 		appendable.append("(new Object[] {");
