@@ -89,8 +89,7 @@ public class TupleStateTest extends TestCase {
     public void testTupleWriteRead() throws ProtocolException, IOException,
             ClassNotFoundException {
         Tuple t1 = new Tuple(Integer.class, new KString("hello"), new KString());
-        Tuple t2 = new Tuple(new KInteger(10), new KString("foo"), new Boolean(
-                false));
+        Tuple t2 = new Tuple(new KInteger(10), new KString("foo"), false);
         Tuple t3 = new Tuple(t1, t2);
         Tuple t4 = new Tuple(Tuple.class, t1);
 
@@ -119,8 +118,7 @@ public class TupleStateTest extends TestCase {
             IOException, ClassNotFoundException,
             KlavaMalformedPhyLocalityException {
         Tuple t1 = new Tuple(Integer.class, new KString("hello"), new KString());
-        Tuple t2 = new Tuple(new KInteger(10), new KString("foo"), new Boolean(
-                false));
+        Tuple t2 = new Tuple(new KInteger(10), new KString("foo"), false);
         Tuple t3 = new Tuple(t1, t2);
 
         PhysicalLocality from = new PhysicalLocality("localhost", 9999);

@@ -4,9 +4,6 @@ package klava;
 
 public class KBoolean implements TupleItem {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1895671327288035356L;
 
     public Boolean bool;
@@ -16,19 +13,19 @@ public class KBoolean implements TupleItem {
     }
 
     public KBoolean(boolean b) {
-        bool = new Boolean(b);
+        bool = b;
     }
 
     public KBoolean(Boolean b) {
-        bool = new Boolean(b.booleanValue());
+        bool = b;
     }
 
     public KBoolean(String s) {
-        bool = new Boolean(s);
+        bool = Boolean.parseBoolean(s);
     }
 
     public KBoolean(KBoolean b) {
-        bool = (b.isFormal() ? null : new Boolean(b.booleanValue()));
+        bool = (b.isFormal() ? null : b.booleanValue());
     }
 
     public String toString() {
@@ -58,7 +55,7 @@ public class KBoolean implements TupleItem {
                 if (b == null)
                     bool = null;
                 else
-                    bool = new Boolean(b.booleanValue());
+                    bool = b;
             }
         } catch (ClassCastException e) {
             System.err.println("KBoolean : " + e);
@@ -74,6 +71,6 @@ public class KBoolean implements TupleItem {
     }
 
     public void setValue(String o) throws KlavaException {
-        bool = new Boolean(o);
+        bool = Boolean.parseBoolean(o);
     }
 }

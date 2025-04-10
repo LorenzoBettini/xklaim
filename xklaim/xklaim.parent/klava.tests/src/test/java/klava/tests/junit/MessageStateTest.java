@@ -94,7 +94,7 @@ public class MessageStateTest extends TestCase {
             KlavaMalformedPhyLocalityException, InterruptedException {
         System.out.println("*** testOut ***");
 
-        Tuple tuple = new Tuple(new KString("foo"), new Integer(10));
+        Tuple tuple = new Tuple(new KString("foo"), 10);
 
         TuplePacket tuplePacket = new TuplePacket(dest, source,
                 TuplePacket.OUT_S, tuple);
@@ -265,7 +265,7 @@ public class MessageStateTest extends TestCase {
     private void execTestTupleOperation(String operation)
             throws KlavaMalformedPhyLocalityException, ProtocolException,
             IOException, InterruptedException {
-        Tuple tuple = new Tuple(new KString(), new Integer(10));
+        Tuple tuple = new Tuple(new KString(), 10);
         TuplePacket tuplePacket = new TuplePacket(dest, source, operation,
                 tuple);
 
@@ -293,7 +293,7 @@ public class MessageStateTest extends TestCase {
         routingTable.addRoute(dest.getSessionId(), protocolStack);
 
         TupleSpace tupleSpace = new TupleSpaceVector();
-        Tuple outTuple = new Tuple(new KString("foo"), new Integer(10));
+        Tuple outTuple = new Tuple(new KString("foo"), 10);
         tupleSpace.out(outTuple);
 
         TupleOpManager tupleOpManager = new TupleOpManager(tupleSpace,

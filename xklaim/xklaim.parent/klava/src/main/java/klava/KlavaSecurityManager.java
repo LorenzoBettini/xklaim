@@ -172,9 +172,10 @@ public class KlavaSecurityManager extends SecurityManager {
      * @see java.lang.System#getSecurityManager()
      * @since JDK1.0
      */
+    @Override
     public void checkExit(int status) {
-        if (notTrustedProcess("checkExit", new Integer(status)))
-            throw buildException("checkExit", new Integer(status));
+        if (notTrustedProcess("checkExit", status))
+            throw buildException("checkExit", status);
     }
 
     /**
