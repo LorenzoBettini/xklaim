@@ -1,6 +1,5 @@
 package xklaim.compiler;
 
-import static org.eclipse.xtext.EcoreUtil2.getAllContentsOfType;
 import static org.eclipse.xtext.xbase.lib.IterableExtensions.forEach;
 
 import java.util.LinkedHashSet;
@@ -391,20 +390,9 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 
 	private ITreeAppendable precompileVariableDeclarationsForFormalFields(final XExpression e,
 		final ITreeAppendable appendable) {
-		final var xklaimOps = getAllContentsOfType(e, XklaimAbstractOperation.class);
-		for (final XklaimAbstractOperation o : xklaimOps) {
-			precompileVariableDeclarationsForFormalFields(o, appendable);
-		}
-		return appendable;
-	}
-
-	private ITreeAppendable precompileVariableDeclarationsForFormalFields(final XklaimAbstractOperation e,
-		final ITreeAppendable appendable) {
-		final var arguments = e.getArguments();
-		for (final XExpression a : arguments) {
-			if (xklaimModelUtil.isFormalField(a)) {
-				compileVariableForFormalField(a, appendable);
-			}
+		final var formalFields = xklaimModelUtil.getAllFormalFields(e);
+		for (final XExpression a : formalFields) {
+			compileVariableForFormalField(a, appendable);
 		}
 		return appendable;
 	}
