@@ -606,7 +606,7 @@ class XklaimCompilerTest {
 		proc TestProcess(String s) {
 			do {
 				println()
-			} while (in_nb(var Integer i, s)@self && !in_nb(var String l)@self)
+			} while (in_nb(var Integer i, s)@self && !in_nb(val String l)@self)
 		}
 		'''.checkCompilation(
 			'''
@@ -637,7 +637,7 @@ class XklaimCompilerTest {
 			      if (!_in_nb) {
 			        _and = false;
 			      } else {
-			        String l = null;
+			        final String l;
 			        Tuple _Tuple_1 = new Tuple(new Object[] {String.class});
 			        boolean _in_nb_1 = in_nb(_Tuple_1, this.self);
 			        l = (String) _Tuple_1.getItem(0);
