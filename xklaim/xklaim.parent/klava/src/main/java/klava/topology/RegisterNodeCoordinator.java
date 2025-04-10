@@ -15,6 +15,8 @@ import klava.PhysicalLocality;
  * @author Lorenzo Bettini
  */
 public class RegisterNodeCoordinator extends AcceptNodeCoordinator {
+    private static final long serialVersionUID = 2435457422854489447L;
+
     /**
      * @param physicalLocality
      *            The locality to accept connections.

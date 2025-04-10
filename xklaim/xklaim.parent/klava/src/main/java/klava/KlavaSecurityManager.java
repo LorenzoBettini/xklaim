@@ -66,7 +66,7 @@ import org.mikado.imc.mobility.NodeClassLoader;
  * @since JDK1.0
  */
 public class KlavaSecurityManager extends SecurityManager {
-    protected Vector classpath_directories;
+    protected Vector<?> classpath_directories;
 
     public KlavaSecurityManager() {
         super();
@@ -172,9 +172,10 @@ public class KlavaSecurityManager extends SecurityManager {
      * @see java.lang.System#getSecurityManager()
      * @since JDK1.0
      */
+    @Override
     public void checkExit(int status) {
-        if (notTrustedProcess("checkExit", new Integer(status)))
-            throw buildException("checkExit", new Integer(status));
+        if (notTrustedProcess("checkExit", status))
+            throw buildException("checkExit", status);
     }
 
     /**
@@ -657,7 +658,7 @@ public class KlavaSecurityManager extends SecurityManager {
      * 
      * @since JDK1.1
      */
-    public void checkMemberAccess(Class clazz, int which) {
+    public void checkMemberAccess(Class<?> clazz, int which) {
         // throw new SecurityException();
     }
 
@@ -673,7 +674,7 @@ public class KlavaSecurityManager extends SecurityManager {
 
     // a thread is not trusted if it's remote, i.e., loaded by a NodeClassLoader
     protected boolean notTrustedProcess(String operation, Object param) {
-        Class current_thread_class = Thread.currentThread().getClass();
+        Class<? extends Thread> current_thread_class = Thread.currentThread().getClass();
         ClassLoader class_loader = current_thread_class.getClassLoader();
 
         if (class_loader != null && class_loader instanceof NodeClassLoader) {
@@ -686,7 +687,7 @@ public class KlavaSecurityManager extends SecurityManager {
     }
 
     protected boolean isInClassPath(String file) {
-        Enumeration en = classpath_directories.elements();
+        Enumeration<?> en = classpath_directories.elements();
         while (en.hasMoreElements()) {
             if (FileUtils.isInPath(en.nextElement().toString(), file))
                 return true;

@@ -10,6 +10,7 @@ package klava;
  */
 abstract public class Locality implements java.io.Serializable, TupleItem,
         Comparable<Locality> {
+    private static final long serialVersionUID = -2710354413608283989L;
     protected Object locality;
 
     public Locality() {

@@ -15,7 +15,7 @@ import klava.proto.Response;
  * @author Lorenzo Bettini
  * @version $Revision: 1.1 $
  */
-public class WaitingForResponse<ResponseType extends Response> extends Hashtable<String, ResponseType> {
+public class WaitingForResponse<ResponseType extends Response<?>> extends Hashtable<String, ResponseType> {
 
     /**
      * 

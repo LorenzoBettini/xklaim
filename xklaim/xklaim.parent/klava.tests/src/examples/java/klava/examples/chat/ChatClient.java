@@ -154,6 +154,8 @@ public class ChatClient {
      */
     public class ChatSubscribeCoordinator extends KlavaNodeCoordinator {
 
+        private static final long serialVersionUID = 1L;
+
         /**
          * @see klava.topology.KlavaNodeCoordinator#executeProcess()
          */
@@ -243,6 +245,8 @@ public class ChatClient {
      * @version $Revision: 1.4 $
      */
     public class ChatDisconnectedCoordinator extends KlavaNodeCoordinator {
+
+        private static final long serialVersionUID = 1L;
 
         /**
          * @see klava.topology.KlavaNodeCoordinator#executeProcess()

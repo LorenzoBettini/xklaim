@@ -336,12 +336,10 @@ public class TupleState extends ProtocolStateSimple {
                             .length())));
                 } else {
                     // TODO check that it is actually a TupleItem?
-                    Class c = Class.forName(type);
+                    Class<?> c = Class.forName(type);
                     try {
-                        tuple.add(c.newInstance());
-                    } catch (InstantiationException e) {
-                        throw new ProtocolException(e);
-                    } catch (IllegalAccessException e) {
+                        tuple.add(c.getDeclaredConstructor().newInstance());
+                    } catch (ReflectiveOperationException e) {
                         throw new ProtocolException(e);
                     }
                 }
@@ -368,31 +366,27 @@ public class TupleState extends ProtocolStateSimple {
                     continue;
                 }
 
-                Class c = Class.forName(type);
+                Class<?> c = Class.forName(type);
                 String actual = readActual(transmissionChannel);
 
-                Class parameters[] = { java.lang.String.class };
+                Class<?>[] parameters = { java.lang.String.class };
                 try {
-                    Constructor cons = c.getConstructor(parameters);
-                    Object args[] = { actual };
+                    Constructor<?> cons = c.getConstructor(parameters);
+                    Object[] args = { actual };
                     tuple.add(cons.newInstance(args));
                 } catch (NoSuchMethodException e) {
                     // we check whether it is a TupleItem, and in case
                     // use the setValue mathod
                     try {
-                        Object o = c.newInstance();
+                        Object o = c.getDeclaredConstructor().newInstance();
                         if (!(o instanceof TupleItem)) {
                             throw new ProtocolException(e);
                         }
                         ((TupleItem) o).setValue(actual);
                         tuple.add(o);
-                    } catch (InstantiationException e1) {
+                    } catch (ReflectiveOperationException | KlavaException e1) {
                         throw new ProtocolException(e1);
-                    } catch (IllegalAccessException e1) {
-                        throw new ProtocolException(e1);
-                    } catch (KlavaException e1) {
-                        throw new ProtocolException(e1);
-                    }
+                    } 
                 } catch (Exception e) {
                     throw new ProtocolException(e);
                 }

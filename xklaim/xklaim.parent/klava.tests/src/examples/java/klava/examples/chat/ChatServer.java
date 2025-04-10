@@ -177,6 +177,8 @@ public class ChatServer {
      */
     public class ChatUnregisterCoordinator extends KlavaNodeCoordinator {
 
+        private static final long serialVersionUID = 1L;
+
         /**
          * @see klava.topology.KlavaNodeCoordinator#executeProcess()
          */
@@ -222,6 +224,7 @@ public class ChatServer {
      * @version $Revision: 1.2 $
      */
     public class ChatRegisterCoordinator extends KlavaNodeCoordinator {
+        private static final long serialVersionUID = 1L;
         boolean accepting = false;
 
         /**
@@ -277,6 +280,7 @@ public class ChatServer {
      * @version $Revision: 1.2 $
      */
     public class ChatStartStopAcceptCoordinator extends KlavaNodeCoordinator {
+        private static final long serialVersionUID = 1L;
         boolean accepting = false;
 
         /**

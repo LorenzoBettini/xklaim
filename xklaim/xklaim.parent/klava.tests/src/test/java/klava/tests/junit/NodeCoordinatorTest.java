@@ -51,6 +51,8 @@ public class NodeCoordinatorTest extends ClientServerBase {
     }
 
     public class RegisterCoordinator extends RegisterNodeCoordinator {
+        private static final long serialVersionUID = 1L;
+
         PhysicalLocality remote = new PhysicalLocality();
 
         LogicalLocality remoteLogical = new LogicalLocality();

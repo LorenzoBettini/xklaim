@@ -10,7 +10,7 @@ import klava.proto.Response;
  * 
  * @author Lorenzo Bettini
  */
-public class WaitingForResponseProcess<ResponseType extends Response>
+public class WaitingForResponseProcess<ResponseType extends Response<?>>
         extends Thread {
     ResponseType response = null;
 
@@ -21,7 +21,6 @@ public class WaitingForResponseProcess<ResponseType extends Response>
         super(name);
     }
 
-    @SuppressWarnings("unchecked")
     public void run() {
         try {
             response.waitForResponse();

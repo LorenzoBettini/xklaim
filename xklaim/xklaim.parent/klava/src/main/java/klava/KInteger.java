@@ -4,9 +4,6 @@ package klava;
 
 public class KInteger implements TupleItem {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = -2472657424836506350L;
 
     public Integer integer;
@@ -16,15 +13,15 @@ public class KInteger implements TupleItem {
     }
 
     public KInteger(int i) {
-        integer = new Integer(i);
+        integer = i;
     }
 
     public KInteger(Integer i) {
-        integer = new Integer(i.intValue());
+        integer = i;
     }
 
     public KInteger(KInteger i) {
-        integer = (i.isFormal() ? null : new Integer(i.intValue()));
+        integer = (i.isFormal() ? null : i.intValue());
     }
 
     public String toString() {
@@ -59,7 +56,7 @@ public class KInteger implements TupleItem {
                 if (i == null) // formal
                     integer = null;
                 else
-                    integer = new Integer(((KInteger) o).integer.intValue());
+                    integer = ((KInteger) o).integer;
             }
         } catch (ClassCastException e) {
             System.err.println("KInteger : " + e);
@@ -78,6 +75,6 @@ public class KInteger implements TupleItem {
     }
 
     public void setValue(String o) throws KlavaException {
-        integer = new Integer(o);
+        integer = Integer.parseInt(o);
     }
 }
