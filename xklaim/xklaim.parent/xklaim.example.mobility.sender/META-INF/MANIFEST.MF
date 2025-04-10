@@ -7,4 +7,4 @@ Bundle-Version: 2.4.0.qualifier
 Bundle-SymbolicName: xklaim.example.mobility.sender; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: xklaim.runtime
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17

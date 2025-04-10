@@ -15,5 +15,5 @@ Require-Bundle: xklaim.ui,
  org.eclipse.xtext.ui.testing,
  org.eclipse.xtext.common.types.ui,
  org.eclipse.xtext.xbase.ui.testing
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: xklaim.ui.tests;x-internal=true
