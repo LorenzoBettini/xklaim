@@ -23,7 +23,7 @@ public class ClassViewer
         return viewClass(obj.getClass());
     }
    
-    public static String viewClass(Class c)
+    public static String viewClass(Class<?> c)
         throws Exception
     {
         if (c == null) {
@@ -37,7 +37,7 @@ public class ClassViewer
         out.append(" extends ");
         out.append(c.getSuperclass().getName());
         out.append(nl);
-        Class interfaces[] = c.getInterfaces();
+        Class<?> interfaces[] = c.getInterfaces();
         if (interfaces.length > 0) {
             out.append(" implements ");
             for (int i=0;i<interfaces.length;i++) {
@@ -53,7 +53,7 @@ public class ClassViewer
        
         out.append(" /*** CONSTRUCTORS ***/");
         out.append(nl);
-        Constructor[] constructors = c.getConstructors();
+        Constructor<?>[] constructors = c.getConstructors();
         for (int i=0;i<constructors.length;i++) {
             out.append(' ');
             out.append(ClassViewer.viewConstructor(constructors[i]));
@@ -97,7 +97,7 @@ public class ClassViewer
         out.append(' ');
         out.append(m.getName());
         out.append('(');
-        Class[] params = m.getParameterTypes();
+        Class<?>[] params = m.getParameterTypes();
         for (int p=0;p<params.length;p++) {
             if (p != 0) {
                 out.append(", ");
@@ -105,7 +105,7 @@ public class ClassViewer
             out.append(params[p].getName());
         }
         out.append(')');
-        Class[] exc = m.getExceptionTypes();
+        Class<?>[] exc = m.getExceptionTypes();
         if (exc.length > 0) {
             out.append(nl);
             out.append(" throws ");
@@ -120,7 +120,7 @@ public class ClassViewer
         return out.toString();
     }
    
-    public static String viewConstructor(Constructor c)
+    public static String viewConstructor(Constructor<?> c)
     {
         StringBuffer out = new StringBuffer(128);
        
@@ -128,7 +128,7 @@ public class ClassViewer
         out.append(' ');
         out.append(c.getName());
         out.append('(');
-        Class[] params = c.getParameterTypes();
+        Class<?>[] params = c.getParameterTypes();
         for (int p=0;p<params.length;p++) {
             if (p != 0) {
                 out.append(" ,");
@@ -144,7 +144,7 @@ public class ClassViewer
     public static void main(String args[])
         throws Exception
     {
-        Class c = null;
+        Class<?> c = null;
         if (args.length == 1) {
             c = Class.forName(args[1]);
         }

@@ -34,6 +34,7 @@ public class LoadBalancingNode extends NodeWithScreen {
      * @version $Revision: 1.4 $
      */
     public class RegisterProcessors extends KlavaNodeCoordinator {
+        private static final long serialVersionUID = 1L;
         /** Where we wait for subscription requests */
         PhysicalLocality registerLocality;
 

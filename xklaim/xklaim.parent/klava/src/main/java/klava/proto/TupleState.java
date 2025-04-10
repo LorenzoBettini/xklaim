@@ -336,7 +336,7 @@ public class TupleState extends ProtocolStateSimple {
                             .length())));
                 } else {
                     // TODO check that it is actually a TupleItem?
-                    Class c = Class.forName(type);
+                    Class<?> c = Class.forName(type);
                     try {
                         tuple.add(c.newInstance());
                     } catch (InstantiationException e) {
@@ -368,13 +368,13 @@ public class TupleState extends ProtocolStateSimple {
                     continue;
                 }
 
-                Class c = Class.forName(type);
+                Class<?> c = Class.forName(type);
                 String actual = readActual(transmissionChannel);
 
-                Class parameters[] = { java.lang.String.class };
+                Class<?>[] parameters = { java.lang.String.class };
                 try {
-                    Constructor cons = c.getConstructor(parameters);
-                    Object args[] = { actual };
+                    Constructor<?> cons = c.getConstructor(parameters);
+                    Object[] args = { actual };
                     tuple.add(cons.newInstance(args));
                 } catch (NoSuchMethodException e) {
                     // we check whether it is a TupleItem, and in case

@@ -386,7 +386,7 @@ public class MessageStateTest extends TestCase {
          * after sending the request.
          */
 
-        ProcessContainer waitingThreads = tupleOpManager.getWaitingThreads();
+        ProcessContainer<?> waitingThreads = tupleOpManager.getWaitingThreads();
 
         /* If it is not found we want to wait. */
         tuplePacket.blocking = true;

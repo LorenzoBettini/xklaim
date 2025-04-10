@@ -4,10 +4,10 @@
 package klava.examples.db;
 
 import org.mikado.imc.common.IMCException;
+
 import klava.KlavaException;
 import klava.LogicalLocality;
 import klava.PhysicalLocality;
-import klava.topology.KlavaNode;
 import klava.topology.LogicalNet;
 
 /**
@@ -26,12 +26,12 @@ public class Testcase {
     public static void main(String[] args) throws KlavaException, IMCException {
         // Initialize constants
         PhysicalLocality server = new PhysicalLocality("tcp-127.0.0.1:9999");
-        LogicalLocality userA = new LogicalLocality("userA");
-        LogicalLocality userB = new LogicalLocality("userB");
+        new LogicalLocality("userA");
+        new LogicalLocality("userB");
         LogicalLocality db = new LogicalLocality("db");
 
         // Initialize Server node
-        KlavaNode servernode = new LogicalNet(server);
+        new LogicalNet(server);
 
         // /////////////////Initialize application/////////////////////////////
         DataNode dbnode = new DataNode(server, db);

@@ -25,6 +25,8 @@ import klava.topology.KlavaNodeCoordinator;
 public class NewlocTest extends TestCase {
     public class NewlocCoordinator extends KlavaNodeCoordinator {
 
+        private static final long serialVersionUID = 1L;
+
         /**
          * @see klava.topology.KlavaNodeCoordinator#executeProcess()
          */

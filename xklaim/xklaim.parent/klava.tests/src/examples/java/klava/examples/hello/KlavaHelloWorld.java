@@ -19,14 +19,18 @@ public class KlavaHelloWorld {
 		KlavaNode clientNode = new ClientNode(serverLoc);
 
 		serverNode.addNodeProcess(new KlavaProcess() {
-			@Override
+			private static final long serialVersionUID = 1L;
+
+            @Override
 			public void executeProcess() throws KlavaException {
 				in(new Tuple(new KString()), self);
 			}
 		});
 		
 		clientNode.addNodeProcess(new KlavaProcess() {
-			@Override
+			private static final long serialVersionUID = 1L;
+
+            @Override
 			public void executeProcess() throws KlavaException {
 				out(new Tuple(new KString("Hello World!")), serverLoc);
 			}

@@ -37,7 +37,7 @@ public class ListNode extends GuiNode<TupleSpaceList> {
     /**
      * @see org.mikado.imc.gui.DefaultListPanel#getJList()
      */
-    public JList getJList() {
+    public JList<?> getJList() {
         return guiTupleSpace.getJList();
     }
 }

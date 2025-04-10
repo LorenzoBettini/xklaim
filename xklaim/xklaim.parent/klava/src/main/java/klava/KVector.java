@@ -31,8 +31,8 @@ public class KVector implements TupleItem {
         vector = (v.isFormal() ? null : (Vector<Object>) (v.vector.clone()));
     }
 
-    public KVector(Enumeration en) {
-        vector = new Vector<Object>();
+    public KVector(Enumeration<?> en) {
+        vector = new Vector<>();
         while (en.hasMoreElements())
             vector.addElement(en.nextElement());
     }
@@ -55,7 +55,7 @@ public class KVector implements TupleItem {
             vector.remove(o);
     }
 
-    public Enumeration elements() {
+    public Enumeration<Object> elements() {
         if (vector == null)
             return null;
 

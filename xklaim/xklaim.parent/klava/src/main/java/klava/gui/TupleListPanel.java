@@ -134,7 +134,7 @@ public class TupleListPanel extends PanelWithTitle implements EventListener {
     /**
      * @see org.mikado.imc.gui.DefaultListPanel#getJList()
      */
-    public JList getJList() {
+    public JList<?> getJList() {
         return tupleList.getJList();
     }
 }

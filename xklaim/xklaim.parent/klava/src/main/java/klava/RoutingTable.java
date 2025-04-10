@@ -188,7 +188,7 @@ public class RoutingTable extends EventGeneratorAdapter {
                 RouteEvent.ROUTE_REMOVED, loc2, loc));
     }
 
-    void generateRemoveProxyEvent(SessionId proxy, TreeSet nodes) {
+    void generateRemoveProxyEvent(SessionId proxy, TreeSet<SessionId> nodes) {
         //generate(RouteEvent.ROUTE_EVENT, new RouteEvent(this,
         //        RouteEvent.PROXY_REMOVED, proxy, nodes));
     }
@@ -198,7 +198,7 @@ public class RoutingTable extends EventGeneratorAdapter {
                 RouteEvent.ROUTE_ADDED, loc2, loc));
     }
 
-    void generateAddProxyEvent(SessionId proxy, TreeSet nodes) {
+    void generateAddProxyEvent(SessionId proxy, TreeSet<SessionId> nodes) {
         //generate(RouteEvent.ROUTE_EVENT, new RouteEvent(this,
         //        RouteEvent.PROXY_ADDED, proxy, nodes));
     }
