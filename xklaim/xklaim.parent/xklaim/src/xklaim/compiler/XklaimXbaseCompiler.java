@@ -48,7 +48,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		} else if (e instanceof XklaimInlineProcess inp) {
 			compileInnerProcess(appendable, inp);
 		} else if (e instanceof XklaimNodeEnvironmentEntry nenv) {
-			compileNodeEnvironmentEntry(nenv, appendable, isReferenced);
+			compileNodeEnvironmentEntry(nenv, appendable);
 		} else {
 			super.doInternalToJavaStatement(e, appendable, isReferenced);
 		}
@@ -214,7 +214,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 	}
 
 	private ITreeAppendable compileNodeEnvironmentEntry(final XklaimNodeEnvironmentEntry e,
-			final ITreeAppendable appendable, final boolean isReferenced) {
+			final ITreeAppendable appendable) {
 		internalToJavaStatement(e.getValue(), appendable, true);
 		appendable.newLine();
 		appendable.append("addToEnvironment(");
