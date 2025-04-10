@@ -58,9 +58,11 @@ public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 				state.withNonVoidExpectation().computeTypes(a);
 			}
 		}
-		if (e instanceof XklaimNonBlockingRetrieveOperation ||
-				(e instanceof XklaimBlockingRetrieveOperation blockOp &&
-						blockOp.getTimeout() != null)) {
+		if (e instanceof XklaimNonBlockingRetrieveOperation) {
+			state.acceptActualType(getRawTypeForName(Boolean.TYPE, state));
+		} else if (e instanceof XklaimBlockingRetrieveOperation blockOp &&
+						blockOp.getTimeout() != null) {
+			state.withExpectation(getRawTypeForName(Long.TYPE, state)).computeTypes(blockOp.getTimeout());
 			state.acceptActualType(getRawTypeForName(Boolean.TYPE, state));
 		} else {
 			state.acceptActualType(getPrimitiveVoid(state));

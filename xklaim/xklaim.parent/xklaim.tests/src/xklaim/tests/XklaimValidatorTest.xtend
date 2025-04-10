@@ -133,7 +133,7 @@ class XklaimValidatorTest {
 		'''
 		package foo
 		proc TestProcess(String s) {
-			if (in(val Integer i, s)@self within 1000 && !in(val String l)@self within 1000 ) {
+			if ((in(val Integer i, s)@self within 1000) && (!in(val String l)@self within 1000)) {
 				println(l + i)
 			} else {
 				println(l + i)
@@ -145,6 +145,17 @@ class XklaimValidatorTest {
 			}
 		}
 		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testTimeoutAsLong() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			in(val Integer i, s)@self within 1000
+			in(val Integer i2, s)@self within "foo"
+		}
+		'''.parse.assertErrorsAsStrings("Type mismatch: cannot convert from String to long")
 	}
 
 	@Test
