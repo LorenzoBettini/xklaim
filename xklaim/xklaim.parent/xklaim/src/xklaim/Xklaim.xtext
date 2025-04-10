@@ -70,7 +70,9 @@ XklaimOutOperation returns XklaimAbstractOperation:
 ;
 
 XklaimInOperation returns XklaimAbstractOperation:
-	{XklaimInOperation} op='in' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
+	{XklaimInOperation} op='in' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')'
+	'@' locality=XFeatureCall
+	('within' timeout=XExpression)?
 ;
 
 XklaimNonBlockingInOperation returns XklaimAbstractOperation:
@@ -78,7 +80,9 @@ XklaimNonBlockingInOperation returns XklaimAbstractOperation:
 ;
 
 XklaimReadOperation returns XklaimAbstractOperation:
-	{XklaimReadOperation} op='read' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
+	{XklaimReadOperation} op='read' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')'
+	'@' locality=XFeatureCall
+	('within' timeout=XExpression)?
 ;
 
 XklaimNonBlockingReadOperation returns XklaimAbstractOperation:
