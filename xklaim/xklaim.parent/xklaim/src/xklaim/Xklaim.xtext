@@ -60,32 +60,40 @@ XPrimaryExpression returns xbase::XExpression:
 
 XklaimAbstractOperation returns xbase::XExpression:
 	XklaimOutOperation |
-	XklaimInOperation | XklaimNonBlockingInOperation |
-	XklaimReadOperation | XklaimNonBlockingReadOperation |
-	XklaimEvalOperation
+	XklaimNonBlockingRetrieveOperation |
+	XklaimEvalOperation |
+	XklaimBlockingRetrieveOperation
+;
+
+XklaimBlockingRetrieveOperation returns XklaimAbstractOperation:
+	XklaimInOperation | XklaimReadOperation
+;
+
+XklaimNonBlockingRetrieveOperation returns XklaimAbstractOperation:
+	XklaimNonBlockingInOperation | XklaimNonBlockingReadOperation
 ;
 
 XklaimOutOperation returns XklaimAbstractOperation:
 	{XklaimOutOperation} op='out' '(' arguments+=XExpression (',' arguments+=XExpression)* ')' '@' locality=XFeatureCall
 ;
 
-XklaimInOperation returns XklaimAbstractOperation:
+XklaimInOperation returns XklaimBlockingRetrieveOperation:
 	{XklaimInOperation} op='in' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')'
 	'@' locality=XFeatureCall
 	('within' timeout=XExpression)?
 ;
 
-XklaimNonBlockingInOperation returns XklaimAbstractOperation:
+XklaimNonBlockingInOperation returns XklaimNonBlockingRetrieveOperation:
 	{XklaimNonBlockingInOperation} op='in_nb' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
 ;
 
-XklaimReadOperation returns XklaimAbstractOperation:
+XklaimReadOperation returns XklaimBlockingRetrieveOperation:
 	{XklaimReadOperation} op='read' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')'
 	'@' locality=XFeatureCall
 	('within' timeout=XExpression)?
 ;
 
-XklaimNonBlockingReadOperation returns XklaimAbstractOperation:
+XklaimNonBlockingReadOperation returns XklaimNonBlockingRetrieveOperation:
 	{XklaimNonBlockingReadOperation} op='read_nb' '(' arguments+=XExpressionOrVarDeclaration (',' arguments+=XExpressionOrVarDeclaration)* ')' '@' locality=XFeatureCall
 ;
 

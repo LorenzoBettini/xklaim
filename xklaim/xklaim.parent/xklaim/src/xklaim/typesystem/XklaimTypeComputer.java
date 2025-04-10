@@ -13,6 +13,7 @@ import xklaim.xklaim.XklaimAbstractOperation;
 import xklaim.xklaim.XklaimEvalOperation;
 import xklaim.xklaim.XklaimInlineProcess;
 import xklaim.xklaim.XklaimNodeEnvironmentEntry;
+import xklaim.xklaim.XklaimNonBlockingRetrieveOperation;
 
 public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 	@Inject
@@ -56,7 +57,7 @@ public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 				state.withNonVoidExpectation().computeTypes(a);
 			}
 		}
-		if (modelUtil.isNonBlockingOperation(e)) {
+		if (e instanceof XklaimNonBlockingRetrieveOperation) {
 			state.acceptActualType(getRawTypeForName(Boolean.TYPE, state));
 		} else {
 			state.acceptActualType(getPrimitiveVoid(state));
