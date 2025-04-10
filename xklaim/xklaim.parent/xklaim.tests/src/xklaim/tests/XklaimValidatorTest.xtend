@@ -98,18 +98,19 @@ class XklaimValidatorTest {
 	}
 
 	@Test
-	def void testNonBlockingInOperationAsStatement() {
+	def void testNonBlockingOperationAsStatement() {
 		'''
 		package foo
 		proc TestProcess(String s) {
 			in_nb(val Integer i, s)@self
+			read_nb(val Integer x, s)@self
 			println(i)
 		}
 		'''.parse.assertNoIssues
 	}
 
 	@Test
-	def void testNonBlockingInOperationAsBooleanExpressionInIfStatement() {
+	def void testNonBlockingOperationAsBooleanExpressionInIfStatement() {
 		'''
 		package foo
 		proc TestProcess(String s) {
@@ -119,6 +120,25 @@ class XklaimValidatorTest {
 				println(l + i)
 			}
 			if (read_nb(val Integer i, s)@self) {
+				println(i)
+			} else {
+				println(i)
+			}
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testTimeoutOperationAsBooleanExpressionInIfStatement() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			if (in(val Integer i, s)@self within 1000 && !in(val String l)@self within 1000 ) {
+				println(l + i)
+			} else {
+				println(l + i)
+			}
+			if (read(val Integer i, s)@self within 1000) {
 				println(i)
 			} else {
 				println(i)

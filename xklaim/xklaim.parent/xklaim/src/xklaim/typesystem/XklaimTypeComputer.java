@@ -10,6 +10,7 @@ import klava.Locality;
 import klava.topology.KlavaProcess;
 import xklaim.util.XklaimModelUtil;
 import xklaim.xklaim.XklaimAbstractOperation;
+import xklaim.xklaim.XklaimBlockingRetrieveOperation;
 import xklaim.xklaim.XklaimEvalOperation;
 import xklaim.xklaim.XklaimInlineProcess;
 import xklaim.xklaim.XklaimNodeEnvironmentEntry;
@@ -57,7 +58,9 @@ public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 				state.withNonVoidExpectation().computeTypes(a);
 			}
 		}
-		if (e instanceof XklaimNonBlockingRetrieveOperation) {
+		if (e instanceof XklaimNonBlockingRetrieveOperation ||
+				(e instanceof XklaimBlockingRetrieveOperation blockOp &&
+						blockOp.getTimeout() != null)) {
 			state.acceptActualType(getRawTypeForName(Boolean.TYPE, state));
 		} else {
 			state.acceptActualType(getPrimitiveVoid(state));
