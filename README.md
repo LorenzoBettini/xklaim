@@ -3,7 +3,7 @@
 [![Java CI with Maven](https://github.com/LorenzoBettini/xklaim/actions/workflows/linux.yml/badge.svg)](https://github.com/LorenzoBettini/xklaim/actions/workflows/linux.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.lorenzobettini.klaim/xklaim.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.lorenzobettini.klaim%22%20AND%20a:%22xklaim%22)
 
-Java 11 is required.
+Java 21 is required.
 
 Eclipse update site: https://lorenzobettini.github.io/xklaim-releases/
 

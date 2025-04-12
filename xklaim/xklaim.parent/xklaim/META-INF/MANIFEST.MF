@@ -17,7 +17,7 @@ Require-Bundle: org.eclipse.xtext,
  org.eclipse.emf.common,
  org.antlr.runtime;bundle-version="[3.2.0,3.2.1)",
  xklaim.runtime;bundle-version="2.0.0";visibility:=reexport
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-21
 Export-Package: xklaim,
  xklaim.compiler,
  xklaim.jvmmodel,
