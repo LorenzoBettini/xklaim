@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: xklaim.runtime
 Bundle-SymbolicName: xklaim.runtime
-Bundle-Version: 2.4.0.qualifier
+Bundle-Version: 2.5.0.qualifier
 Bundle-Vendor: Lorenzo Bettini
 Automatic-Module-Name: xklaim.runtime
 Bundle-RequiredExecutionEnvironment: JavaSE-21

@@ -3,7 +3,7 @@ Automatic-Module-Name: xklaim.ui.tests
 Bundle-ManifestVersion: 2
 Bundle-Name: xklaim.ui.tests
 Bundle-Vendor: Lorenzo Bettini
-Bundle-Version: 2.4.0.qualifier
+Bundle-Version: 2.5.0.qualifier
 Bundle-SymbolicName: xklaim.ui.tests; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: xklaim.ui,

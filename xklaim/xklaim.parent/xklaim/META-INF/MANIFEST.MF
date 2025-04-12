@@ -3,7 +3,7 @@ Automatic-Module-Name: xklaim
 Bundle-ManifestVersion: 2
 Bundle-Name: xklaim
 Bundle-Vendor: Lorenzo Bettini
-Bundle-Version: 2.4.0.qualifier
+Bundle-Version: 2.5.0.qualifier
 Bundle-SymbolicName: xklaim; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext,
