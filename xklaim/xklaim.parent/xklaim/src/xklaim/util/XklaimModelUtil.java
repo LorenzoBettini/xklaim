@@ -1,6 +1,6 @@
 package xklaim.util;
 
-import static org.eclipse.xtext.EcoreUtil2.getAllContentsOfType;
+import static org.eclipse.xtext.EcoreUtil2.eAllOfType;
 import static org.eclipse.xtext.xbase.lib.IterableExtensions.exists;
 
 import java.util.List;
@@ -20,7 +20,7 @@ public class XklaimModelUtil {
 	}
 
 	public List<XVariableDeclaration> getAllFormalFields(final XExpression e) {
-		return getAllContentsOfType(e, XklaimAbstractOperation.class).stream()
+		return eAllOfType(e, XklaimAbstractOperation.class).stream()
 			.flatMap(o -> o.getArguments().stream())
 			.filter(this::isFormalField)
 			.map(XVariableDeclaration.class::cast)

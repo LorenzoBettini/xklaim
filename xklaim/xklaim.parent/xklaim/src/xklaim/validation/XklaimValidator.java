@@ -6,6 +6,7 @@ package xklaim.validation;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.validation.ValidationMessageAcceptor;
+import org.eclipse.xtext.xbase.XBasicForLoopExpression;
 import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.XVariableDeclaration;
 import org.eclipse.xtext.xbase.XWhileExpression;
@@ -73,6 +74,15 @@ public class XklaimValidator extends AbstractXklaimValidator {
 
 	@Check
 	public void checkNonFinalFormalFieldsInWhileLoop(final XWhileExpression e) {
+		checkFormalFieldInLoop(e.getPredicate());
+	}
+
+	@Check
+	public void checkNonFinalFormalFieldsInWhileLoop(final XBasicForLoopExpression e) {
+		checkFormalFieldInLoop(e.getExpression());
+	}
+
+	private void checkFormalFieldInLoop(final XExpression e) {
 		var formalFields = xklaimModelUtil.getAllFormalFields(e);
 		for (var formalField : formalFields) {
 			if (!formalField.isWriteable()) {

@@ -11,6 +11,7 @@ import org.eclipse.xtext.common.types.JvmField;
 import org.eclipse.xtext.common.types.JvmFormalParameter;
 import org.eclipse.xtext.common.types.JvmIdentifiableElement;
 import org.eclipse.xtext.xbase.XAbstractFeatureCall;
+import org.eclipse.xtext.xbase.XBasicForLoopExpression;
 import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.XIfExpression;
 import org.eclipse.xtext.xbase.XVariableDeclaration;
@@ -40,14 +41,14 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 	@Override
 	protected void doInternalToJavaStatement(final XExpression e, final ITreeAppendable appendable,
 			final boolean isReferenced) {
-		if (e instanceof XklaimEvalOperation ev) {
-			compileXklaimEvalAsStatement(ev, appendable, isReferenced);
-		} else if (e instanceof XklaimAbstractOperation ab) {
-			compileXklaimOperationAsStatement(ab, appendable, isReferenced);
-		} else if (e instanceof XklaimInlineProcess inp) {
-			compileInnerProcess(appendable, inp);
-		} else if (e instanceof XklaimNodeEnvironmentEntry nenv) {
-			compileNodeEnvironmentEntry(nenv, appendable);
+		if (e instanceof XklaimEvalOperation exp) {
+			compileXklaimEvalAsStatement(exp, appendable, isReferenced);
+		} else if (e instanceof XklaimAbstractOperation exp) {
+			compileXklaimOperationAsStatement(exp, appendable, isReferenced);
+		} else if (e instanceof XklaimInlineProcess exp) {
+			compileInnerProcess(appendable, exp);
+		} else if (e instanceof XklaimNodeEnvironmentEntry exp) {
+			compileNodeEnvironmentEntry(exp, appendable);
 		} else {
 			super.doInternalToJavaStatement(e, appendable, isReferenced);
 		}
@@ -80,6 +81,12 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 	@Override
 	protected void _toJavaStatement(final XWhileExpression e, final ITreeAppendable b, final boolean isReferenced) {
 		precompileVariableDeclarationsForFormalFields(e.getPredicate(), b);
+		super._toJavaStatement(e, b, isReferenced);
+	}
+
+	@Override
+	protected void _toJavaStatement(final XBasicForLoopExpression e, final ITreeAppendable b, final boolean isReferenced) {
+		precompileVariableDeclarationsForFormalFields(e.getExpression(), b);
 		super._toJavaStatement(e, b, isReferenced);
 	}
 
