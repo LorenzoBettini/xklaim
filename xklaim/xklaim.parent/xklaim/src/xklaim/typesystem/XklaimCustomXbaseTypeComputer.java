@@ -3,6 +3,7 @@ package xklaim.typesystem;
 import java.util.List;
 
 import org.eclipse.xtext.EcoreUtil2;
+import org.eclipse.xtext.xbase.XBasicForLoopExpression;
 import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.XIfExpression;
 import org.eclipse.xtext.xbase.XVariableDeclaration;
@@ -52,6 +53,12 @@ public class XklaimCustomXbaseTypeComputer extends XbaseWithAnnotationsTypeCompu
 	@Override
 	protected void _computeTypes(XWhileExpression object, ITypeComputationState state) {
 		addFormalFieldsToCurrentScope(object.getPredicate(), state);
+		super._computeTypes(object, state);
+	}
+
+	@Override
+	protected void _computeTypes(XBasicForLoopExpression object, ITypeComputationState state) {
+		addFormalFieldsToCurrentScope(object.getExpression(), state);
 		super._computeTypes(object, state);
 	}
 

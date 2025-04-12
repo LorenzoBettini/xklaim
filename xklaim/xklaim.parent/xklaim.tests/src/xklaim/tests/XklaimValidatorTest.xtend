@@ -98,18 +98,19 @@ class XklaimValidatorTest {
 	}
 
 	@Test
-	def void testNonBlockingInOperationAsStatement() {
+	def void testNonBlockingOperationAsStatement() {
 		'''
 		package foo
 		proc TestProcess(String s) {
 			in_nb(val Integer i, s)@self
+			read_nb(val Integer x, s)@self
 			println(i)
 		}
 		'''.parse.assertNoIssues
 	}
 
 	@Test
-	def void testNonBlockingInOperationAsBooleanExpressionInIfStatement() {
+	def void testNonBlockingOperationAsBooleanExpressionInIfStatement() {
 		'''
 		package foo
 		proc TestProcess(String s) {
@@ -128,11 +129,65 @@ class XklaimValidatorTest {
 	}
 
 	@Test
-	def void testNonBlockingInOperationAsBooleanExpressionInWhileStatement() {
+	def void testTimeoutOperationAsBooleanExpressionInIfStatement() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			if ((in(val Integer i, s)@self within 1000) && (!in(val String l)@self within 1000)) {
+				println(l + i)
+			} else {
+				println(l + i)
+			}
+			if (read(val Integer i, s)@self within 1000) {
+				println(i)
+			} else {
+				println(i)
+			}
+		}
+		'''.parse.assertNoIssues
+	}
+
+	@Test
+	def void testTimeoutAsLong() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			in(val Integer i, s)@self within 1000
+			in(val Integer i2, s)@self within "foo"
+		}
+		'''.parse.assertErrorsAsStrings("Type mismatch: cannot convert from String to long")
+	}
+
+	@Test
+	def void testNonBlockingInOperationAsBooleanExpressionInWhileStatementWithFinalVariable() {
 		'''
 		package foo
 		proc TestProcess(String s) {
 			while (in_nb(val Integer i, s)@self) {
+				println(i)
+			}
+		}
+		'''.parse.assertErrorsAsStrings("use 'var' instead of 'val' for formal field in loop's expression")
+	}
+
+	@Test
+	def void testNonBlockingInOperationAsBooleanExpressionInBasicForLoopWithFinalVariable() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			for (;in_nb(val Integer i, s)@self;) {
+				println(i)
+			}
+		}
+		'''.parse.assertErrorsAsStrings("use 'var' instead of 'val' for formal field in loop's expression")
+	}
+
+	@Test
+	def void testNonBlockingInOperationAsBooleanExpressionInWhileStatement() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			while (in_nb(var Integer i, s)@self) {
 				println(i)
 			}
 		}

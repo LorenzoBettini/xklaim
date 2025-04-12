@@ -405,6 +405,80 @@ class XklaimCompilerTest {
 	}
 
 	@Test
+	def void testXklaimTimeoutOperationsInIfStatement() {
+		'''
+		package foo
+		proc TestProcess(String s, int time) {
+			val timeout = 2000 + time
+			if ((in(val Integer i, s)@self within 1000) && (!in(var String l)@self within 1000)) {
+				println(i)
+			} else {
+				val res = i
+			}
+			if (read(var Integer i, s)@self within timeout) {
+				println(i)
+			} else {
+				val res = i
+			}
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.Tuple;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			
+			  private int time;
+			
+			  public TestProcess(final String s, final int time) {
+			    this.s = s;
+			    this.time = time;
+			  }
+			
+			  @Override
+			  public void executeProcess() {
+			    final int timeout = (2000 + this.time);
+			    final Integer i;
+			    String l = null;
+			    boolean _and = false;
+			    Tuple _Tuple = new Tuple(new Object[] {Integer.class, this.s});
+			    boolean _in = in_t(_Tuple, this.self, 1000);
+			    i = (Integer) _Tuple.getItem(0);
+			    if (!_in) {
+			      _and = false;
+			    } else {
+			      Tuple _Tuple_1 = new Tuple(new Object[] {String.class});
+			      boolean _in_1 = in_t(_Tuple_1, this.self, 1000);
+			      l = (String) _Tuple_1.getItem(0);
+			      boolean _not = (!_in_1);
+			      _and = _not;
+			    }
+			    if (_and) {
+			      InputOutput.<Integer>println(i);
+			    } else {
+			      final Integer res = i;
+			    }
+			    Integer i_1 = null;
+			    Tuple _Tuple_2 = new Tuple(new Object[] {Integer.class, this.s});
+			    boolean _read = read_t(_Tuple_2, this.self, timeout);
+			    i_1 = (Integer) _Tuple_2.getItem(0);
+			    if (_read) {
+			      InputOutput.<Integer>println(i_1);
+			    } else {
+			      final Integer res_1 = i_1;
+			    }
+			  }
+			}
+			'''
+		)
+	}
+
+	@Test
 	def void testXklaimNonBlockingOperationsInComplexBooleanExpression() {
 		'''
 		package foo
@@ -526,13 +600,79 @@ class XklaimCompilerTest {
 	}
 
 	@Test
+	def void testXklaimNonBlockingOperationsInForStatement() {
+		'''
+		package foo
+		proc TestProcess(String s) {
+			for (;in_nb(var Integer i, s)@self && !in_nb(var String l)@self;) {
+				println(l + i)
+			}
+		}
+		'''.checkCompilation(
+			'''
+			package foo;
+			
+			import klava.Tuple;
+			import klava.topology.KlavaProcess;
+			import org.eclipse.xtext.xbase.lib.InputOutput;
+			
+			@SuppressWarnings("all")
+			public class TestProcess extends KlavaProcess {
+			  private String s;
+			
+			  public TestProcess(final String s) {
+			    this.s = s;
+			  }
+			
+			  @Override
+			  public void executeProcess() {
+			    Integer i = null;
+			    String l = null;
+			    boolean _and = false;
+			    Tuple _Tuple = new Tuple(new Object[] {Integer.class, this.s});
+			    boolean _in_nb = in_nb(_Tuple, this.self);
+			    i = (Integer) _Tuple.getItem(0);
+			    if (!_in_nb) {
+			      _and = false;
+			    } else {
+			      Tuple _Tuple_1 = new Tuple(new Object[] {String.class});
+			      boolean _in_nb_1 = in_nb(_Tuple_1, this.self);
+			      l = (String) _Tuple_1.getItem(0);
+			      boolean _not = (!_in_nb_1);
+			      _and = _not;
+			    }
+			    boolean _while = _and;
+			    while (_while) {
+			      InputOutput.<String>println((l + i));
+			      boolean _and_1 = false;
+			      Tuple _Tuple_2 = new Tuple(new Object[] {Integer.class, this.s});
+			      boolean _in_nb_2 = in_nb(_Tuple_2, this.self);
+			      i = (Integer) _Tuple_2.getItem(0);
+			      if (!_in_nb_2) {
+			        _and_1 = false;
+			      } else {
+			        Tuple _Tuple_3 = new Tuple(new Object[] {String.class});
+			        boolean _in_nb_3 = in_nb(_Tuple_3, this.self);
+			        l = (String) _Tuple_3.getItem(0);
+			        boolean _not_1 = (!_in_nb_3);
+			        _and_1 = _not_1;
+			      }
+			      _while = _and_1;
+			    }
+			  }
+			}
+			'''
+		)
+	}
+
+	@Test
 	def void testXklaimNonBlockingOperationsInDoWhileStatement() {
 		'''
 		package foo
 		proc TestProcess(String s) {
 			do {
 				println()
-			} while (in_nb(var Integer i, s)@self && !in_nb(var String l)@self)
+			} while (in_nb(var Integer i, s)@self && !in_nb(val String l)@self)
 		}
 		'''.checkCompilation(
 			'''
@@ -563,7 +703,7 @@ class XklaimCompilerTest {
 			      if (!_in_nb) {
 			        _and = false;
 			      } else {
-			        String l = null;
+			        final String l;
 			        Tuple _Tuple_1 = new Tuple(new Object[] {String.class});
 			        boolean _in_nb_1 = in_nb(_Tuple_1, this.self);
 			        l = (String) _Tuple_1.getItem(0);

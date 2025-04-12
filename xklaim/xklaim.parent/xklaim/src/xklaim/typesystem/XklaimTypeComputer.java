@@ -10,9 +10,11 @@ import klava.Locality;
 import klava.topology.KlavaProcess;
 import xklaim.util.XklaimModelUtil;
 import xklaim.xklaim.XklaimAbstractOperation;
+import xklaim.xklaim.XklaimBlockingRetrieveOperation;
 import xklaim.xklaim.XklaimEvalOperation;
 import xklaim.xklaim.XklaimInlineProcess;
 import xklaim.xklaim.XklaimNodeEnvironmentEntry;
+import xklaim.xklaim.XklaimNonBlockingRetrieveOperation;
 
 public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 	@Inject
@@ -20,14 +22,14 @@ public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 
 	@Override
 	public void computeTypes(XExpression expression, ITypeComputationState state) {
-		if (expression instanceof XklaimEvalOperation) {
-			_computeTypes((XklaimEvalOperation) expression, state);
-		} else if (expression instanceof XklaimAbstractOperation) {
-			_computeTypes((XklaimAbstractOperation) expression, state);
-		} else if (expression instanceof XklaimInlineProcess) {
-			_computeTypes((XklaimInlineProcess) expression, state);
-		} else if (expression instanceof XklaimNodeEnvironmentEntry) {
-			_computeTypes((XklaimNodeEnvironmentEntry) expression, state);
+		if (expression instanceof XklaimEvalOperation exp) {
+			_computeTypes(exp, state);
+		} else if (expression instanceof XklaimAbstractOperation exp) {
+			_computeTypes(exp, state);
+		} else if (expression instanceof XklaimInlineProcess exp) {
+			_computeTypes(exp, state);
+		} else if (expression instanceof XklaimNodeEnvironmentEntry exp) {
+			_computeTypes(exp, state);
 		} else {
 			super.computeTypes(expression, state);
 		}
@@ -56,7 +58,11 @@ public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 				state.withNonVoidExpectation().computeTypes(a);
 			}
 		}
-		if (modelUtil.isNonBlockingOperation(e)) {
+		if (e instanceof XklaimNonBlockingRetrieveOperation) {
+			state.acceptActualType(getRawTypeForName(Boolean.TYPE, state));
+		} else if (e instanceof XklaimBlockingRetrieveOperation blockOp &&
+						blockOp.getTimeout() != null) {
+			state.withExpectation(getRawTypeForName(Long.TYPE, state)).computeTypes(blockOp.getTimeout());
 			state.acceptActualType(getRawTypeForName(Boolean.TYPE, state));
 		} else {
 			state.acceptActualType(getPrimitiveVoid(state));
@@ -76,8 +82,8 @@ public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 
 	@Override
 	protected void addLocalToCurrentScope(XExpression e, ITypeComputationState state) {
-		if (e instanceof XklaimAbstractOperation) {
-			for (XExpression a : ((XklaimAbstractOperation) e).getArguments()) {
+		if (e instanceof XklaimAbstractOperation xklaimAbstractOperation) {
+			for (XExpression a : xklaimAbstractOperation.getArguments()) {
 				addLocalToCurrentScope(a, state);
 			}
 		}

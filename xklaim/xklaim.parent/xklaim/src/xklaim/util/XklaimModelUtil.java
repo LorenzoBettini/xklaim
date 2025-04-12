@@ -1,13 +1,14 @@
 package xklaim.util;
 
+import static org.eclipse.xtext.EcoreUtil2.eAllOfType;
 import static org.eclipse.xtext.xbase.lib.IterableExtensions.exists;
+
+import java.util.List;
 
 import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.XVariableDeclaration;
 
 import xklaim.xklaim.XklaimAbstractOperation;
-import xklaim.xklaim.XklaimNonBlockingInOperation;
-import xklaim.xklaim.XklaimNonBlockingReadOperation;
 
 public class XklaimModelUtil {
 	public boolean containsFormalFields(final XklaimAbstractOperation o) {
@@ -18,8 +19,11 @@ public class XklaimModelUtil {
 		return e instanceof XVariableDeclaration;
 	}
 
-	public boolean isNonBlockingOperation(final XklaimAbstractOperation o) {
-		return o instanceof XklaimNonBlockingInOperation
-				|| o instanceof XklaimNonBlockingReadOperation;
+	public List<XVariableDeclaration> getAllFormalFields(final XExpression e) {
+		return eAllOfType(e, XklaimAbstractOperation.class).stream()
+			.flatMap(o -> o.getArguments().stream())
+			.filter(this::isFormalField)
+			.map(XVariableDeclaration.class::cast)
+			.toList();
 	}
 }
