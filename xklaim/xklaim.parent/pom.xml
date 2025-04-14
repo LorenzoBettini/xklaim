@@ -153,6 +153,10 @@
               <defaultP2Metadata>false</defaultP2Metadata>
               <attachP2Metadata>false</attachP2Metadata>
             </configuration>
+            <!--
+	            configured and enabled in the xtextutils parent:
+	            maven-gpg-plugin
+	         -->
           </plugin>
         </plugins>
       </build>
