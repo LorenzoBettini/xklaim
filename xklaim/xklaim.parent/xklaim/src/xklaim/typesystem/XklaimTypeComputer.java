@@ -22,16 +22,12 @@ public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 
 	@Override
 	public void computeTypes(XExpression expression, ITypeComputationState state) {
-		if (expression instanceof XklaimEvalOperation exp) {
-			_computeTypes(exp, state);
-		} else if (expression instanceof XklaimAbstractOperation exp) {
-			_computeTypes(exp, state);
-		} else if (expression instanceof XklaimInlineProcess exp) {
-			_computeTypes(exp, state);
-		} else if (expression instanceof XklaimNodeEnvironmentEntry exp) {
-			_computeTypes(exp, state);
-		} else {
-			super.computeTypes(expression, state);
+		switch (expression) {
+		case XklaimEvalOperation exp -> _computeTypes(exp, state);
+		case XklaimAbstractOperation exp -> _computeTypes(exp, state);
+		case XklaimInlineProcess exp -> _computeTypes(exp, state);
+		case XklaimNodeEnvironmentEntry exp -> _computeTypes(exp, state);
+		default -> super.computeTypes(expression, state);
 		}
 	}
 

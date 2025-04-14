@@ -41,16 +41,12 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 	@Override
 	protected void doInternalToJavaStatement(final XExpression e, final ITreeAppendable appendable,
 			final boolean isReferenced) {
-		if (e instanceof XklaimEvalOperation exp) {
-			compileXklaimEvalAsStatement(exp, appendable, isReferenced);
-		} else if (e instanceof XklaimAbstractOperation exp) {
-			compileXklaimOperationAsStatement(exp, appendable, isReferenced);
-		} else if (e instanceof XklaimInlineProcess exp) {
-			compileInnerProcess(appendable, exp);
-		} else if (e instanceof XklaimNodeEnvironmentEntry exp) {
-			compileNodeEnvironmentEntry(exp, appendable);
-		} else {
-			super.doInternalToJavaStatement(e, appendable, isReferenced);
+		switch (e) {
+		case XklaimEvalOperation exp -> compileXklaimEvalAsStatement(exp, appendable, isReferenced);
+		case XklaimAbstractOperation exp -> compileXklaimOperationAsStatement(exp, appendable, isReferenced);
+		case XklaimInlineProcess exp -> compileInnerProcess(appendable, exp);
+		case XklaimNodeEnvironmentEntry exp -> compileNodeEnvironmentEntry(exp, appendable);
+		default -> super.doInternalToJavaStatement(e, appendable, isReferenced);
 		}
 	}
 
