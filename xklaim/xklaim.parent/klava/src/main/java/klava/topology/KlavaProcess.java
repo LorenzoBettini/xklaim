@@ -59,29 +59,29 @@ public abstract class KlavaProcess extends NodeProcess {
     /**
      * Initial state of a process
      */
-    public final static int NOT_MIGRATED = 0;
+    public static final int NOT_MIGRATED = 0;
 
     /**
      * The process has migrated to another site, so it has stopped its execution
      * in this node.
      */
-    public final static int MIGRATED = 1;
+    public static final int MIGRATED = 1;
 
     /**
      * The process has migrated from this node to this node itself (so it's not
      * really a migration).
      */
-    public final static int CONTINUED = 2;
+    public static final int CONTINUED = 2;
 
     /**
      * The process is going to be restored after migration.
      */
-    public final static int ARRIVED = 3;
+    public static final int ARRIVED = 3;
 
     /**
      * The process is migrating.
      */
-    public final static int MIGRATING = 4;
+    public static final int MIGRATING = 4;
 
     /**
      * The current migration status of the process (default: not migrated)
@@ -96,7 +96,7 @@ public abstract class KlavaProcess extends NodeProcess {
     /**
      * Creates a klava process
      */
-    public KlavaProcess() {
+    protected KlavaProcess() {
         initProcess();
     }
 
@@ -106,7 +106,7 @@ public abstract class KlavaProcess extends NodeProcess {
      * @param name
      *            The name of the process
      */
-    public KlavaProcess(String name) {
+    protected KlavaProcess(String name) {
         super(name);
         initProcess();
     }
@@ -200,17 +200,18 @@ public abstract class KlavaProcess extends NodeProcess {
     /**
      * @see org.mikado.imc.topology.NodeProcess#addNodeProcess(org.mikado.imc.topology.NodeProcess)
      */
+    @Override
     public void addNodeProcess(NodeProcess nodeProcess) throws IMCException {
         klavaNodeProcessProxy.addNodeProcess(nodeProcess);
     }
 
-    protected boolean in_nb(Tuple tuple, Locality destination)
+    protected boolean in_nb(Tuple tuple, Locality destination) // NOSONAR: we want this name
             throws KlavaException {
         makeAutomaticClosure(tuple);
         return klavaNodeProcessProxy.in_nb(tuple, toPhysical(destination));
     }
 
-    protected boolean in_t(Tuple tuple, Locality destination, long timeout)
+    protected boolean in_t(Tuple tuple, Locality destination, long timeout)  // NOSONAR: we want this name
             throws KlavaException {
         makeAutomaticClosure(tuple);
         return klavaNodeProcessProxy.in_t(tuple, toPhysical(destination),
@@ -227,13 +228,13 @@ public abstract class KlavaProcess extends NodeProcess {
         klavaNodeProcessProxy.out(tuple, toPhysical(destination));
     }
 
-    protected boolean read_nb(Tuple tuple, Locality destination)
+    protected boolean read_nb(Tuple tuple, Locality destination) // NOSONAR: we want this name
             throws KlavaException {
         makeAutomaticClosure(tuple);
         return klavaNodeProcessProxy.read_nb(tuple, toPhysical(destination));
     }
 
-    protected boolean read_t(Tuple tuple, Locality destination, long timeout)
+    protected boolean read_t(Tuple tuple, Locality destination, long timeout) // NOSONAR: we want this name
             throws KlavaException {
         makeAutomaticClosure(tuple);
         return klavaNodeProcessProxy.read_t(tuple, toPhysical(destination),
@@ -275,9 +276,9 @@ public abstract class KlavaProcess extends NodeProcess {
             locality = self;
         }
 
-        if (locality instanceof LogicalLocality) {
+        if (locality instanceof LogicalLocality logicalLocality) {
             PhysicalLocality physicalLocality = environment
-                    .toPhysical((LogicalLocality) locality);
+                    .toPhysical(logicalLocality);
             if (physicalLocality != null)
                 return physicalLocality;
         }
@@ -301,13 +302,13 @@ public abstract class KlavaProcess extends NodeProcess {
          * make sure that, if we refer to self, we actually use the self of the
          * process (which can be already closed)
          */
-        if (locality.toString().equals("self") && self instanceof PhysicalLocality) {
-            return (PhysicalLocality) self;
+        if (locality.toString().equals("self") && self instanceof PhysicalLocality physicalSelf) {
+            return physicalSelf;
         }
 
-        if (locality instanceof LogicalLocality) {
+        if (locality instanceof LogicalLocality logicalLocality) {
             PhysicalLocality physicalLocality = environment
-                    .toPhysical((LogicalLocality) locality);
+                    .toPhysical(logicalLocality);
             if (physicalLocality != null)
                 return physicalLocality;
             else
@@ -393,8 +394,8 @@ public abstract class KlavaProcess extends NodeProcess {
         Locality translated = toPhysical(locality);
 
         /* OK we're done */
-        if (translated instanceof PhysicalLocality)
-            return (PhysicalLocality) translated;
+        if (translated instanceof PhysicalLocality physicalLocality)
+            return physicalLocality;
 
         /* otherwise rely on the node */
         return klavaNodeProcessProxy.getPhysical(locality);
@@ -423,8 +424,8 @@ public abstract class KlavaProcess extends NodeProcess {
         Locality translatedSelf = toPhysical(self);
         PhysicalLocality forSelf = null;
 
-        if (translatedSelf instanceof PhysicalLocality)
-            forSelf = (PhysicalLocality) translatedSelf;
+        if (translatedSelf instanceof PhysicalLocality physicalSelf)
+            forSelf = physicalSelf;
         else {
             try {
                 forSelf = klavaNodeProcessProxy.getPhysical(self);
@@ -520,9 +521,7 @@ public abstract class KlavaProcess extends NodeProcess {
                  */
                 throw new ProcessTerminatedException(getName());
             }
-        } catch (InterruptedException e) {
-            throw new KlavaException(e);
-        } catch (IMCException e) {
+        } catch (IMCException | InterruptedException e) {
             throw new KlavaException(e);
         }
     }
