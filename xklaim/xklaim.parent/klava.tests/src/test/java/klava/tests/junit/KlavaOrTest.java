@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.mikado.imc.common.IMCException;
+import org.mikado.imc.protocols.ProtocolException;
 
 import klava.KString;
 import klava.KlavaException;
@@ -113,6 +114,98 @@ public class KlavaOrTest extends ClientServerBase {
             try {
                 nbResult = in_nb(template, destination);
                 if (nbResult) {
+                    succeeded = true;
+                }
+            } catch (KlavaException e) {
+                failed = true;
+                exception = e;
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * A process that performs a non-blocking read (read_nb) operation.
+     */
+    private class ReadNbOrProcess extends OrTestProcess {
+        private static final long serialVersionUID = 1L;
+
+        private final Tuple template;
+        private final Locality destination;
+        public volatile boolean nbResult = false;
+
+        public ReadNbOrProcess(Tuple template, Locality destination) {
+            this.template = template;
+            this.destination = destination;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            try {
+                nbResult = read_nb(template, destination);
+                if (nbResult) {
+                    succeeded = true;
+                }
+            } catch (KlavaException e) {
+                failed = true;
+                exception = e;
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * A process that performs a timed in (in_t) operation.
+     */
+    private class InTOrProcess extends OrTestProcess {
+        private static final long serialVersionUID = 1L;
+
+        private final Tuple template;
+        private final Locality destination;
+        private final long timeout;
+
+        public InTOrProcess(Tuple template, Locality destination, long timeout) {
+            this.template = template;
+            this.destination = destination;
+            this.timeout = timeout;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            try {
+                boolean result = in_t(template, destination, timeout);
+                if (result) {
+                    succeeded = true;
+                }
+            } catch (KlavaException e) {
+                failed = true;
+                exception = e;
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * A process that performs a timed read (read_t) operation.
+     */
+    private class ReadTOrProcess extends OrTestProcess {
+        private static final long serialVersionUID = 1L;
+
+        private final Tuple template;
+        private final Locality destination;
+        private final long timeout;
+
+        public ReadTOrProcess(Tuple template, Locality destination, long timeout) {
+            this.template = template;
+            this.destination = destination;
+            this.timeout = timeout;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            try {
+                boolean result = read_t(template, destination, timeout);
+                if (result) {
                     succeeded = true;
                 }
             } catch (KlavaException e) {
@@ -388,5 +481,229 @@ public class KlavaOrTest extends ClientServerBase {
         assertTrue("Standalone OrProcess should succeed", standalone.succeeded);
         // Tuple should be gone
         assertFalse("Tuple should be removed", clientNode.in_nb(template, self));
+    }
+
+    /**
+     * Test scenario: two identical tuples on a remote node; two in-processes race
+     * to retrieve them from the remote node. This test verifies that the loser
+     * re-inserts the tuple at the remote destination (serverLoc), NOT at self
+     * (the client node). Without the fix, the tuple would be incorrectly
+     * re-inserted at self, leaving the server with no tuples.
+     */
+    public void testOrBothCouldSucceedInRaceRemoteDestination() throws InterruptedException,
+            IMCException, KlavaException, ProtocolException {
+        clientLoginsToServer();
+
+        // Put two tuples on the server's tuple space
+        serverNode.out(new Tuple(new KString("value")));
+        serverNode.out(new Tuple(new KString("value")));
+
+        // Both branches retrieve from serverLoc (remote)
+        Tuple template1 = new Tuple(new KString());
+        template1.setHandleRetrieved(false);
+
+        Tuple template2 = new Tuple(new KString());
+        template2.setHandleRetrieved(false);
+
+        InOrProcess branchA = new InOrProcess(template1, serverLoc);
+        InOrProcess branchB = new InOrProcess(template2, serverLoc);
+
+        // Execute both branches in an OR
+        List<KlavaOrProcess> branches = new ArrayList<>();
+        branches.add(branchA);
+        branches.add(branchB);
+
+        OrCallerProcess caller = new OrCallerProcess(branches);
+        clientNode.eval(caller);
+        caller.join();
+
+        // Exactly one should have succeeded
+        int successCount = (branchA.succeeded ? 1 : 0) + (branchB.succeeded ? 1 : 0);
+        assertEquals("Exactly one branch should succeed", 1, successCount);
+
+        /*
+         * The loser must have re-inserted the tuple at serverLoc (not at self/client).
+         * Use in_t with a timeout to wait for the async re-insertion to complete.
+         */
+        Tuple verifyTemplate1 = new Tuple(new KString());
+        assertTrue("Server should have exactly one re-inserted tuple",
+                clientNode.in_t(verifyTemplate1, serverLoc, 5000));
+        Tuple verifyTemplate2 = new Tuple(new KString());
+        assertFalse("Server should not have a second tuple",
+                clientNode.in_nb(verifyTemplate2, serverLoc));
+
+        // Key correctness check: no tuple should be re-inserted at self (client node)
+        Tuple selfTemplate = new Tuple(new KString());
+        assertFalse("No tuple should be re-inserted at self/client",
+                clientNode.in_nb(selfTemplate, self));
+    }
+
+    /**
+     * Test scenario: two identical tuples in the tuple space; two in_nb-processes
+     * both retrieve a tuple (in_nb returns true for each). The OR logic ensures
+     * exactly one succeeds and the loser re-inserts its tuple at the destination.
+     */
+    public void testOrWithInNbBothSucceed() throws InterruptedException, IMCException,
+            KlavaException {
+        // Put two tuples so both in_nb branches can each retrieve one
+        clientNode.out(new Tuple(new KString("value")), self);
+        clientNode.out(new Tuple(new KString("value")), self);
+
+        // Create two branches with the same template
+        Tuple template1 = new Tuple(new KString());
+        template1.setHandleRetrieved(false);
+
+        Tuple template2 = new Tuple(new KString());
+        template2.setHandleRetrieved(false);
+
+        InNbOrProcess branchA = new InNbOrProcess(template1, self);
+        InNbOrProcess branchB = new InNbOrProcess(template2, self);
+
+        // Execute both branches in an OR
+        List<KlavaOrProcess> branches = new ArrayList<>();
+        branches.add(branchA);
+        branches.add(branchB);
+
+        OrCallerProcess caller = new OrCallerProcess(branches);
+        clientNode.eval(caller);
+        caller.join();
+
+        // At least one branch should have gotten nbResult=true
+        assertTrue("At least one branch should have gotten nbResult=true",
+                branchA.nbResult || branchB.nbResult);
+
+        // Exactly one should have succeeded
+        int successCount = (branchA.succeeded ? 1 : 0) + (branchB.succeeded ? 1 : 0);
+        assertEquals("Exactly one branch should succeed", 1, successCount);
+
+        /*
+         * The tuple space should have exactly one tuple: winner consumed one,
+         * loser re-inserted one (or only one branch got a tuple at all).
+         */
+        Tuple template = new Tuple(new KString());
+        template.setHandleRetrieved(false);
+        assertTrue("Should have a tuple in tuple space", clientNode.in_nb(template, self));
+        assertFalse("Should not have a second tuple", clientNode.in_nb(template, self));
+    }
+
+    /**
+     * Test scenario: one tuple in the tuple space; two read_nb-processes both see
+     * it (read_nb returns true for both, since read is non-destructive). The OR
+     * logic ensures exactly one succeeds. The tuple remains in the space because
+     * read does not remove it and the loser does not re-insert.
+     */
+    public void testOrWithReadNb() throws InterruptedException, IMCException, KlavaException {
+        // Put one tuple; both read_nb branches can see it (read is non-destructive)
+        clientNode.out(new Tuple(new KString("data")), self);
+
+        // Create two read_nb branches with the same template
+        Tuple template1 = new Tuple(new KString());
+        template1.setHandleRetrieved(false);
+
+        Tuple template2 = new Tuple(new KString());
+        template2.setHandleRetrieved(false);
+
+        ReadNbOrProcess branchA = new ReadNbOrProcess(template1, self);
+        ReadNbOrProcess branchB = new ReadNbOrProcess(template2, self);
+
+        // Execute both branches in an OR
+        List<KlavaOrProcess> branches = new ArrayList<>();
+        branches.add(branchA);
+        branches.add(branchB);
+
+        OrCallerProcess caller = new OrCallerProcess(branches);
+        clientNode.eval(caller);
+        caller.join();
+
+        // Exactly one should have succeeded; the other is the loser
+        int successCount = (branchA.succeeded ? 1 : 0) + (branchB.succeeded ? 1 : 0);
+        assertEquals("Exactly one branch should succeed", 1, successCount);
+
+        // The tuple should still be in the tuple space (read does not remove it)
+        Tuple template = new Tuple(new KString());
+        template.setHandleRetrieved(false);
+        assertTrue("Tuple should remain in tuple space", clientNode.in_nb(template, self));
+    }
+
+    /**
+     * Test scenario: two identical tuples in the tuple space; two in_t-processes
+     * both retrieve a tuple (in_t returns true since tuples are present). The OR
+     * logic ensures exactly one succeeds and the loser re-inserts the tuple.
+     */
+    public void testOrWithInTBothSucceed() throws InterruptedException, IMCException,
+            KlavaException {
+        // Put two tuples so both in_t branches can succeed
+        clientNode.out(new Tuple(new KString("value")), self);
+        clientNode.out(new Tuple(new KString("value")), self);
+
+        // Create two branches with the same template and a generous timeout
+        Tuple template1 = new Tuple(new KString());
+        template1.setHandleRetrieved(false);
+
+        Tuple template2 = new Tuple(new KString());
+        template2.setHandleRetrieved(false);
+
+        InTOrProcess branchA = new InTOrProcess(template1, self, 2000);
+        InTOrProcess branchB = new InTOrProcess(template2, self, 2000);
+
+        // Execute both branches in an OR
+        List<KlavaOrProcess> branches = new ArrayList<>();
+        branches.add(branchA);
+        branches.add(branchB);
+
+        OrCallerProcess caller = new OrCallerProcess(branches);
+        clientNode.eval(caller);
+        caller.join();
+
+        // Exactly one should have succeeded
+        int successCount = (branchA.succeeded ? 1 : 0) + (branchB.succeeded ? 1 : 0);
+        assertEquals("Exactly one branch should succeed", 1, successCount);
+
+        /*
+         * The tuple space should have exactly one tuple: winner consumed one,
+         * loser re-inserted one (or loser was interrupted before retrieving).
+         */
+        Tuple template = new Tuple(new KString());
+        template.setHandleRetrieved(false);
+        assertTrue("Should have a tuple in tuple space", clientNode.in_nb(template, self));
+        assertFalse("Should not have a second tuple", clientNode.in_nb(template, self));
+    }
+
+    /**
+     * Test scenario: one tuple in the tuple space; two read_t-processes both see
+     * it (read_t returns true since read is non-destructive). The OR logic ensures
+     * exactly one succeeds. The tuple remains in the space.
+     */
+    public void testOrWithReadT() throws InterruptedException, IMCException, KlavaException {
+        // Put one tuple; both read_t branches can see it (read is non-destructive)
+        clientNode.out(new Tuple(new KString("data")), self);
+
+        // Create two read_t branches with the same template and a generous timeout
+        Tuple template1 = new Tuple(new KString());
+        template1.setHandleRetrieved(false);
+
+        Tuple template2 = new Tuple(new KString());
+        template2.setHandleRetrieved(false);
+
+        ReadTOrProcess branchA = new ReadTOrProcess(template1, self, 2000);
+        ReadTOrProcess branchB = new ReadTOrProcess(template2, self, 2000);
+
+        // Execute both branches in an OR
+        List<KlavaOrProcess> branches = new ArrayList<>();
+        branches.add(branchA);
+        branches.add(branchB);
+
+        OrCallerProcess caller = new OrCallerProcess(branches);
+        clientNode.eval(caller);
+        caller.join();
+
+        // Exactly one should have succeeded; the other is the loser
+        int successCount = (branchA.succeeded ? 1 : 0) + (branchB.succeeded ? 1 : 0);
+        assertEquals("Exactly one branch should succeed", 1, successCount);
+
+        // The tuple should still be in the tuple space (read does not remove it)
+        Tuple template = new Tuple(new KString());
+        template.setHandleRetrieved(false);
+        assertTrue("Tuple should remain in tuple space", clientNode.in_nb(template, self));
     }
 }

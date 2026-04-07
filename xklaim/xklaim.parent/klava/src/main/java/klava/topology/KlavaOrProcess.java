@@ -76,9 +76,10 @@ public abstract class KlavaOrProcess extends KlavaProcess {
      * 
      * If this process is not the first (i.e., another process already succeeded): -
      * If the retrieval was a removal operation (isRemoval=true), the process
-     * re-inserts the retrieved tuple by spawning an eval'd process that performs an
-     * out operation at self. - The process then throws a KlavaException to
-     * terminate itself.
+     * re-inserts the retrieved tuple by spawning an eval'd process (eval'd at self)
+     * that performs an out operation at the destination locality where the tuple was
+     * retrieved from. - The process then throws a KlavaException to terminate
+     * itself.
      * 
      * @param retrievedTuple the tuple that was successfully retrieved (for
      *                       re-insertion if needed)
@@ -112,14 +113,16 @@ public abstract class KlavaOrProcess extends KlavaProcess {
             if (isRemoval) {
                 /*
                  * Re-insert the tuple by spawning a new process that performs an out operation
-                 * at self (local tuple space)
+                 * at the destination locality (where the tuple was retrieved from). The eval
+                 * itself is done at self so the process runs locally and routes the out to the
+                 * correct destination.
                  */
                 KlavaProcess reinsertProcess = new KlavaProcess() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void executeProcess() throws KlavaException {
-                        out(retrievedTuple, self);
+                        out(retrievedTuple, destination);
                     }
                 };
                 eval(reinsertProcess, self);
