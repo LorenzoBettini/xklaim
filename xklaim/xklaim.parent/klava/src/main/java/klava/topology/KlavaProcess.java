@@ -276,9 +276,9 @@ public abstract class KlavaProcess extends NodeProcess {
             locality = self;
         }
 
-        if (locality instanceof LogicalLocality) {
+        if (locality instanceof LogicalLocality logicalLocality) {
             PhysicalLocality physicalLocality = environment
-                    .toPhysical((LogicalLocality) locality);
+                    .toPhysical(logicalLocality);
             if (physicalLocality != null)
                 return physicalLocality;
         }
@@ -302,13 +302,13 @@ public abstract class KlavaProcess extends NodeProcess {
          * make sure that, if we refer to self, we actually use the self of the
          * process (which can be already closed)
          */
-        if (locality.toString().equals("self") && self instanceof PhysicalLocality) {
-            return (PhysicalLocality) self;
+        if (locality.toString().equals("self") && self instanceof PhysicalLocality physicalSelf) {
+            return physicalSelf;
         }
 
-        if (locality instanceof LogicalLocality) {
+        if (locality instanceof LogicalLocality logicalLocality) {
             PhysicalLocality physicalLocality = environment
-                    .toPhysical((LogicalLocality) locality);
+                    .toPhysical(logicalLocality);
             if (physicalLocality != null)
                 return physicalLocality;
             else
@@ -394,8 +394,8 @@ public abstract class KlavaProcess extends NodeProcess {
         Locality translated = toPhysical(locality);
 
         /* OK we're done */
-        if (translated instanceof PhysicalLocality)
-            return (PhysicalLocality) translated;
+        if (translated instanceof PhysicalLocality physicalLocality)
+            return physicalLocality;
 
         /* otherwise rely on the node */
         return klavaNodeProcessProxy.getPhysical(locality);
@@ -424,8 +424,8 @@ public abstract class KlavaProcess extends NodeProcess {
         Locality translatedSelf = toPhysical(self);
         PhysicalLocality forSelf = null;
 
-        if (translatedSelf instanceof PhysicalLocality)
-            forSelf = (PhysicalLocality) translatedSelf;
+        if (translatedSelf instanceof PhysicalLocality physicalSelf)
+            forSelf = physicalSelf;
         else {
             try {
                 forSelf = klavaNodeProcessProxy.getPhysical(self);
