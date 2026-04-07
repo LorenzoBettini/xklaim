@@ -33,7 +33,7 @@ public class ClassBytesLoader {
         int size;
         byte[] classBytes;
         InputStream is;
-        String fileSeparator = System.getProperty("file.separator");
+        String fileSeparator = "/";
 
         className = className.replace('.', fileSeparator.charAt(0));
         className = className + ".class";
