@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.mikado.imc.common.IMCException;
-import org.mikado.imc.protocols.ProtocolException;
 
 import klava.KString;
 import klava.KlavaException;
@@ -38,7 +37,6 @@ public class KlavaOrTest extends ClientServerBase {
 
         public volatile boolean succeeded = false;
         public volatile boolean failed = false;
-        public volatile Throwable exception = null;
     }
 
     /**
@@ -62,7 +60,6 @@ public class KlavaOrTest extends ClientServerBase {
                 succeeded = true;
             } catch (KlavaException e) {
                 failed = true;
-                exception = e;
                 throw e;
             }
         }
@@ -89,7 +86,6 @@ public class KlavaOrTest extends ClientServerBase {
                 succeeded = true;
             } catch (KlavaException e) {
                 failed = true;
-                exception = e;
                 throw e;
             }
         }
@@ -119,7 +115,6 @@ public class KlavaOrTest extends ClientServerBase {
                 }
             } catch (KlavaException e) {
                 failed = true;
-                exception = e;
                 throw e;
             }
         }
@@ -149,7 +144,6 @@ public class KlavaOrTest extends ClientServerBase {
                 }
             } catch (KlavaException e) {
                 failed = true;
-                exception = e;
                 throw e;
             }
         }
@@ -180,7 +174,6 @@ public class KlavaOrTest extends ClientServerBase {
                 }
             } catch (KlavaException e) {
                 failed = true;
-                exception = e;
                 throw e;
             }
         }
@@ -211,7 +204,6 @@ public class KlavaOrTest extends ClientServerBase {
                 }
             } catch (KlavaException e) {
                 failed = true;
-                exception = e;
                 throw e;
             }
         }
@@ -485,23 +477,6 @@ public class KlavaOrTest extends ClientServerBase {
     }
 
     /**
-     * Test scenario: two distinct tuples on a remote node; two non-blocking
-     * in_nb-processes both retrieve a tuple from the server (both will succeed
-     * because the matching tuples are present). The OR logic ensures exactly one
-     * succeeds; the loser re-inserts its tuple at the REMOTE destination
-     * (serverLoc), NOT at self (the client node).
-     *
-     * Blocking in() is NOT used here because it introduces a timing hazard:
-     * interruptOthers() can arrive while the loser's super.in() is blocked
-     * waiting for the remote response. In that case the server has already
-     * dequeued the tuple, but the client thread is interrupted before receiving
-     * the response, so handleOrRetrieval is never called and the tuple is lost.
-     * Using in_nb with tuples that are guaranteed to be present ensures both
-     * branches complete their retrieval before the mutex decides the winner, so
-     * the loser always reaches handleOrRetrieval and re-inserts at the correct
-     * destination.
-     */
-    /**
      * Deterministic test verifying the re-insertion destination is correct.
      *
      * Remote in_nb is NOT truly non-blocking in klava: it blocks internally on
@@ -517,7 +492,7 @@ public class KlavaOrTest extends ClientServerBase {
      * and directly tests that the re-insertion uses the correct destination.
      */
     public void testOrLoserReinssertsAtRemoteDestination() throws InterruptedException,
-            IMCException, KlavaException, ProtocolException {
+            IMCException, KlavaException {
         clientLoginsToServer();
 
         // Put a tuple on the server so the branch's in_nb returns true
