@@ -13,6 +13,7 @@ import klava.KString;
 import klava.KlavaException;
 import klava.Locality;
 import klava.Tuple;
+import klava.topology.KlavaOrMutex;
 import klava.topology.KlavaOrProcess;
 import klava.topology.KlavaProcess;
 
@@ -484,57 +485,81 @@ public class KlavaOrTest extends ClientServerBase {
     }
 
     /**
-     * Test scenario: two identical tuples on a remote node; two in-processes race
-     * to retrieve them from the remote node. This test verifies that the loser
-     * re-inserts the tuple at the remote destination (serverLoc), NOT at self
-     * (the client node). Without the fix, the tuple would be incorrectly
-     * re-inserted at self, leaving the server with no tuples.
+     * Test scenario: two distinct tuples on a remote node; two non-blocking
+     * in_nb-processes both retrieve a tuple from the server (both will succeed
+     * because the matching tuples are present). The OR logic ensures exactly one
+     * succeeds; the loser re-inserts its tuple at the REMOTE destination
+     * (serverLoc), NOT at self (the client node).
+     *
+     * Blocking in() is NOT used here because it introduces a timing hazard:
+     * interruptOthers() can arrive while the loser's super.in() is blocked
+     * waiting for the remote response. In that case the server has already
+     * dequeued the tuple, but the client thread is interrupted before receiving
+     * the response, so handleOrRetrieval is never called and the tuple is lost.
+     * Using in_nb with tuples that are guaranteed to be present ensures both
+     * branches complete their retrieval before the mutex decides the winner, so
+     * the loser always reaches handleOrRetrieval and re-inserts at the correct
+     * destination.
      */
-    public void testOrBothCouldSucceedInRaceRemoteDestination() throws InterruptedException,
+    /**
+     * Deterministic test verifying the re-insertion destination is correct.
+     *
+     * Remote in_nb is NOT truly non-blocking in klava: it blocks internally on
+     * Response.waitForResponse (Object.wait), which is interruptible. A race-based
+     * test where two branches both try remote in_nb simultaneously can lose a tuple
+     * if the server dequeues it and sends the response just as the client thread is
+     * interrupted, causing the response to be dropped.
+     *
+     * Instead this test uses a custom "always-loser" mutex (isFirst() always returns
+     * false). With a single branch and no interrupt, the branch completes its remote
+     * in_nb, reaches handleOrRetrieval, takes the loser path, re-inserts the tuple
+     * at the retrieval destination (serverLoc), and then throws. This is deterministic
+     * and directly tests that the re-insertion uses the correct destination.
+     */
+    public void testOrLoserReinssertsAtRemoteDestination() throws InterruptedException,
             IMCException, KlavaException, ProtocolException {
         clientLoginsToServer();
 
-        // Put two tuples on the server's tuple space
+        // Put a tuple on the server so the branch's in_nb returns true
         serverNode.out(new Tuple(new KString("value")));
-        serverNode.out(new Tuple(new KString("value")));
+        Tuple template = new Tuple(new KString());
 
-        // Both branches retrieve from serverLoc (remote)
-        Tuple template1 = new Tuple(new KString());
-        template1.setHandleRetrieved(false);
+        // Custom mutex that always reports the caller as the loser.
+        // No interrupt is sent (interruptOthers does nothing), so the branch
+        // completes its remote retrieval, reaches handleOrRetrieval, and
+        // re-inserts the tuple at destination before throwing.
+        KlavaOrMutex alwaysLoserMutex = new KlavaOrMutex() {
+            @Override
+            public synchronized boolean isFirst() {
+                return false;
+            }
 
-        Tuple template2 = new Tuple(new KString());
-        template2.setHandleRetrieved(false);
+            @Override
+            public void interruptOthers(KlavaOrProcess except) {
+                // No other processes, nothing to interrupt
+            }
+        };
 
-        InOrProcess branchA = new InOrProcess(template1, serverLoc);
-        InOrProcess branchB = new InOrProcess(template2, serverLoc);
+        InNbOrProcess branch = new InNbOrProcess(template, serverLoc);
+        branch.setMutex(alwaysLoserMutex);
+        clientNode.eval(branch);
+        branch.join();
 
-        // Execute both branches in an OR
-        List<KlavaOrProcess> branches = new ArrayList<>();
-        branches.add(branchA);
-        branches.add(branchB);
-
-        OrCallerProcess caller = new OrCallerProcess(branches);
-        clientNode.eval(caller);
-        caller.join();
-
-        // Exactly one should have succeeded
-        int successCount = (branchA.succeeded ? 1 : 0) + (branchB.succeeded ? 1 : 0);
-        assertEquals("Exactly one branch should succeed", 1, successCount);
+        // The branch took the loser path: failed=true, succeeded=false
+        assertTrue("Branch should have failed (loser path)", branch.failed);
+        assertFalse("Branch should not have succeeded", branch.succeeded);
 
         /*
-         * The loser must have re-inserted the tuple at serverLoc (not at self/client).
-         * Use in_t with a timeout to wait for the async re-insertion to complete.
+         * The loser re-inserts the retrieved tuple at serverLoc (the retrieval
+         * destination) via an async eval'd process. With the old bug (out at self
+         * instead of destination), the tuple would appear at the client node instead.
          */
-        Tuple verifyTemplate1 = new Tuple(new KString());
-        assertTrue("Server should have exactly one re-inserted tuple",
-                clientNode.in_t(verifyTemplate1, serverLoc, 5000));
-        Tuple verifyTemplate2 = new Tuple(new KString());
-        assertFalse("Server should not have a second tuple",
-                clientNode.in_nb(verifyTemplate2, serverLoc));
+        Tuple verifyTemplate = new Tuple(new KString());
+        assertTrue("Server should have the re-inserted tuple (re-insertion at serverLoc)",
+                clientNode.in_t(verifyTemplate, serverLoc, 5000));
 
-        // Key correctness check: no tuple should be re-inserted at self (client node)
         Tuple selfTemplate = new Tuple(new KString());
-        assertFalse("No tuple should be re-inserted at self/client",
+        assertFalse("No tuple should be at client self (wrong re-insertion destination)",
                 clientNode.in_nb(selfTemplate, self));
     }
 

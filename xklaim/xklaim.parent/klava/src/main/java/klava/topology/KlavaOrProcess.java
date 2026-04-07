@@ -56,11 +56,12 @@ public abstract class KlavaOrProcess extends KlavaProcess {
 
     /**
      * Sets the mutex for this process. This is called by the or() method in
-     * KlavaProcess before executing the process.
+     * KlavaProcess before executing the process, but can also be called directly
+     * to configure a custom mutex for testing or advanced use cases.
      * 
      * @param mutex the KlavaOrMutex to use for synchronization
      */
-    void setMutex(KlavaOrMutex mutex) {
+    public void setMutex(KlavaOrMutex mutex) {
         this.mutex = mutex;
     }
 
