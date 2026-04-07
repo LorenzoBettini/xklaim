@@ -33,7 +33,9 @@ public class ClassBytesLoader {
         int size;
         byte[] classBytes;
         InputStream is;
-        String fileSeparator = System.getProperty("file.separator");
+        // don't use File.separator because the class name must be converted to a path
+        // handled by the class loader, which always uses '/' as separator, even on Windows
+        String fileSeparator = "/";
 
         className = className.replace('.', fileSeparator.charAt(0));
         className = className + ".class";
