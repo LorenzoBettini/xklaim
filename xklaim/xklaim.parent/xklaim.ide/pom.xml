@@ -9,4 +9,11 @@
 	<artifactId>xklaim.ide</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>xklaim</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 </project>
