@@ -53,8 +53,7 @@
   </issueManagement>
 
   <properties>
-    <tycho-version>5.0.1</tycho-version>
-    <eclipse-version>2025-03</eclipse-version>
+    <eclipse-version>2026-03</eclipse-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
