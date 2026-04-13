@@ -1,6 +1,8 @@
 package klava.topology;
 
-import java.util.List;
+import org.mikado.imc.common.IMCException;
+import org.mikado.imc.topology.NodeProcess;
+import org.mikado.imc.topology.NodeProcessProxy;
 
 import klava.Environment;
 import klava.KlavaException;
@@ -10,10 +12,6 @@ import klava.LogicalLocality;
 import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.TupleItem;
-
-import org.mikado.imc.common.IMCException;
-import org.mikado.imc.topology.NodeProcess;
-import org.mikado.imc.topology.NodeProcessProxy;
 
 
 /**
@@ -543,42 +541,4 @@ public abstract class KlavaProcess extends NodeProcess {
         this.caller = caller;
     }
 
-    /**
-     * Executes a list of KlavaProcess instances in parallel as branches of an
-     * OR (nondeterministic choice) operator.
-     * 
-     * The method creates a shared KlavaOrMutex and ensures that:
-     * - All processes in the list are executed concurrently via eval()
-     * - Exactly one process succeeds in its retrieval operation
-     * - All other processes are interrupted and terminated
-     * - If a non-winning process removed a tuple, it is re-inserted
-     * 
-     * All processes are joined before this method returns, ensuring they have
-     * all completed (successfully or with exception).
-     * 
-     * @param orProcesses
-     *            a list of KlavaOrProcess instances to execute as OR branches
-     * @throws KlavaException
-     *             if an error occurs during execution or joining of processes
-     */
-    public void or(List<KlavaOrProcess> orProcesses) throws KlavaException {
-        /* Create a new mutex to coordinate this OR */
-        KlavaOrMutex mutex = new KlavaOrMutex();
-
-        /* Set up and execute all processes */
-        for (KlavaOrProcess process : orProcesses) {
-            process.setMutex(mutex);
-            mutex.addProcess(process);
-            eval(process, self);
-        }
-
-        /* Join all processes to wait for their completion */
-        for (KlavaOrProcess process : orProcesses) {
-            try {
-                process.join();
-            } catch (InterruptedException e) {
-                throw new KlavaException(e);
-            }
-        }
-    }
 }
