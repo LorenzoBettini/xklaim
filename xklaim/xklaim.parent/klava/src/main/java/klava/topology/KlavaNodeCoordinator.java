@@ -46,14 +46,14 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
     /**
      * 
      */
-    public KlavaNodeCoordinator() {
+    protected KlavaNodeCoordinator() {
         super();
     }
 
     /**
      * @param name
      */
-    public KlavaNodeCoordinator(String name) {
+    protected KlavaNodeCoordinator(String name) {
         super(name);
     }
 
@@ -202,6 +202,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
     /**
      * @see klava.topology.KlavaNodeProcessProxy#addNodeProcess(org.mikado.imc.topology.NodeProcess)
      */
+    @Override
     public void addNodeProcess(NodeProcess nodeProcess) throws IMCException {
         processProxy.addNodeProcess(nodeProcess);
     }
@@ -223,6 +224,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
     /**
      * @see klava.topology.KlavaNodeProcessProxy#executeNodeProcess(org.mikado.imc.topology.NodeProcess)
      */
+    @Override
     public void executeNodeProcess(NodeProcess nodeProcess) throws InterruptedException, IMCException {
         processProxy.executeNodeProcess(nodeProcess);
     }
@@ -230,6 +232,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
     /**
      * @see org.mikado.imc.topology.NodeProcessProxy#getNodeStack(org.mikado.imc.topology.NodeLocation)
      */
+    @Override
     public ProtocolStack getNodeStack(NodeLocation nodeLocation) {
         return processProxy.getNodeStack(nodeLocation);
     }
@@ -244,28 +247,31 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
     /**
      * @see klava.topology.KlavaNodeProcessProxy#in_nb(klava.Tuple, klava.Locality)
      */
-    public boolean in_nb(Tuple tuple, Locality destination) throws KlavaException {
+    public boolean in_nb(Tuple tuple, Locality destination) // NOSONAR: we want this name
+            throws KlavaException {
         return processProxy.in_nb(tuple, destination);
     }
 
     /**
      * @see klava.topology.KlavaNodeProcessProxy#in_nb(klava.Tuple)
      */
-    public boolean in_nb(Tuple tuple) {
+    public boolean in_nb(Tuple tuple) { // NOSONAR: we want this name
         return processProxy.in_nb(tuple);
     }
 
     /**
      * @see klava.topology.KlavaNodeProcessProxy#in_t(klava.Tuple, klava.Locality, long)
      */
-    public boolean in_t(Tuple tuple, Locality destination, long timeout) throws KlavaException {
+    public boolean in_t(Tuple tuple, Locality destination, long timeout) // NOSONAR: we want this name
+            throws KlavaException {
         return processProxy.in_t(tuple, destination, timeout);
     }
 
     /**
      * @see klava.topology.KlavaNodeProcessProxy#in_t(klava.Tuple, long)
      */
-    public boolean in_t(Tuple tuple, long timeout) throws KlavaException {
+    public boolean in_t(Tuple tuple, long timeout) // NOSONAR: we want this name
+            throws KlavaException {
         return processProxy.in_t(tuple, timeout);
     }
 
@@ -307,28 +313,31 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
     /**
      * @see klava.topology.KlavaNodeProcessProxy#read_nb(klava.Tuple, klava.Locality)
      */
-    public boolean read_nb(Tuple tuple, Locality destination) throws KlavaException {
+    public boolean read_nb(Tuple tuple, Locality destination) // NOSONAR: we want this name
+            throws KlavaException {
         return processProxy.read_nb(tuple, destination);
     }
 
     /**
      * @see klava.topology.KlavaNodeProcessProxy#read_nb(klava.Tuple)
      */
-    public boolean read_nb(Tuple tuple) {
+    public boolean read_nb(Tuple tuple) { // NOSONAR: we want this name
         return processProxy.read_nb(tuple);
     }
 
     /**
      * @see klava.topology.KlavaNodeProcessProxy#read_t(klava.Tuple, klava.Locality, long)
      */
-    public boolean read_t(Tuple tuple, Locality destination, long timeout) throws KlavaException {
+    public boolean read_t(Tuple tuple, Locality destination, long timeout) // NOSONAR: we want this name
+            throws KlavaException {
         return processProxy.read_t(tuple, destination, timeout);
     }
 
     /**
      * @see klava.topology.KlavaNodeProcessProxy#read_t(klava.Tuple, long)
      */
-    public boolean read_t(Tuple tuple, long timeout) throws KlavaException {
+    public boolean read_t(Tuple tuple, long timeout) // NOSONAR: we want this name
+            throws KlavaException {
         return processProxy.read_t(tuple, timeout);
     }
 
