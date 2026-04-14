@@ -1213,7 +1213,8 @@ public class XklaimCompilerTest {
 	}
 
 	private void assertGeneratedJavaCode(CompilationTestHelper.Result r, CharSequence expected) {
-		Assert.assertEquals(expected.toString(), r.getSingleGeneratedCode());
+		Assert.assertEquals(expected.toString().replace("\r", "")
+				, r.getSingleGeneratedCode().replace("\r", ""));
 	}
 
 	private void assertGeneratedJavaCodeCompiles(CompilationTestHelper.Result r) {

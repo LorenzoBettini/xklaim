@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.testing.InjectWith;
@@ -35,7 +34,7 @@ public class XklaimOrganizeImportsTest {
 		var builder = new StringBuilder(model);
 		List<ReplaceRegion> sortedChanges = changes.stream()
 				.sorted(Comparator.comparingInt(ReplaceRegion::getOffset))
-				.collect(Collectors.toList());
+				.toList();
 		ReplaceRegion lastChange = null;
 		for (var it : sortedChanges) {
 			if (lastChange != null && lastChange.getEndOffset() > it.getOffset())
@@ -46,7 +45,7 @@ public class XklaimOrganizeImportsTest {
 		Collections.reverse(reversed);
 		for (var it : reversed)
 			builder.replace(it.getOffset(), it.getOffset() + it.getLength(), it.getText());
-		Assert.assertEquals(expected.toString(), builder.toString());
+		Assert.assertEquals(expected.toString().replace("\r", ""), builder.toString());
 	}
 
 	@Test
