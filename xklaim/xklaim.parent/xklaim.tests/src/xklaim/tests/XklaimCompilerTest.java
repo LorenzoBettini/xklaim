@@ -1196,7 +1196,9 @@ public class XklaimCompilerTest {
 		compilationTestHelper.compile(input, result -> {
 			assertNoValidationErrors(result);
 			for (var exp : expectations) {
-				Assert.assertEquals(exp.getValue().toString(), result.getGeneratedCode(exp.getKey().toString()));
+				Assert.assertEquals(
+						exp.getValue().toString().replace("\r", ""),
+						result.getGeneratedCode(exp.getKey().toString()).replace("\r", ""));
 			}
 			assertGeneratedJavaCodeCompiles(result);
 		});

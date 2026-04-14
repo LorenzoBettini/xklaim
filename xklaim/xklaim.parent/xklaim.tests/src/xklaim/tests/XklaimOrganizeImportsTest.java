@@ -45,7 +45,7 @@ public class XklaimOrganizeImportsTest {
 		Collections.reverse(reversed);
 		for (var it : reversed)
 			builder.replace(it.getOffset(), it.getOffset() + it.getLength(), it.getText());
-		Assert.assertEquals(expected.toString().replace("\r", ""), builder.toString());
+		Assert.assertEquals(expected.toString().replace("\r", ""), builder.toString().replace("\r", ""));
 	}
 
 	@Test
