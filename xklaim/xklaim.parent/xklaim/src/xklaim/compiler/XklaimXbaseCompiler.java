@@ -23,6 +23,7 @@ import org.eclipse.xtext.xbase.jvmmodel.IJvmModelAssociations;
 import com.google.inject.Inject;
 
 import klava.Tuple;
+import klava.topology.KlavaOrProcess;
 import klava.topology.KlavaProcess;
 import xklaim.util.XklaimModelUtil;
 import xklaim.xklaim.XklaimAbstractOperation;
@@ -30,6 +31,7 @@ import xklaim.xklaim.XklaimBlockingRetrieveOperation;
 import xklaim.xklaim.XklaimEvalOperation;
 import xklaim.xklaim.XklaimInlineProcess;
 import xklaim.xklaim.XklaimNodeEnvironmentEntry;
+import xklaim.xklaim.XklaimOrOperation;
 
 public class XklaimXbaseCompiler extends XbaseCompiler {
 	@Inject
@@ -45,6 +47,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		case XklaimEvalOperation exp -> compileXklaimEvalAsStatement(exp, appendable, isReferenced);
 		case XklaimAbstractOperation exp -> compileXklaimOperationAsStatement(exp, appendable, isReferenced);
 		case XklaimInlineProcess exp -> compileInnerProcess(appendable, exp);
+		case XklaimOrOperation exp -> compileXklaimOrAsStatement(exp, appendable);
 		case XklaimNodeEnvironmentEntry exp -> compileNodeEnvironmentEntry(exp, appendable);
 		default -> super.doInternalToJavaStatement(e, appendable, isReferenced);
 		}
@@ -62,7 +65,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 	@Override
 	protected boolean internalCanCompileToJavaExpression(final XExpression expression,
 			final ITreeAppendable appendable) {
-		if (expression instanceof XklaimAbstractOperation) {
+		if (expression instanceof XklaimAbstractOperation || expression instanceof XklaimOrOperation) {
 			return false;
 		}
 		return super.internalCanCompileToJavaExpression(expression, appendable);
@@ -245,6 +248,36 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		return compileAsInnerProcess(proc.getBody(), appendable, procVarName);
 	}
 
+	private ITreeAppendable compileAsInnerProcess(final XExpression body, final ITreeAppendable appendable,
+			final String procVarName) {
+		return compileAsProcessSubclass(KlavaProcess.class, body, appendable, procVarName);
+	}
+
+	private ITreeAppendable compileAsOrProcess(final XExpression body, final ITreeAppendable appendable,
+			final String procVarName) {
+		return compileAsProcessSubclass(KlavaOrProcess.class, body, appendable, procVarName);
+	}
+
+	private ITreeAppendable compileXklaimOrAsStatement(final XklaimOrOperation e, final ITreeAppendable appendable) {
+		for (XExpression arg : e.getArguments()) {
+			XklaimInlineProcess proc = (XklaimInlineProcess) arg;
+			final var procVarName = appendable.declareSyntheticVariable(proc, "_OrProc");
+			compileAsOrProcess(proc.getBody(), appendable, procVarName);
+		}
+		appendable.newLine();
+		appendable.append("or(");
+		appendable.append(List.class);
+		appendable.append(".of(");
+		forEach(e.getArguments(), (arg, i) -> {
+			if (i.intValue() != 0) {
+				appendable.append(", ");
+			}
+			appendable.append(getVarName(arg, appendable));
+		});
+		appendable.append("));");
+		return appendable;
+	}
+
 	private ITreeAppendable compileNodeEnvironmentEntry(final XklaimNodeEnvironmentEntry e,
 			final ITreeAppendable appendable) {
 		internalToJavaStatement(e.getValue(), appendable, true);
@@ -266,12 +299,12 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 	 * process body; references to variables in the enclosing scope are turned into
 	 * fields of the inner process so that their values are closed.
 	 */
-	private ITreeAppendable compileAsInnerProcess(final XExpression body, final ITreeAppendable appendable,
-			final String procVarName) {
+	private ITreeAppendable compileAsProcessSubclass(final Class<?> processClass, final XExpression body,
+			final ITreeAppendable appendable, final String procVarName) {
 		appendable.newLine();
-		appendable.append(KlavaProcess.class);
+		appendable.append(processClass);
 		appendable.append(" " + procVarName + " = new ");
-		appendable.append(KlavaProcess.class);
+		appendable.append(processClass);
 		appendable.append("() {");
 		appendable.increaseIndentation().newLine();
 		var eclosingScopeVars = EcoreUtil2.getAllContentsOfType(body, XAbstractFeatureCall.class).stream()
@@ -293,7 +326,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 			appendable.newLine();
 		}
 		appendable.append("private ");
-		appendable.append(KlavaProcess.class);
+		appendable.append(processClass);
 		appendable.append(" _initFields(");
 		forEach(eclosingScopeVars, (var v, var i) -> {
 			if (i.intValue() != 0) {

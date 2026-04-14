@@ -1173,6 +1173,72 @@ public class XklaimCompilerTest {
 						"""));
 	}
 
+	@Test
+	public void testXklaimOr() throws Exception {
+		checkCompilation("""
+				package foo
+				proc TestProcess(String s) {
+					or(
+						proc {
+							in(var Integer i, s)@self
+							println(i)
+						},
+						proc read(var String s2)@self
+					)
+				}
+				""",
+				"""
+				package foo;
+
+				import java.util.List;
+				import klava.Tuple;
+				import klava.topology.KlavaOrProcess;
+				import klava.topology.KlavaProcess;
+				import org.eclipse.xtext.xbase.lib.InputOutput;
+
+				@SuppressWarnings("all")
+				public class TestProcess extends KlavaProcess {
+				  private String s;
+
+				  public TestProcess(final String s) {
+				    this.s = s;
+				  }
+
+				  @Override
+				  public void executeProcess() {
+				    KlavaOrProcess _OrProc = new KlavaOrProcess() {
+				      String s;
+				      private KlavaOrProcess _initFields(String s) {
+				        this.s = s;
+				        return this;
+				      }
+				      @Override public void executeProcess() {
+				        {
+				          Integer i = null;
+				          Tuple _Tuple = new Tuple(new Object[] {Integer.class, this.s});
+				          in(_Tuple, this.self);
+				          i = (Integer) _Tuple.getItem(0);
+				          InputOutput.<Integer>println(i);
+				        }
+				      }
+				    }._initFields(s);
+				    KlavaOrProcess _OrProc_1 = new KlavaOrProcess() {
+				      private KlavaOrProcess _initFields() {
+				        return this;
+				      }
+				      @Override public void executeProcess() {
+				        String s2 = null;
+				        Tuple _Tuple = new Tuple(new Object[] {String.class});
+				        read(_Tuple, this.self);
+				        s2 = (String) _Tuple.getItem(0);
+				      }
+				    }._initFields();
+				    or(List.of(_OrProc, _OrProc_1));
+				  }
+				}
+				""");
+	}
+
 	private void checkCompilation(CharSequence input, CharSequence expectedGeneratedJava) throws Exception {
 		checkCompilation(input, expectedGeneratedJava, true);
 	}

@@ -417,6 +417,74 @@ public class XklaimValidatorTest {
 				"""));
 	}
 
+	@Test
+	public void testOrOperationValid() throws Exception {
+		validationTestHelper.assertNoIssues(parseHelper.parse("""
+				package foo
+				proc TestProcess(String s) {
+					or(proc in(var Integer i)@self, proc read(var String s2)@self)
+				}
+				"""));
+	}
+
+	@Test
+	public void testOrOperationWithBlockBodiesValid() throws Exception {
+		validationTestHelper.assertNoIssues(parseHelper.parse("""
+				package foo
+				proc TestProcess(String s) {
+					or(
+						proc {
+							in(var Integer i)@self
+							println(i)
+						},
+						proc {
+							read(var String s2)@self
+							println(s2)
+						}
+					)
+				}
+				"""));
+	}
+
+	@Test
+	public void testOrOperationWithOneArgumentIsInvalid() throws Exception {
+		assertErrorsAsStrings(parseHelper.parse("""
+				package foo
+				proc TestProcess(String s) {
+					or(proc in(var Integer i)@self)
+				}
+				"""),
+				"The 'or' operation requires at least 2 process arguments");
+	}
+
+	@Test
+	public void testOrOperationWithNonRetrievalFirstOperationIsInvalid() throws Exception {
+		assertErrorsAsStrings(parseHelper.parse("""
+				package foo
+				proc TestProcess(String s) {
+					or(proc out(s)@self, proc read(var String s2)@self)
+				}
+				"""),
+				"The first operation of a process in 'or' must be 'in' or 'read'");
+	}
+
+	@Test
+	public void testOrOperationWithBlockBodyNonRetrievalFirstOperationIsInvalid() throws Exception {
+		assertErrorsAsStrings(parseHelper.parse("""
+				package foo
+				proc TestProcess(String s) {
+					or(
+						proc {
+							out(s)@self
+							in(var Integer i)@self
+						},
+						proc read(var String s2)@self
+					)
+				}
+				"""),
+				"The first operation of a process in 'or' must be 'in' or 'read'");
+	}
+
 	private void assertErrorsAsStrings(EObject o, CharSequence expected) {
 		Assert.assertEquals(expected.toString().trim(),
 				validationTestHelper.validate(o).stream()
