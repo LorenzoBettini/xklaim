@@ -6,13 +6,13 @@ import java.util.List;
 /**
  * A mutex shared among the processes participating in an OR operator.
  *
- * <p>The OR operator allows a set of {@link KlavaOrProcessInterface} instances to
+ * <p>The OR operator allows a set of {@link KlavaOrProcess} instances to
  * compete for the first successful retrieval operation (the "guard"). This
  * mutex coordinates the competition:</p>
  * <ul>
  *   <li>It tracks which process wins (via {@link #isFirst()}).</li>
  *   <li>It holds references to all participating processes so that the winner
- *       can interrupt the others (via {@link #interruptOthers(KlavaOrProcessInterface)}).</li>
+ *       can interrupt the others (via {@link #interruptOthers(KlavaOrProcess)}).</li>
  * </ul>
  *
  * <p>A new instance is created by {@link KlavaProcess#or(List)} and is shared
@@ -34,7 +34,7 @@ public class KlavaOrMutex {
 	 * All the processes participating in this OR operator.
 	 * Populated by {@link KlavaProcess#or(List)} before any process is started.
 	 */
-	private final List<KlavaOrProcessInterface> processes = new ArrayList<>();
+	private final List<KlavaOrProcess> processes = new ArrayList<>();
 
 	/**
 	 * Returns {@code true} if the calling process is the first to succeed in
@@ -58,12 +58,12 @@ public class KlavaOrMutex {
 	 * Adds a process to the collection of OR processes tracked by this mutex.
 	 *
 	 * <p>Called by {@link KlavaProcess#or(List)} before the processes are
-	 * started, so that {@link #interruptOthers(KlavaOrProcessInterface)} has a complete
+	 * started, so that {@link #interruptOthers(KlavaOrProcess)} has a complete
 	 * list available at interrupt time.</p>
 	 *
 	 * @param process the process to register
 	 */
-	void addProcess(KlavaOrProcessInterface process) {
+	void addProcess(KlavaOrProcess process) {
 		processes.add(process);
 	}
 
@@ -77,8 +77,8 @@ public class KlavaOrMutex {
 	 *
 	 * @param winner the process that must <em>not</em> be interrupted
 	 */
-	void interruptOthers(KlavaOrProcessInterface winner) {
-		for (KlavaOrProcessInterface p : processes) {
+	void interruptOthers(KlavaOrProcess winner) {
+		for (KlavaOrProcess p : processes) {
 			if (p != winner) {
 				p.interrupt();
 			}

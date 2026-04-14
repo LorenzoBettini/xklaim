@@ -32,7 +32,7 @@ import klava.Tuple;
  * @see KlavaOrMutex
  * @see KlavaProcess#or(java.util.List)
  */
-public abstract class KlavaOrProcess extends KlavaProcess implements KlavaOrProcessInterface {
+public abstract class KlavaOrProcess extends KlavaProcess {
 
 	private static final long serialVersionUID = 1L;
 
@@ -56,8 +56,7 @@ public abstract class KlavaOrProcess extends KlavaProcess implements KlavaOrProc
 	 *
 	 * @param orMutex the mutex shared with the other OR processes
 	 */
-	@Override
-    public void setOrMutex(KlavaOrMutex orMutex) {
+	void setOrMutex(KlavaOrMutex orMutex) {
 		this.orMutex = orMutex;
 	}
 

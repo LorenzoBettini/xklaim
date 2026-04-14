@@ -1,6 +1,6 @@
 package klava.topology;
 
-import java.util.Collection;
+import java.util.List;
 
 import org.mikado.imc.common.IMCException;
 import org.mikado.imc.topology.NodeProcess;
@@ -571,7 +571,7 @@ public abstract class KlavaProcess extends NodeProcess {
      * @param processes the collection of OR processes to run in parallel
      * @throws KlavaException if a process cannot be started
      */
-    protected void or(Collection<KlavaOrProcess> processes) throws KlavaException {
+    protected void or(List<KlavaOrProcess> processes) throws KlavaException {
         KlavaOrMutex mutex = new KlavaOrMutex();
         /* register all processes in the mutex before starting any of them,
          * so that interruptOthers() has a complete list when called */
