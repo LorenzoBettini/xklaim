@@ -15,6 +15,7 @@ import xklaim.xklaim.XklaimEvalOperation;
 import xklaim.xklaim.XklaimInlineProcess;
 import xklaim.xklaim.XklaimNodeEnvironmentEntry;
 import xklaim.xklaim.XklaimNonBlockingRetrieveOperation;
+import xklaim.xklaim.XklaimOrOperation;
 
 public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 	@Inject
@@ -26,6 +27,7 @@ public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 		case XklaimEvalOperation exp -> _computeTypes(exp, state);
 		case XklaimAbstractOperation exp -> _computeTypes(exp, state);
 		case XklaimInlineProcess exp -> _computeTypes(exp, state);
+		case XklaimOrOperation exp -> _computeTypes(exp, state);
 		case XklaimNodeEnvironmentEntry exp -> _computeTypes(exp, state);
 		default -> super.computeTypes(expression, state);
 		}
@@ -68,6 +70,13 @@ public class XklaimTypeComputer extends XklaimCustomXbaseTypeComputer {
 	public void _computeTypes(XklaimInlineProcess e, ITypeComputationState state) {
 		state.withoutExpectation().computeTypes(e.getBody());
 		state.acceptActualType(getRawTypeForName(KlavaProcess.class, state));
+	}
+
+	public void _computeTypes(XklaimOrOperation e, ITypeComputationState state) {
+		for (XExpression a : e.getArguments()) {
+			state.withoutExpectation().computeTypes(a);
+		}
+		state.acceptActualType(getPrimitiveVoid(state));
 	}
 
 	public void _computeTypes(XklaimNodeEnvironmentEntry e, ITypeComputationState state) {

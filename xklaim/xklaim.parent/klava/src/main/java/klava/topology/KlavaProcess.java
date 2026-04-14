@@ -1,5 +1,11 @@
 package klava.topology;
 
+import java.util.List;
+
+import org.mikado.imc.common.IMCException;
+import org.mikado.imc.topology.NodeProcess;
+import org.mikado.imc.topology.NodeProcessProxy;
+
 import klava.Environment;
 import klava.KlavaException;
 import klava.KlavaLogicalLocalityException;
@@ -8,10 +14,6 @@ import klava.LogicalLocality;
 import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.TupleItem;
-
-import org.mikado.imc.common.IMCException;
-import org.mikado.imc.topology.NodeProcess;
-import org.mikado.imc.topology.NodeProcessProxy;
 
 
 /**
@@ -521,7 +523,7 @@ public abstract class KlavaProcess extends NodeProcess {
                  */
                 throw new ProcessTerminatedException(getName());
             }
-        } catch (IMCException | InterruptedException e) {
+        } catch (IMCException | InterruptedException e) { // NOSONAR: we terminate with a KlavaException
             throw new KlavaException(e);
         }
     }
@@ -540,4 +542,37 @@ public abstract class KlavaProcess extends NodeProcess {
     protected final void setCaller(KlavaProcess caller) {
         this.caller = caller;
     }
+
+    /**
+     * Executes the given OR processes in parallel, implementing the OR operator.
+     *
+     * <p>The OR operator runs a set of {@link KlavaOrProcess}es concurrently.
+     * Each process blocks on its first retrieval operation (the "guard"). The
+     * first process to complete its guard interrupts all the others and then
+     * proceeds with the rest of its body. The interrupted processes terminate
+     * with a {@link KlavaException} wrapping the {@link InterruptedException}
+     * that arises from their blocked retrieval.</p>
+     *
+     * <p>This method performs the following steps:</p>
+     * <ol>
+     *   <li>Creates a shared {@link KlavaOrMutex} and registers it in all
+     *       processes (and registers all processes in the mutex).</li>
+     *   <li>Starts all processes in parallel via {@code eval} at the local
+     *       node ({@code self}).</li>
+     *   <li>Waits ({@code join}) for all processes to terminate before
+     *       returning, ensuring the OR operation is fully resolved.</li>
+     * </ol>
+     *
+     * <p><strong>Important assumption</strong>: the guard operations of the
+     * processes in the OR must be mutually exclusive. If two guards can succeed
+     * simultaneously, the behavior is undefined and it is not guaranteed that
+     * only one process will proceed past its guard.</p>
+     *
+     * @param processes the collection of OR processes to run in parallel
+     * @throws KlavaException if a process cannot be started
+     */
+    protected void or(List<KlavaOrProcess> processes) throws KlavaException {
+        new KlavaOrMutex().executeInOr(processes, p -> eval(p, self));
+    }
+
 }
