@@ -60,6 +60,11 @@ final class HelloWorldProject {
 			folders += "src"
 			folders += "src-gen"
 			requiredBundles += "xklaim.runtime"
+			addFile(".settings/org.eclipse.core.resources.prefs", '''
+				eclipse.preferences.version=1
+				encoding/<project>=UTF-8
+			'''
+			)
 			addFile('''src/«path»/Hello.xklaim''', '''
 				package «path»
 				
