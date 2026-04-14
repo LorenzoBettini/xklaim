@@ -572,30 +572,7 @@ public abstract class KlavaProcess extends NodeProcess {
      * @throws KlavaException if a process cannot be started
      */
     protected void or(List<KlavaOrProcess> processes) throws KlavaException {
-        KlavaOrMutex mutex = new KlavaOrMutex();
-        /* register all processes in the mutex before starting any of them,
-         * so that interruptOthers() has a complete list when called */
-        for (KlavaOrProcess p : processes) {
-            p.setOrMutex(mutex);
-            mutex.addProcess(p);
-        }
-        /* start all processes in parallel at the local node */
-        for (KlavaOrProcess p : processes) {
-            eval(p, self);
-        }
-        /* join all processes; accumulate any InterruptedException so we
-         * finish joining all threads even if this thread is interrupted */
-        InterruptedException interrupted = null;
-        for (KlavaOrProcess p : processes) {
-            try {
-                p.join();
-            } catch (InterruptedException e) { // NOSONAR: we handle this in the following lines
-                interrupted = e;
-            }
-        }
-        if (interrupted != null) {
-            throw new KlavaException(interrupted);
-        }
+        new KlavaOrMutex().executeInOr(processes, p -> eval(p, self));
     }
 
 }
