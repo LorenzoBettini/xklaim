@@ -55,6 +55,7 @@ XklaimProcess:
 XPrimaryExpression returns xbase::XExpression:
 	XklaimAbstractOperation |
 	XklaimInlineProcess |
+	XklaimOrOperation |
 	super
 ;
 
@@ -99,6 +100,10 @@ XklaimNonBlockingReadOperation returns XklaimNonBlockingRetrieveOperation:
 
 XklaimEvalOperation returns XklaimAbstractOperation:
 	{XklaimEvalOperation} op='eval' '(' arguments+=XExpression (',' arguments+=XExpression)* ')' '@' locality=XFeatureCall
+;
+
+XklaimOrOperation returns xbase::XExpression:
+	{XklaimOrOperation} op='or' '(' arguments+=XklaimInlineProcess (',' arguments+=XklaimInlineProcess)* ')'
 ;
 
 XklaimInlineProcess returns xbase::XExpression:
