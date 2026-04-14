@@ -9,4 +9,21 @@
 	<artifactId>xklaim.feature</artifactId>
 	<packaging>eclipse-feature</packaging>
 
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>xklaim</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>xklaim.ui</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>xklaim.ui.examples</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 </project>
