@@ -41,7 +41,7 @@ public abstract class KlavaOrProcess extends KlavaProcess {
 	 * Set by {@link KlavaProcess#or(java.util.List)} before the process is
 	 * started.
 	 */
-	private KlavaOrMutex orMutex;
+	private transient KlavaOrMutex orMutex;
 
 	/**
 	 * Whether the next retrieval operation is still the first one (the guard).
