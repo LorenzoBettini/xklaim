@@ -10,6 +10,9 @@
 	<artifactId>xklaim</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
+	<name>XKlaim DSL</name>
+	<description>XKlaim DSL</description>
+
 	<properties>
 		<!-- required to run MWE2 -->
 		<mwe2-file>src/xklaim/GenerateXklaim.mwe2</mwe2-file>
@@ -40,7 +43,8 @@
 				<dependencies>
 					<dependency>
 						<groupId>org.eclipse.xtext</groupId>
-						<artifactId>org.eclipse.xtext.xtext.generator.dependencies</artifactId>
+						<artifactId>
+							org.eclipse.xtext.xtext.generator.dependencies</artifactId>
 						<version>${xtextVersion}</version>
 					</dependency>
 				</dependencies>
