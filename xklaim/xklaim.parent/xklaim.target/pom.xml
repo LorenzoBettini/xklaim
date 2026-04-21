@@ -9,4 +9,7 @@
 	</parent>
 	<artifactId>xklaim.target</artifactId>
 	<packaging>eclipse-target-definition</packaging>
+
+	<name>XKlaim Target Definition</name>
+	<description>Target definition for XKlaim development.</description>
 </project>
