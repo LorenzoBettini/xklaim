@@ -324,8 +324,10 @@ public class ResponseState extends ProtocolSwitchState {
                         if (session == null)
                             throw new ProtocolException("missing session");
 
-                        putTupleBack(transmissionChannel, tuple, session
-                                .getLocalEnd(), session.getRemoteEnd());
+                        SessionId localEnd = session
+                                .getLocalEnd();
+                        SessionId remoteEnd = session.getRemoteEnd();
+                        putTupleBack(transmissionChannel, tuple, remoteEnd, localEnd);
                     }
                 }
             } catch (IOException e) {
