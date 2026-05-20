@@ -105,7 +105,7 @@ public class NewlocTest extends TestCase {
 
         /* check that the server can actually reach the newloc of the client */
         ProtocolStack protocolStack = serverNode.getNodeStack(newlocLoc);
-        assertTrue(protocolStack != null);
+        assertNotNull(protocolStack);
         assertEquals(protocolStack.getSession().getRemoteEnd(), clientLoc
                 .getSessionId());
     }
@@ -147,7 +147,7 @@ public class NewlocTest extends TestCase {
 
         /* check that the server can actually reach the newloc of the client */
         ProtocolStack protocolStack = serverNode.getNodeStack(newlocLoc);
-        assertTrue(protocolStack != null);
+        assertNotNull(protocolStack);
         assertEquals(protocolStack.getSession().getRemoteEnd(), clientLoc
                 .getSessionId());
     }

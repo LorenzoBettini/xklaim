@@ -327,7 +327,6 @@ public class NodeProcessTest extends ClientServerBase {
             /* must not get here */
             fail();
         } catch (KlavaException e) {
-            e.printStackTrace();
             assertEquals(serverLoc + ": we don't accept remote processes", e
                     .getMessage());
         }

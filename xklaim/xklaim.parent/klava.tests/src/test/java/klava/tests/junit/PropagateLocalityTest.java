@@ -102,7 +102,8 @@ public class PropagateLocalityTest extends TestCase {
                         "localhost", 40000)));
     }
 
-    public void testAddLocalities() throws UnknownHostException {
+    public void testAddLocalities() throws UnknownHostException,
+            ProtocolException, IOException {
         Vector<SessionId> vector = new Vector<SessionId>();
 
         vector.add(new IpSessionId("localhost", 10000));
@@ -111,54 +112,47 @@ public class PropagateLocalityTest extends TestCase {
 
         IpSessionId route = new IpSessionId("localhost", 9999);
 
-        try {
-            PropagateLocalityState.propagateAddLocalities(protocolStackOut,
-                    vector);
+        PropagateLocalityState.propagateAddLocalities(protocolStackOut,
+                vector);
 
-            initialiazeForRead();
+        initialiazeForRead();
 
-            PropagateLocalityState propagateLocalityState = new PropagateLocalityState(
-                    routingTable);
-            propagateLocalityState.setEventManager(eventManager);
+        PropagateLocalityState propagateLocalityState = new PropagateLocalityState(
+                routingTable);
+        propagateLocalityState.setEventManager(eventManager);
 
-            // the added stack is dummy
-            routingTable.addRoute(route, protocolStackOut);
+        // the added stack is dummy
+        routingTable.addRoute(route, protocolStackOut);
 
-            propagateLocalityState.setProtocolStack(protocolStackIn);
-            propagateLocalityState.enter(null, new TransmissionChannel(
-                    new IMCUnMarshaler(in)));
+        propagateLocalityState.setProtocolStack(protocolStackIn);
+        propagateLocalityState.enter(null, new TransmissionChannel(
+                new IMCUnMarshaler(in)));
 
-            assertTrue(routingTable
-                    .hasRoute(new IpSessionId("localhost", 10000)));
-            assertTrue(routingTable
-                    .hasRoute(new IpSessionId("localhost", 10001)));
-            assertTrue(routingTable
-                    .hasRoute(new IpSessionId("localhost", 10002)));
+        assertTrue(routingTable
+                .hasRoute(new IpSessionId("localhost", 10000)));
+        assertTrue(routingTable
+                .hasRoute(new IpSessionId("localhost", 10001)));
+        assertTrue(routingTable
+                .hasRoute(new IpSessionId("localhost", 10002)));
 
-            assertFalse(routingTable.hasRoute(new IpSessionId("localhost",
-                    20000)));
+        assertFalse(routingTable.hasRoute(new IpSessionId("localhost",
+                20000)));
 
-            String events = logEventListener.toString();
-            System.out.println("Events: " + events);
+        String events = logEventListener.toString();
+        System.out.println("Events: " + events);
 
-            assertTrue(events.indexOf(new IpSessionId("localhost", 10000)
-                    .toString()) >= 0);
-            assertTrue(events.indexOf(new IpSessionId("localhost", 10001)
-                    .toString()) >= 0);
-            assertTrue(events.indexOf(new IpSessionId("localhost", 10002)
-                    .toString()) >= 0);
-            assertFalse(events.indexOf(new IpSessionId("localhost", 20000)
-                    .toString()) >= 0);
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
+        assertTrue(events.indexOf(new IpSessionId("localhost", 10000)
+                .toString()) >= 0);
+        assertTrue(events.indexOf(new IpSessionId("localhost", 10001)
+                .toString()) >= 0);
+        assertTrue(events.indexOf(new IpSessionId("localhost", 10002)
+                .toString()) >= 0);
+        assertFalse(events.indexOf(new IpSessionId("localhost", 20000)
+                .toString()) >= 0);
     }
 
-    public void testRemoveLocalities() throws UnknownHostException, ProtocolException {
+    public void testRemoveLocalities() throws UnknownHostException,
+            ProtocolException, IOException {
         Vector<SessionId> vector = new Vector<SessionId>();
 
         vector.add(new IpSessionId("localhost", 10000));
@@ -167,56 +161,48 @@ public class PropagateLocalityTest extends TestCase {
 
         SessionId route = protocolStackOut.getSession().getRemoteEnd();
 
-        try {
-            PropagateLocalityState.propagateRemoveLocalities(protocolStackOut,
-                    new IpSessionId("localhost", 10001));
+        PropagateLocalityState.propagateRemoveLocalities(protocolStackOut,
+                new IpSessionId("localhost", 10001));
 
-            initialiazeForRead();
+        initialiazeForRead();
 
-            PropagateLocalityState propagateLocalityState = new PropagateLocalityState(
-                    routingTable);
-            propagateLocalityState.setEventManager(eventManager);
+        PropagateLocalityState propagateLocalityState = new PropagateLocalityState(
+                routingTable);
+        propagateLocalityState.setEventManager(eventManager);
 
-            routingTable.setEventManager(null); // suspend events
-            // the added stack is dummy
-            routingTable.addRoute(route, protocolStackOut);
-            assertTrue(routingTable.addRoute(new IpSessionId("localhost", 10000), route, protocolStackOut));
-            assertTrue(routingTable.addRoute(new IpSessionId("localhost", 10001), route, protocolStackOut));
-            assertTrue(routingTable.addRoute(new IpSessionId("localhost", 10002), route, protocolStackOut));
+        routingTable.setEventManager(null); // suspend events
+        // the added stack is dummy
+        routingTable.addRoute(route, protocolStackOut);
+        assertTrue(routingTable.addRoute(new IpSessionId("localhost", 10000), route, protocolStackOut));
+        assertTrue(routingTable.addRoute(new IpSessionId("localhost", 10001), route, protocolStackOut));
+        assertTrue(routingTable.addRoute(new IpSessionId("localhost", 10002), route, protocolStackOut));
 
-            routingTable.setEventManager(eventManager); // enable events
+        routingTable.setEventManager(eventManager); // enable events
 
-            propagateLocalityState.enter(null, new TransmissionChannel(
-                    new IMCUnMarshaler(in)));
+        propagateLocalityState.enter(null, new TransmissionChannel(
+                new IMCUnMarshaler(in)));
 
-            assertTrue(routingTable
-                    .hasRoute(new IpSessionId("localhost", 10000)));
-            assertTrue(routingTable
-                    .hasRoute(new IpSessionId("localhost", 10002)));
+        assertTrue(routingTable
+                .hasRoute(new IpSessionId("localhost", 10000)));
+        assertTrue(routingTable
+                .hasRoute(new IpSessionId("localhost", 10002)));
 
-            // the following has been removed
-            assertFalse(routingTable.hasRoute(new IpSessionId("localhost",
-                    10001)));
+        // the following has been removed
+        assertFalse(routingTable.hasRoute(new IpSessionId("localhost",
+                10001)));
 
-            // the following has never been inserted
-            assertFalse(routingTable.hasRoute(new IpSessionId("localhost",
-                    20000)));
+        // the following has never been inserted
+        assertFalse(routingTable.hasRoute(new IpSessionId("localhost",
+                20000)));
 
-            String events = logEventListener.toString();
-            System.out.println("Events: " + events);
+        String events = logEventListener.toString();
+        System.out.println("Events: " + events);
 
-            assertFalse(events.indexOf(new IpSessionId("localhost", 10000)
-                    .toString()) >= 0);
-            assertTrue(events.indexOf(new IpSessionId("localhost", 10001)
-                    .toString()) >= 0);
-            assertFalse(events.indexOf(new IpSessionId("localhost", 10002)
-                    .toString()) >= 0);
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
+        assertFalse(events.indexOf(new IpSessionId("localhost", 10000)
+                .toString()) >= 0);
+        assertTrue(events.indexOf(new IpSessionId("localhost", 10001)
+                .toString()) >= 0);
+        assertFalse(events.indexOf(new IpSessionId("localhost", 10002)
+                .toString()) >= 0);
     }
 }

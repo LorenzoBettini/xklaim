@@ -264,8 +264,8 @@ public class ForwardRequestTest extends ClientServerBase {
         serverNode.addToEnvironment(locality, serverLoc);
 
         /* the client must not be able to solve it itself */
-        assertTrue(clientNode.getEnvironment().toPhysical(locality) == null);
-        assertTrue(serverNode.getEnvironment().toPhysical(locality) != null);
+        assertNull(clientNode.getEnvironment().toPhysical(locality));
+        assertNotNull(serverNode.getEnvironment().toPhysical(locality));
 
         /*
          * this first version won't be able to resolve it since it knows nothing
@@ -293,8 +293,8 @@ public class ForwardRequestTest extends ClientServerBase {
         serverNode2.addToEnvironment(locality, serverLoc2);
 
         /* the client must not be able to solve it itself */
-        assertTrue(clientNode.getEnvironment().toPhysical(locality) == null);
-        assertTrue(serverNode2.getEnvironment().toPhysical(locality) != null);
+        assertNull(clientNode.getEnvironment().toPhysical(locality));
+        assertNotNull(serverNode2.getEnvironment().toPhysical(locality));
 
         /*
          * this first version won't be able to resolve it since it knows nothing
@@ -377,14 +377,14 @@ public class ForwardRequestTest extends ClientServerBase {
          */
         ProtocolStack clientStack = serverNode.getRoutingTable()
                 .getProtocolStack(clientToServerLoc.getSessionId());
-        assertTrue(clientStack != null);
+        assertNotNull(clientStack);
         ProtocolStack server2Stack = serverNode.getRoutingTable()
                 .getProtocolStack(serverLoc2.getSessionId());
-        assertTrue(server2Stack != null);
+        assertNotNull(server2Stack);
         assertTrue(server2Stack == clientStack);
         ProtocolStack server3Stack = serverNode.getRoutingTable()
                 .getProtocolStack(serverLoc3.getSessionId());
-        assertTrue(server3Stack == null);
+        assertNull(server3Stack);
 
         /*
          * client must have a (direct) route to server and server2, but not
@@ -392,13 +392,13 @@ public class ForwardRequestTest extends ClientServerBase {
          */
         ProtocolStack serverStack = clientNode.getRoutingTable()
                 .getProtocolStack(serverLoc.getSessionId());
-        assertTrue(serverStack != null);
+        assertNotNull(serverStack);
         serverStack = clientNode.getRoutingTable().getProtocolStack(
                 serverLoc2.getSessionId());
-        assertTrue(serverStack != null);
+        assertNotNull(serverStack);
         serverStack = clientNode.getRoutingTable().getProtocolStack(
                 serverLoc3.getSessionId());
-        assertTrue(serverStack == null);
+        assertNull(serverStack);
 
         /*
          * server2 must have a (direct) route to client and to server3 and an
@@ -406,13 +406,13 @@ public class ForwardRequestTest extends ClientServerBase {
          */
         clientStack = serverNode2.getRoutingTable().getProtocolStack(
                 clientToServer2Loc.getSessionId());
-        assertTrue(clientStack != null);
+        assertNotNull(clientStack);
         server3Stack = serverNode2.getRoutingTable().getProtocolStack(
                 serverLoc3.getSessionId());
-        assertTrue(server3Stack != null);
+        assertNotNull(server3Stack);
         server2Stack = serverNode2.getRoutingTable().getProtocolStack(
                 serverLoc.getSessionId());
-        assertTrue(server2Stack != null);
+        assertNotNull(server2Stack);
         assertTrue(server2Stack == clientStack);
 
         /*
@@ -421,14 +421,14 @@ public class ForwardRequestTest extends ClientServerBase {
          */
         server2Stack = serverNode3.getRoutingTable().getProtocolStack(
                 server2ToServer3Loc.getSessionId());
-        assertTrue(server2Stack != null);
+        assertNotNull(server2Stack);
         serverStack = serverNode3.getRoutingTable().getProtocolStack(
                 serverLoc.getSessionId());
-        assertTrue(serverStack != null);
+        assertNotNull(serverStack);
         assertTrue(serverStack == server2Stack);
         clientStack = serverNode3.getRoutingTable().getProtocolStack(
                 clientToServer2Loc.getSessionId());
-        assertTrue(clientStack != null);
+        assertNotNull(clientStack);
         assertTrue(clientStack == server2Stack);
 
         /*
@@ -449,8 +449,8 @@ public class ForwardRequestTest extends ClientServerBase {
         waitingForResponseProcess.join();
 
         System.out.println("response: " + response.responseContent);
-        assertTrue(response.error == null);
-        assertTrue(response.responseContent != null);
+        assertNull(response.error);
+        assertNotNull(response.responseContent);
         assertEquals("OK", response.responseContent);
 
         /*
@@ -490,8 +490,8 @@ public class ForwardRequestTest extends ClientServerBase {
 
         waitingForTupleProcess.join();
 
-        assertTrue(tupleResponse.error == null);
-        assertTrue(tupleResponse.responseContent != null);
+        assertNull(tupleResponse.error);
+        assertNotNull(tupleResponse.responseContent);
 
         System.out.println("tuple response: " + tupleResponse.responseContent);
 
@@ -542,8 +542,8 @@ public class ForwardRequestTest extends ClientServerBase {
         waitingForResponseProcess.join();
 
         System.out.println("response: " + response.responseContent);
-        assertTrue(response.error == null);
-        assertTrue(response.responseContent != null);
+        assertNull(response.error);
+        assertNotNull(response.responseContent);
         assertEquals("OK", response.responseContent);
 
         /*
@@ -577,7 +577,7 @@ public class ForwardRequestTest extends ClientServerBase {
         waitingForResponseProcess.join();
 
         System.out.println("response: " + response);
-        assertTrue(response.error != null);
+        assertNotNull(response.error);
         assertEquals(response.error, ResponseState.FAIL_S);
 
         /*
@@ -605,7 +605,7 @@ public class ForwardRequestTest extends ClientServerBase {
                 new PhysicalLocality(bogus));
 
         System.out.println("response: " + response);
-        assertTrue(response.error != null);
+        assertNotNull(response.error);
         assertEquals(response.error, ResponseState.FAIL_S);
 
         /*
@@ -652,8 +652,6 @@ public class ForwardRequestTest extends ClientServerBase {
             /* should not get here */
             fail();
         } catch (KlavaException e) {
-            e.printStackTrace();
-
             assertTrue(e instanceof KlavaPhysicalLocalityException);
             assertEquals(e.getMessage(), "no route to " + bogusLocality);
         }
@@ -678,24 +676,24 @@ public class ForwardRequestTest extends ClientServerBase {
          */
         server3Stack = serverNode4.getRoutingTable().getProtocolStack(
                 server3ToServer4Loc.getSessionId());
-        assertTrue(server3Stack != null);
+        assertNotNull(server3Stack);
         serverStack = serverNode4.getRoutingTable().getProtocolStack(
                 serverLoc.getSessionId());
-        assertTrue(serverStack != null);
+        assertNotNull(serverStack);
         assertTrue(serverStack == server3Stack);
         server2Stack = serverNode4.getRoutingTable().getProtocolStack(
                 server2ToServer3Loc.getSessionId());
-        assertTrue(server2Stack != null);
+        assertNotNull(server2Stack);
         assertTrue(server2Stack == server3Stack);
         clientStack = serverNode4.getRoutingTable().getProtocolStack(
                 clientToServer2Loc.getSessionId());
-        assertTrue(clientStack != null);
+        assertNotNull(clientStack);
         assertTrue(clientStack == server3Stack);
 
         /* server2 must not know server4 */
         ProtocolStack server4Stack = serverNode2.getRoutingTable()
                 .getProtocolStack(serverLoc4.getSessionId());
-        assertTrue(server4Stack == null);
+        assertNull(server4Stack);
 
         /*
          * now client tries to send a tuple to to server4, and it knows nothing
@@ -768,19 +766,14 @@ public class ForwardRequestTest extends ClientServerBase {
     void checkOkResolution(
             LogicalLocality locality,
             PhysicalLocality expected,
-            EnvironmentLogicalLocalityResolver environmentLogicalLocalityResolver) {
-        PhysicalLocality physicalLocality;
-        try {
-            physicalLocality = environmentLogicalLocalityResolver
-                    .resolve(locality);
+            EnvironmentLogicalLocalityResolver environmentLogicalLocalityResolver)
+            throws KlavaException {
+        PhysicalLocality physicalLocality = environmentLogicalLocalityResolver
+                .resolve(locality);
 
-            System.out.println("obtained locality: " + physicalLocality);
+        System.out.println("obtained locality: " + physicalLocality);
 
-            assertEquals(expected, physicalLocality);
-        } catch (KlavaException e) {
-            e.printStackTrace();
-            fail(); // must not get here
-        }
+        assertEquals(expected, physicalLocality);
     }
 
     void checkFailResolution(

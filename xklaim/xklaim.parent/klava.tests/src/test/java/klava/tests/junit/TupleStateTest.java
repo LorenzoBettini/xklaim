@@ -59,7 +59,7 @@ public class TupleStateTest extends TestCase {
         write_and_read_tuple(t1, true);
     }
 
-    public void testTupleWrite() {
+    public void testTupleWrite() throws ProtocolException {
         IMCMarshaler marshaler = new IMCMarshaler(System.out);
 
         Tuple tuple = new Tuple(Integer.class, new KString("hello"),
@@ -70,20 +70,15 @@ public class TupleStateTest extends TestCase {
 
         tupleState.setDoRead(false);
 
-        try {
-            System.out.println("writing " + tuple);
-            tupleState.setTuple(tuple);
-            tupleState.enter(null, new TransmissionChannel(marshaler));
-            tupleState.setTuple(new Tuple(tuple, tuple));
-            System.out.println("writing " + tupleState.getTuple());
-            tupleState.enter(null, new TransmissionChannel(marshaler));
-            tupleState.setTuple(new Tuple(tupleSpace));
-            System.out.println("writing " + tupleState.getTuple());
-            tupleState.enter(null, new TransmissionChannel(marshaler));
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-            assertTrue(false);
-        }
+        System.out.println("writing " + tuple);
+        tupleState.setTuple(tuple);
+        tupleState.enter(null, new TransmissionChannel(marshaler));
+        tupleState.setTuple(new Tuple(tuple, tuple));
+        System.out.println("writing " + tupleState.getTuple());
+        tupleState.enter(null, new TransmissionChannel(marshaler));
+        tupleState.setTuple(new Tuple(tupleSpace));
+        System.out.println("writing " + tupleState.getTuple());
+        tupleState.enter(null, new TransmissionChannel(marshaler));
     }
 
     public void testTupleWriteRead() throws ProtocolException, IOException,
