@@ -450,6 +450,62 @@ public class ResponseStateTest extends TestCase {
         }
     }
 
+    public void testInResponseNoWaitingProcess_putsTupleBack() {
+        try {
+            // No process registered in waitingForTuple — simulates the requesting
+            // process having gone away after sending the IN
+
+            Tuple tuple = new Tuple(new KInteger(10), new String("foo"));
+
+            // Send an IN response with a tuple; the destination is our local end
+            // so it won't be forwarded, and the process name "gone" is not in
+            // waitingForTuple, so the tuple must be put back
+            Marshaler marshaler = protocolStack.createMarshaler();
+            ResponseState.sendResponseTuple(marshaler, TuplePacket.IN_S, tuple,
+                    protocolStack.getSession().getRemoteEnd(),
+                    protocolStack.getSession().getLocalEnd(), "gone", true);
+            protocolStack.releaseMarshaler(marshaler);
+
+            UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
+
+            // capture anything written back by the ResponseState
+            ByteArrayOutputStream forResponses = new ByteArrayOutputStream();
+
+            String response = unMarshaler.readStringLine();
+            assertEquals(ResponseState.RESPONSE_S, response);
+
+            responseState.enter(null, new TransmissionChannel(
+                    new IMCMarshaler(forResponses), unMarshaler));
+
+            // since it was an IN response and no process was waiting,
+            // the tuple must be put back
+            byte[] res = forResponses.toByteArray();
+            assertTrue("expected tuple-back packet to be written", res.length > 0);
+
+            // parse the put-back packet and verify it contains the original tuple
+            TupleOpState tupleOpState = new TupleOpState();
+            tupleOpState.setDoRead(true);
+            tupleOpState.enter(null, new TransmissionChannel(
+                    new IMCUnMarshaler(new ByteArrayInputStream(res))));
+
+            TuplePacket tuplePacket = tupleOpState.getTuplePacket();
+
+            System.out.println("tuple put back: " + tuplePacket);
+
+            assertEquals(TuplePacket.TUPLEBACK_S, tuplePacket.operation);
+            assertEquals(protocolStack.getSession().getRemoteEnd().toString(),
+                    tuplePacket.Dest.toString());
+            assertEquals(protocolStack.getSession().getLocalEnd().toString(),
+                    tuplePacket.Source.toString());
+            assertEquals(tuple, tuplePacket.tuple);
+        } catch (ProtocolException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        } catch (IOException e) {
+            fail(e.getMessage());
+        }
+    }
+
     public void testResolveLocality() throws InterruptedException {
         try {
             LocalityResolverState localityResolverState = new LocalityResolverState(
