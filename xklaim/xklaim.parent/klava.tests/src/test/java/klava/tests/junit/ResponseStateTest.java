@@ -62,7 +62,7 @@ public class ResponseStateTest extends TestCase {
         protocolStack = new ProtocolStack(protocolLayer);
         /* we need a fake Session */
         protocolStack.setSession(new Session(protocolLayer, new IpSessionId(
-                "localhost", 9999), new IpSessionId("localhost", 10000)));
+            "localhost", 9999), new IpSessionId("localhost", 10000)));
         responseState = new ResponseState();
         responseState.setProtocolStack(protocolStack);
         /*
@@ -81,540 +81,487 @@ public class ResponseStateTest extends TestCase {
         super.tearDown();
     }
 
-    public void testResponseOut() throws InterruptedException {
-        try {
-            /* the response shared with the thread */
-            Response<String> response = new Response<String>();
+    public void testResponseOut() throws InterruptedException,
+            ProtocolException, IOException {
+        /* the response shared with the thread */
+        Response<String> response = new Response<String>();
 
-            /* the concurrent thread that'll wait for the response */
-            WaitingForResponseProcess<Response<String>> waitingForResponseProcess = new WaitingForResponseProcess<Response<String>>(
-                    "waiting thread");
-            waitingForResponseProcess.response = response;
-            WaitingForResponse<Response<String>> waitingForResponse = new WaitingForResponse<Response<String>>();
-            waitingForResponse.put(waitingForResponseProcess.getName(),
-                    response);
-            waitingForResponseProcess.start();
+        /* the concurrent thread that'll wait for the response */
+        WaitingForResponseProcess<Response<String>> waitingForResponseProcess = new WaitingForResponseProcess<Response<String>>(
+                "waiting thread");
+        waitingForResponseProcess.response = response;
+        WaitingForResponse<Response<String>> waitingForResponse = new WaitingForResponse<Response<String>>();
+        waitingForResponse.put(waitingForResponseProcess.getName(),
+                response);
+        waitingForResponseProcess.start();
 
-            /* the response state will share the same WaitingForResponse */
-            responseState.setWaitingForResponse(waitingForResponse);
+        /* the response state will share the same WaitingForResponse */
+        responseState.setWaitingForResponse(waitingForResponse);
 
-            /*
-             * as the destination we use the local end of the protocolStack,
-             * since this will be the same of the local end of the state that's
-             * reading the response
-             */
-            Marshaler marshaler = protocolStack.createMarshaler();
-            ResponseState.sendResponseOut(marshaler, protocolStack.getSession()
-                    .getLocalEnd(), waitingForResponseProcess.getName(), true);
-            protocolStack.releaseMarshaler(marshaler);
+        /*
+         * as the destination we use the local end of the protocolStack,
+         * since this will be the same of the local end of the state that's
+         * reading the response
+         */
+        Marshaler marshaler = protocolStack.createMarshaler();
+        ResponseState.sendResponseOut(marshaler, protocolStack.getSession()
+                .getLocalEnd(), waitingForResponseProcess.getName(), true);
+        protocolStack.releaseMarshaler(marshaler);
 
-            UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
-            String res = unMarshaler.readStringLine();
-            assertEquals(ResponseState.RESPONSE_S, res);
-            responseState.setProtocolStack(protocolStack);
-            responseState.enter(null, new TransmissionChannel(unMarshaler));
+        UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
+        String res = unMarshaler.readStringLine();
+        assertEquals(ResponseState.RESPONSE_S, res);
+        responseState.setProtocolStack(protocolStack);
+        responseState.enter(null, new TransmissionChannel(unMarshaler));
 
-            waitingForResponseProcess.join();
+        waitingForResponseProcess.join();
 
-            assertTrue(response.error == null);
-            assertTrue(response.responseContent != null);
+        assertNull(response.error);
+        assertNotNull(response.responseContent);
 
-            System.out.println("response: " + response.responseContent);
+        System.out.println("response: " + response.responseContent);
 
-            assertEquals(ResponseState.OK_S, response.responseContent);
-        } catch (ProtocolException e) {
-            fail(e.getMessage());
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
+        assertEquals(ResponseState.OK_S, response.responseContent);
     }
 
-    public void testOK() throws InterruptedException {
-        try {
-            // the response shared with the thread
-            Response<String> response = new Response<String>();
+    public void testOK() throws InterruptedException, ProtocolException,
+            IOException {
+        // the response shared with the thread
+        Response<String> response = new Response<String>();
 
-            // the concurrent thread that'll wait for the response
-            WaitingForResponseProcess<Response<String>> waitingForResponseProcess = new WaitingForResponseProcess<Response<String>>(
-                    "waiting thread");
-            waitingForResponseProcess.response = response;
-            WaitingForResponse<Response<String>> waitingForResponse = new WaitingForResponse<Response<String>>();
-            waitingForResponse.put(waitingForResponseProcess.getName(),
-                    response);
-            waitingForResponseProcess.start();
+        // the concurrent thread that'll wait for the response
+        WaitingForResponseProcess<Response<String>> waitingForResponseProcess = new WaitingForResponseProcess<Response<String>>(
+                "waiting thread");
+        waitingForResponseProcess.response = response;
+        WaitingForResponse<Response<String>> waitingForResponse = new WaitingForResponse<Response<String>>();
+        waitingForResponse.put(waitingForResponseProcess.getName(),
+                response);
+        waitingForResponseProcess.start();
 
-            // the response state will share the same WaitingForResponse
-            responseState.setWaitingForResponse(waitingForResponse);
+        // the response state will share the same WaitingForResponse
+        responseState.setWaitingForResponse(waitingForResponse);
 
-            /*
-             * as the destination we use the local end of the protocolStack,
-             * since this will be the same of the local end of the state that's
-             * reading the response
-             */
-            Marshaler marshaler = protocolStack.createMarshaler();
-            ResponseState.sendResponseOkError(marshaler, TuplePacket.EVAL_S,
-                    "OK", protocolStack.getSession().getLocalEnd(),
-                    waitingForResponseProcess.getName());
-            protocolStack.releaseMarshaler(marshaler);
+        /*
+         * as the destination we use the local end of the protocolStack,
+         * since this will be the same of the local end of the state that's
+         * reading the response
+         */
+        Marshaler marshaler = protocolStack.createMarshaler();
+        ResponseState.sendResponseOkError(marshaler, TuplePacket.EVAL_S,
+                "OK", protocolStack.getSession().getLocalEnd(),
+                waitingForResponseProcess.getName());
+        protocolStack.releaseMarshaler(marshaler);
 
-            UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
-            String res = unMarshaler.readStringLine();
-            assertEquals(ResponseState.RESPONSE_S, res);
-            responseState.setProtocolStack(protocolStack);
-            responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
-                    System.err), unMarshaler));
+        UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
+        String res = unMarshaler.readStringLine();
+        assertEquals(ResponseState.RESPONSE_S, res);
+        responseState.setProtocolStack(protocolStack);
+        responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
+                System.err), unMarshaler));
 
-            waitingForResponseProcess.join();
+        waitingForResponseProcess.join();
 
-            assertTrue(response.error == null);
-            assertTrue(response.responseContent != null);
+        assertNull(response.error);
+        assertNotNull(response.responseContent);
 
-            System.out.println("response: " + response.responseContent);
+        System.out.println("response: " + response.responseContent);
 
-            assertEquals("OK", response.responseContent);
-        } catch (ProtocolException e) {
-            fail(e.getMessage());
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
+        assertEquals("OK", response.responseContent);
     }
     
-    public void testHasRoute() throws InterruptedException {
-        try {
-            // the response shared with the thread
-            Response<String> response = new Response<String>();
+    public void testHasRoute() throws InterruptedException, ProtocolException,
+            IOException {
+        // the response shared with the thread
+        Response<String> response = new Response<String>();
 
-            // the concurrent thread that'll wait for the response
-            WaitingForResponseProcess<Response<String>> waitingForResponseProcess = new WaitingForResponseProcess<Response<String>>(
-                    "waiting thread");
-            waitingForResponseProcess.response = response;
-            WaitingForResponse<Response<String>> waitingForResponse = new WaitingForResponse<Response<String>>();
-            waitingForResponse.put(waitingForResponseProcess.getName(),
-                    response);
-            waitingForResponseProcess.start();
+        // the concurrent thread that'll wait for the response
+        WaitingForResponseProcess<Response<String>> waitingForResponseProcess = new WaitingForResponseProcess<Response<String>>(
+                "waiting thread");
+        waitingForResponseProcess.response = response;
+        WaitingForResponse<Response<String>> waitingForResponse = new WaitingForResponse<Response<String>>();
+        waitingForResponse.put(waitingForResponseProcess.getName(),
+                response);
+        waitingForResponseProcess.start();
 
-            // the response state will share the same WaitingForResponse
-            responseState.setWaitingForResponse(waitingForResponse);
+        // the response state will share the same WaitingForResponse
+        responseState.setWaitingForResponse(waitingForResponse);
 
-            /*
-             * as the destination we use the local end of the protocolStack,
-             * since this will be the same of the local end of the state that's
-             * reading the response
-             */
-            Marshaler marshaler = protocolStack.createMarshaler();
-            ResponseState.sendResponseOkError(marshaler, RouteFinderState.HASROUTE_S,
-                    "OK", protocolStack.getSession().getLocalEnd(),
-                    waitingForResponseProcess.getName());
-            protocolStack.releaseMarshaler(marshaler);
+        /*
+         * as the destination we use the local end of the protocolStack,
+         * since this will be the same of the local end of the state that's
+         * reading the response
+         */
+        Marshaler marshaler = protocolStack.createMarshaler();
+        ResponseState.sendResponseOkError(marshaler, RouteFinderState.HASROUTE_S,
+                "OK", protocolStack.getSession().getLocalEnd(),
+                waitingForResponseProcess.getName());
+        protocolStack.releaseMarshaler(marshaler);
 
-            UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
-            String res = unMarshaler.readStringLine();
-            assertEquals(ResponseState.RESPONSE_S, res);
-            responseState.setProtocolStack(protocolStack);
-            responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
-                    System.err), unMarshaler));
+        UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
+        String res = unMarshaler.readStringLine();
+        assertEquals(ResponseState.RESPONSE_S, res);
+        responseState.setProtocolStack(protocolStack);
+        responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
+                System.err), unMarshaler));
 
-            waitingForResponseProcess.join();
+        waitingForResponseProcess.join();
 
-            assertTrue(response.error == null);
-            assertTrue(response.responseContent != null);
+        assertNull(response.error);
+        assertNotNull(response.responseContent);
 
-            System.out.println("response: " + response.responseContent);
+        System.out.println("response: " + response.responseContent);
 
-            assertEquals("OK", response.responseContent);
-        } catch (ProtocolException e) {
-            fail(e.getMessage());
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
+        assertEquals("OK", response.responseContent);
     }
 
-    public void testTuple() throws InterruptedException {
-        try {
-            /* the response shared with the thread */
-            TupleResponse tupleResponse = new TupleResponse();
+    public void testTuple() throws InterruptedException, ProtocolException,
+            IOException {
+        /* the response shared with the thread */
+        TupleResponse tupleResponse = new TupleResponse();
 
-            /* the concurrent thread that'll wait for the response */
-            WaitingForResponseProcess<TupleResponse> waitingForTupleProcess = new WaitingForResponseProcess<TupleResponse>(
-                    "waiting thread");
-            waitingForTupleProcess.response = tupleResponse;
-            WaitingForResponse<TupleResponse> waitingForTuple = new WaitingForResponse<TupleResponse>();
-            waitingForTuple
-                    .put(waitingForTupleProcess.getName(), tupleResponse);
-            waitingForTupleProcess.start();
+        /* the concurrent thread that'll wait for the response */
+        WaitingForResponseProcess<TupleResponse> waitingForTupleProcess = new WaitingForResponseProcess<TupleResponse>(
+                "waiting thread");
+        waitingForTupleProcess.response = tupleResponse;
+        WaitingForResponse<TupleResponse> waitingForTuple = new WaitingForResponse<TupleResponse>();
+        waitingForTuple
+                .put(waitingForTupleProcess.getName(), tupleResponse);
+        waitingForTupleProcess.start();
 
-            /* the response state will share the same WaitingForResponse */
-            responseState.setWaitingForTuple(waitingForTuple);
+        /* the response state will share the same WaitingForResponse */
+        responseState.setWaitingForTuple(waitingForTuple);
 
-            /*
-             * as the destination we use the local end of the protocolStack,
-             * since this will be the same of the local end of the state that's
-             * reading the response, and as the source the remote end, for the
-             * same reason
-             */
-            Marshaler marshaler = protocolStack.createMarshaler();
-            Tuple tuple = new Tuple(new KInteger(10), new String("foo"));
-            ResponseState.sendResponseTuple(marshaler, TuplePacket.IN_S, tuple,
-                    protocolStack.getSession().getRemoteEnd(), protocolStack
-                            .getSession().getLocalEnd(), waitingForTupleProcess
-                            .getName(), true);
-            protocolStack.releaseMarshaler(marshaler);
+        /*
+         * as the destination we use the local end of the protocolStack,
+         * since this will be the same of the local end of the state that's
+         * reading the response, and as the source the remote end, for the
+         * same reason
+         */
+        Marshaler marshaler = protocolStack.createMarshaler();
+        Tuple tuple = new Tuple(new KInteger(10), new String("foo"));
+        ResponseState.sendResponseTuple(marshaler, TuplePacket.IN_S, tuple,
+                protocolStack.getSession().getRemoteEnd(), protocolStack
+                        .getSession().getLocalEnd(), waitingForTupleProcess
+                        .getName(), true);
+        protocolStack.releaseMarshaler(marshaler);
 
-            UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
-            String response = unMarshaler.readStringLine();
-            assertEquals(ResponseState.RESPONSE_S, response);
+        UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
+        String response = unMarshaler.readStringLine();
+        assertEquals(ResponseState.RESPONSE_S, response);
 
-            responseState.setProtocolStack(protocolStack);
-            responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
-                    System.err), unMarshaler));
+        responseState.setProtocolStack(protocolStack);
+        responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
+                System.err), unMarshaler));
 
-            waitingForTupleProcess.join();
+        waitingForTupleProcess.join();
 
-            assertTrue(tupleResponse.error == null);
-            assertTrue(tupleResponse.responseContent != null);
+        assertNull(tupleResponse.error);
+        assertNotNull(tupleResponse.responseContent);
 
-            System.out.println("tuple response: "
-                    + tupleResponse.responseContent);
+        System.out.println("tuple response: "
+                + tupleResponse.responseContent);
 
-            assertEquals(tupleResponse.responseContent, tuple);
+        assertEquals(tupleResponse.responseContent, tuple);
 
-            marshaler = protocolStack.createMarshaler();
-            // the process name is intentionally wrong
-            ResponseState.sendResponseTuple(marshaler, TuplePacket.READ_S,
-                    tuple, protocolStack.getSession().getRemoteEnd(),
-                    protocolStack.getSession().getLocalEnd(), "foo", true);
-            protocolStack.releaseMarshaler(marshaler);
+        marshaler = protocolStack.createMarshaler();
+        // the process name is intentionally wrong
+        ResponseState.sendResponseTuple(marshaler, TuplePacket.READ_S,
+                tuple, protocolStack.getSession().getRemoteEnd(),
+                protocolStack.getSession().getLocalEnd(), "foo", true);
+        protocolStack.releaseMarshaler(marshaler);
 
-            unMarshaler = protocolStack.createUnMarshaler();
+        unMarshaler = protocolStack.createUnMarshaler();
 
-            // this will be used to read responses from the ResponseState
-            ByteArrayOutputStream forResponses = new ByteArrayOutputStream();
+        // this will be used to read responses from the ResponseState
+        ByteArrayOutputStream forResponses = new ByteArrayOutputStream();
 
-            response = unMarshaler.readStringLine();
-            assertEquals(ResponseState.RESPONSE_S, response);
+        response = unMarshaler.readStringLine();
+        assertEquals(ResponseState.RESPONSE_S, response);
 
-            responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
-                    forResponses), unMarshaler));
+        responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
+                forResponses), unMarshaler));
 
-            // since it was a READ response, even if the process is
-            // non-existence we must not receive anything back
-            byte res[] = forResponses.toByteArray();
-            assertEquals(res.length, 0);
+        // since it was a READ response, even if the process is
+        // non-existence we must not receive anything back
+        byte res[] = forResponses.toByteArray();
+        assertEquals(res.length, 0);
 
-            marshaler = protocolStack.createMarshaler();
-            // the process name is intentionally wrong
-            ResponseState.sendResponseTuple(marshaler, TuplePacket.IN_S, tuple,
-                    protocolStack.getSession().getRemoteEnd(), protocolStack
-                            .getSession().getLocalEnd(), "foo", true);
-            protocolStack.releaseMarshaler(marshaler);
+        marshaler = protocolStack.createMarshaler();
+        // the process name is intentionally wrong
+        ResponseState.sendResponseTuple(marshaler, TuplePacket.IN_S, tuple,
+                protocolStack.getSession().getRemoteEnd(), protocolStack
+                        .getSession().getLocalEnd(), "foo", true);
+        protocolStack.releaseMarshaler(marshaler);
 
-            unMarshaler = protocolStack.createUnMarshaler();
+        unMarshaler = protocolStack.createUnMarshaler();
 
-            // this will be used to read responses from the ResponseState
-            forResponses = new ByteArrayOutputStream();
+        // this will be used to read responses from the ResponseState
+        forResponses = new ByteArrayOutputStream();
 
-            response = unMarshaler.readStringLine();
-            assertEquals(ResponseState.RESPONSE_S, response);
+        response = unMarshaler.readStringLine();
+        assertEquals(ResponseState.RESPONSE_S, response);
 
-            // we must set a session because it is used by the response state
-            // to send the tuple back
-            protocolStack.setSession(new Session(protocolLayer,
-                    new IpSessionId("localhost", 9999), new IpSessionId(
-                            "localhost", 11000)));
-            responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
-                    forResponses), unMarshaler));
+        // we must set a session because it is used by the response state
+        // to send the tuple back
+        protocolStack.setSession(new Session(protocolLayer,
+                new IpSessionId("localhost", 9999), new IpSessionId(
+                        "localhost", 11000)));
+        responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
+                forResponses), unMarshaler));
 
-            // since it was a IN response, we must receive the tuple back
-            res = forResponses.toByteArray();
-            assertTrue(res.length > 0);
+        // since it was a IN response, we must receive the tuple back
+        res = forResponses.toByteArray();
+        assertTrue(res.length > 0);
 
-            System.out.println("res: " + res);
+        System.out.println("res: " + res);
 
-            TupleOpState tupleOpState = new TupleOpState();
-            tupleOpState.setDoRead(true);
+        TupleOpState tupleOpState = new TupleOpState();
+        tupleOpState.setDoRead(true);
 
-            tupleOpState.enter(null, new TransmissionChannel(
-                    new IMCUnMarshaler(new ByteArrayInputStream(res))));
+        tupleOpState.enter(null, new TransmissionChannel(
+                new IMCUnMarshaler(new ByteArrayInputStream(res))));
 
-            TuplePacket tuplePacket = tupleOpState.getTuplePacket();
+        TuplePacket tuplePacket = tupleOpState.getTuplePacket();
 
-            System.out.println(tuplePacket.toString());
+        System.out.println(tuplePacket.toString());
 
-            assertEquals(tuple, tuplePacket.tuple);
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
+        assertEquals(tuple, tuplePacket.tuple);
     }
 
-    public void testTupleAbsent() throws InterruptedException {
-        try {
-            // the response shared with the thread
-            TupleResponse tupleResponse = new TupleResponse();
+    public void testTupleAbsent() throws InterruptedException,
+            ProtocolException, IOException {
+        // the response shared with the thread
+        TupleResponse tupleResponse = new TupleResponse();
 
-            // the concurrent thread that'll wait for the response
-            WaitingForResponseProcess<TupleResponse> waitingForTupleProcess = new WaitingForResponseProcess<TupleResponse>(
-                    "waiting thread");
-            waitingForTupleProcess.response = tupleResponse;
-            WaitingForResponse<TupleResponse> waitingForTuple = new WaitingForResponse<TupleResponse>();
-            waitingForTuple
-                    .put(waitingForTupleProcess.getName(), tupleResponse);
-            waitingForTupleProcess.start();
+        // the concurrent thread that'll wait for the response
+        WaitingForResponseProcess<TupleResponse> waitingForTupleProcess = new WaitingForResponseProcess<TupleResponse>(
+                "waiting thread");
+        waitingForTupleProcess.response = tupleResponse;
+        WaitingForResponse<TupleResponse> waitingForTuple = new WaitingForResponse<TupleResponse>();
+        waitingForTuple
+                .put(waitingForTupleProcess.getName(), tupleResponse);
+        waitingForTupleProcess.start();
 
-            // the response state will share the same WaitingForResponse
-            responseState.setWaitingForTuple(waitingForTuple);
+        // the response state will share the same WaitingForResponse
+        responseState.setWaitingForTuple(waitingForTuple);
 
-            Marshaler marshaler = protocolStack.createMarshaler();
-            ResponseState.sendResponseTuple(marshaler,
-                    TuplePacket.TUPLEABSENT_S, null, protocolStack.getSession()
-                            .getRemoteEnd(), protocolStack.getSession()
-                            .getLocalEnd(), waitingForTupleProcess.getName(),
-                    false);
-            protocolStack.releaseMarshaler(marshaler);
+        Marshaler marshaler = protocolStack.createMarshaler();
+        ResponseState.sendResponseTuple(marshaler,
+                TuplePacket.TUPLEABSENT_S, null, protocolStack.getSession()
+                        .getRemoteEnd(), protocolStack.getSession()
+                        .getLocalEnd(), waitingForTupleProcess.getName(),
+                false);
+        protocolStack.releaseMarshaler(marshaler);
 
-            UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
-            String response = unMarshaler.readStringLine();
-            assertEquals(ResponseState.RESPONSE_S, response);
+        UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
+        String response = unMarshaler.readStringLine();
+        assertEquals(ResponseState.RESPONSE_S, response);
 
-            responseState.setProtocolStack(protocolStack);
-            responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
-                    System.err), unMarshaler));
+        responseState.setProtocolStack(protocolStack);
+        responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
+                System.err), unMarshaler));
 
-            waitingForTupleProcess.join();
+        waitingForTupleProcess.join();
 
-            assertTrue(tupleResponse.error != null);
-            assertTrue(tupleResponse.responseContent == null);
+        assertNotNull(tupleResponse.error);
+        assertNull(tupleResponse.responseContent);
 
-            System.out.println("tuple response: " + tupleResponse.error);
+        System.out.println("tuple response: " + tupleResponse.error);
 
-            assertEquals(tupleResponse.error, ResponseState.FAIL_S + ": "
-                    + TuplePacket.TUPLEABSENT_S);
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
+        assertEquals(tupleResponse.error, ResponseState.FAIL_S + ": "
+                + TuplePacket.TUPLEABSENT_S);
     }
 
-    public void testLocality() throws InterruptedException {
-        try {
-            // the response shared with the thread
-            Response<PhysicalLocality> response = new Response<PhysicalLocality>();
+    public void testLocality() throws InterruptedException, ProtocolException,
+            IOException, KlavaMalformedPhyLocalityException {
+        // the response shared with the thread
+        Response<PhysicalLocality> response = new Response<PhysicalLocality>();
 
-            // the concurrent thread that'll wait for the response
-            WaitingForResponseProcess<Response<PhysicalLocality>> waitingForResponseProcess = new WaitingForResponseProcess<Response<PhysicalLocality>>(
-                    "waiting thread");
-            waitingForResponseProcess.response = response;
-            WaitingForResponse<Response<PhysicalLocality>> waitingForResponse = new WaitingForResponse<Response<PhysicalLocality>>();
-            waitingForResponse.put(waitingForResponseProcess.getName(),
-                    response);
-            waitingForResponseProcess.start();
+        // the concurrent thread that'll wait for the response
+        WaitingForResponseProcess<Response<PhysicalLocality>> waitingForResponseProcess = new WaitingForResponseProcess<Response<PhysicalLocality>>(
+                "waiting thread");
+        waitingForResponseProcess.response = response;
+        WaitingForResponse<Response<PhysicalLocality>> waitingForResponse = new WaitingForResponse<Response<PhysicalLocality>>();
+        waitingForResponse.put(waitingForResponseProcess.getName(),
+                response);
+        waitingForResponseProcess.start();
 
-            // the response state will share the same WaitingForResponse
-            responseState.setWaitingForLocality(waitingForResponse);
+        // the response state will share the same WaitingForResponse
+        responseState.setWaitingForLocality(waitingForResponse);
 
-            Marshaler marshaler = protocolStack.createMarshaler();
-            PhysicalLocality physicalLocality = new PhysicalLocality(
-                    "tcp-localhost:9999");
-            ResponseState.sendResponseLocality(marshaler, physicalLocality,
-                    waitingForResponseProcess.getName(), true);
-            protocolStack.releaseMarshaler(marshaler);
+        Marshaler marshaler = protocolStack.createMarshaler();
+        PhysicalLocality physicalLocality = new PhysicalLocality(
+                "tcp-localhost:9999");
+        ResponseState.sendResponseLocality(marshaler, physicalLocality,
+                waitingForResponseProcess.getName(), true);
+        protocolStack.releaseMarshaler(marshaler);
 
-            UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
-            String res = unMarshaler.readStringLine();
+        UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
+        String res = unMarshaler.readStringLine();
 
-            assertEquals(ResponseState.RESPONSE_S, res);
-            responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
-                    System.err), unMarshaler));
+        assertEquals(ResponseState.RESPONSE_S, res);
+        responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
+                System.err), unMarshaler));
 
-            System.out.println("waiting for process...");
-            waitingForResponseProcess.join();
+        System.out.println("waiting for process...");
+        waitingForResponseProcess.join();
 
-            assertTrue(response.error == null);
-            assertTrue(response.responseContent != null);
+        assertNull(response.error);
+        assertNotNull(response.responseContent);
 
-            System.out
-                    .println("locality response: " + response.responseContent);
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        } catch (KlavaMalformedPhyLocalityException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
+        System.out
+                .println("locality response: " + response.responseContent);
     }
 
-    public void testInResponseNoWaitingProcess_putsTupleBack() {
-        try {
-            // No process registered in waitingForTuple — simulates the requesting
-            // process having gone away after sending the IN
+    public void testInResponseNoWaitingProcess_putsTupleBack()
+        throws ProtocolException, IOException {
+        // No process registered in waitingForTuple — simulates the requesting
+        // process having gone away after sending the IN
 
-            Tuple tuple = new Tuple(new KInteger(10), new String("foo"));
+        Tuple tuple = new Tuple(new KInteger(10), new String("foo"));
 
-            // Send an IN response with a tuple; the destination is our local end
-            // so it won't be forwarded, and the process name "gone" is not in
-            // waitingForTuple, so the tuple must be put back
-            Marshaler marshaler = protocolStack.createMarshaler();
-            ResponseState.sendResponseTuple(marshaler, TuplePacket.IN_S, tuple,
-                    protocolStack.getSession().getRemoteEnd(),
-                    protocolStack.getSession().getLocalEnd(), "gone", true);
-            protocolStack.releaseMarshaler(marshaler);
+        // Send an IN response with a tuple; the destination is our local end
+        // so it won't be forwarded, and the process name "gone" is not in
+        // waitingForTuple, so the tuple must be put back
+        Marshaler marshaler = protocolStack.createMarshaler();
+        ResponseState.sendResponseTuple(marshaler, TuplePacket.IN_S, tuple,
+                protocolStack.getSession().getRemoteEnd(),
+                protocolStack.getSession().getLocalEnd(), "gone", true);
+        protocolStack.releaseMarshaler(marshaler);
 
-            UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
+        UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
 
-            // capture anything written back by the ResponseState
-            ByteArrayOutputStream forResponses = new ByteArrayOutputStream();
+        // capture anything written back by the ResponseState
+        ByteArrayOutputStream forResponses = new ByteArrayOutputStream();
 
-            String response = unMarshaler.readStringLine();
-            assertEquals(ResponseState.RESPONSE_S, response);
+        String response = unMarshaler.readStringLine();
+        assertEquals(ResponseState.RESPONSE_S, response);
 
-            responseState.enter(null, new TransmissionChannel(
-                    new IMCMarshaler(forResponses), unMarshaler));
+        responseState.enter(null, new TransmissionChannel(
+                new IMCMarshaler(forResponses), unMarshaler));
 
-            // since it was an IN response and no process was waiting,
-            // the tuple must be put back
-            byte[] res = forResponses.toByteArray();
-            assertTrue("expected tuple-back packet to be written", res.length > 0);
+        // since it was an IN response and no process was waiting,
+        // the tuple must be put back
+        byte[] res = forResponses.toByteArray();
+        assertTrue("expected tuple-back packet to be written", res.length > 0);
 
-            // parse the put-back packet and verify it contains the original tuple
-            TupleOpState tupleOpState = new TupleOpState();
-            tupleOpState.setDoRead(true);
-            tupleOpState.enter(null, new TransmissionChannel(
-                    new IMCUnMarshaler(new ByteArrayInputStream(res))));
+        // parse the put-back packet and verify it contains the original tuple
+        TupleOpState tupleOpState = new TupleOpState();
+        tupleOpState.setDoRead(true);
+        tupleOpState.enter(null, new TransmissionChannel(
+                new IMCUnMarshaler(new ByteArrayInputStream(res))));
 
-            TuplePacket tuplePacket = tupleOpState.getTuplePacket();
+        TuplePacket tuplePacket = tupleOpState.getTuplePacket();
 
-            System.out.println("tuple put back: " + tuplePacket);
+        System.out.println("tuple put back: " + tuplePacket);
 
-            assertEquals(TuplePacket.TUPLEBACK_S, tuplePacket.operation);
-            assertEquals(protocolStack.getSession().getRemoteEnd().toString(),
-                    tuplePacket.Dest.toString());
-            assertEquals(protocolStack.getSession().getLocalEnd().toString(),
-                    tuplePacket.Source.toString());
-            assertEquals(tuple, tuplePacket.tuple);
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
+        assertEquals(TuplePacket.TUPLEBACK_S, tuplePacket.operation);
+        assertEquals(protocolStack.getSession().getRemoteEnd().toString(),
+                tuplePacket.Dest.toString());
+        assertEquals(protocolStack.getSession().getLocalEnd().toString(),
+                tuplePacket.Source.toString());
+        assertEquals(tuple, tuplePacket.tuple);
     }
 
-    public void testResolveLocality() throws InterruptedException {
-        try {
-            LocalityResolverState localityResolverState = new LocalityResolverState(
-                    new EnvironmentLogicalLocalityResolver(environment, null,
-                            null));
-            localityResolverState.setProtocolStack(protocolStack);
+    public void testResolveLocality() throws InterruptedException,
+            ProtocolException, IOException, KlavaMalformedPhyLocalityException {
+        LocalityResolverState localityResolverState = new LocalityResolverState(
+                new EnvironmentLogicalLocalityResolver(environment, null,
+                        null));
+        localityResolverState.setProtocolStack(protocolStack);
 
-            // the response shared with the thread
-            Response<PhysicalLocality> response = new Response<PhysicalLocality>();
+        // the response shared with the thread
+        Response<PhysicalLocality> response = new Response<PhysicalLocality>();
 
-            // the concurrent thread that'll wait for the response
-            WaitingForResponseProcess<Response<PhysicalLocality>> waitingForResponseProcess = new WaitingForResponseProcess<Response<PhysicalLocality>>(
-                    "waiting thread");
-            waitingForResponseProcess.response = response;
-            WaitingForResponse<Response<PhysicalLocality>> waitingForResponse = new WaitingForResponse<Response<PhysicalLocality>>();
-            waitingForResponse.put(waitingForResponseProcess.getName(),
-                    response);
-            waitingForResponseProcess.start();
+        // the concurrent thread that'll wait for the response
+        WaitingForResponseProcess<Response<PhysicalLocality>> waitingForResponseProcess = new WaitingForResponseProcess<Response<PhysicalLocality>>(
+                "waiting thread");
+        waitingForResponseProcess.response = response;
+        WaitingForResponse<Response<PhysicalLocality>> waitingForResponse = new WaitingForResponse<Response<PhysicalLocality>>();
+        waitingForResponse.put(waitingForResponseProcess.getName(),
+                response);
+        waitingForResponseProcess.start();
 
-            // the response state will share the same WaitingForResponse
-            responseState.setWaitingForLocality(waitingForResponse);
+        // the response state will share the same WaitingForResponse
+        responseState.setWaitingForLocality(waitingForResponse);
 
-            PhysicalLocality physicalLocality = new PhysicalLocality(
-                    "tcp-localhost:9999");
-            LogicalLocality logicalLocality = new LogicalLocality("foo");
-            environment.try_add(logicalLocality, physicalLocality);
+        PhysicalLocality physicalLocality = new PhysicalLocality(
+                "tcp-localhost:9999");
+        LogicalLocality logicalLocality = new LogicalLocality("foo");
+        environment.try_add(logicalLocality, physicalLocality);
 
-            Marshaler marshaler = protocolStack.createMarshaler();
-            LocalityResolverState.sendResolveLocality(marshaler,
-                    logicalLocality, waitingForResponseProcess.getName());
-            protocolStack.releaseMarshaler(marshaler);
+        Marshaler marshaler = protocolStack.createMarshaler();
+        LocalityResolverState.sendResolveLocality(marshaler,
+                logicalLocality, waitingForResponseProcess.getName());
+        protocolStack.releaseMarshaler(marshaler);
 
-            UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
-            String res = unMarshaler.readStringLine();
-            assertEquals(LocalityResolverState.RESOLVELOC_S, res);
+        UnMarshaler unMarshaler = protocolStack.createUnMarshaler();
+        String res = unMarshaler.readStringLine();
+        assertEquals(LocalityResolverState.RESOLVELOC_S, res);
 
-            localityResolverState.enter(null, new TransmissionChannel(
-                    unMarshaler));
+        localityResolverState.enter(null, new TransmissionChannel(
+                unMarshaler));
 
-            /*
-             * we have to wait that the concurrent thread dealing with resolving
-             * sends something back
-             */
-            Thread.sleep(3000);
+        /*
+         * we have to wait that the concurrent thread dealing with resolving
+         * sends something back
+         */
+        Thread.sleep(3000);
 
-            unMarshaler = protocolStack.createUnMarshaler();
-            res = unMarshaler.readStringLine();
+        unMarshaler = protocolStack.createUnMarshaler();
+        res = unMarshaler.readStringLine();
 
-            assertEquals(ResponseState.RESPONSE_S, res);
-            responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
-                    System.err), unMarshaler));
+        assertEquals(ResponseState.RESPONSE_S, res);
+        responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
+                System.err), unMarshaler));
 
-            System.out.println("waiting for process...");
-            waitingForResponseProcess.join();
+        System.out.println("waiting for process...");
+        waitingForResponseProcess.join();
 
-            assertTrue(response.error == null);
-            assertTrue(response.responseContent != null);
+        assertNull(response.error);
+        assertNotNull(response.responseContent);
 
-            System.out
-                    .println("locality response: " + response.responseContent);
+        System.out
+                .println("locality response: " + response.responseContent);
 
-            assertEquals(physicalLocality, response.responseContent);
+        assertEquals(physicalLocality, response.responseContent);
 
-            /* reinsert the process name in the table */
-            waitingForResponse.put(waitingForResponseProcess.getName(),
-                    response);
+        /* reinsert the process name in the table */
+        waitingForResponse.put(waitingForResponseProcess.getName(),
+                response);
 
-            marshaler = protocolStack.createMarshaler();
-            /* now check failure of logical locality resolution */
-            LocalityResolverState.sendResolveLocality(marshaler,
-                    new LogicalLocality("unexistent"),
-                    waitingForResponseProcess.getName());
-            protocolStack.releaseMarshaler(marshaler);
+        marshaler = protocolStack.createMarshaler();
+        /* now check failure of logical locality resolution */
+        LocalityResolverState.sendResolveLocality(marshaler,
+                new LogicalLocality("unexistent"),
+                waitingForResponseProcess.getName());
+        protocolStack.releaseMarshaler(marshaler);
 
-            unMarshaler = protocolStack.createUnMarshaler();
-            res = unMarshaler.readStringLine();
-            assertEquals(LocalityResolverState.RESOLVELOC_S, res);
+        unMarshaler = protocolStack.createUnMarshaler();
+        res = unMarshaler.readStringLine();
+        assertEquals(LocalityResolverState.RESOLVELOC_S, res);
 
-            localityResolverState.enter(null, new TransmissionChannel(
-                    unMarshaler));
+        localityResolverState.enter(null, new TransmissionChannel(
+                unMarshaler));
 
-            /*
-             * we have to wait that the concurrent thread dealing with resolving
-             * sends something back
-             */
-            Thread.sleep(3000);
+        /*
+         * we have to wait that the concurrent thread dealing with resolving
+         * sends something back
+         */
+        Thread.sleep(3000);
 
-            unMarshaler = protocolStack.createUnMarshaler();
-            res = unMarshaler.readStringLine();
+        unMarshaler = protocolStack.createUnMarshaler();
+        res = unMarshaler.readStringLine();
 
-            assertEquals(ResponseState.RESPONSE_S, res);
-            responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
-                    System.err), unMarshaler));
+        assertEquals(ResponseState.RESPONSE_S, res);
+        responseState.enter(null, new TransmissionChannel(new IMCMarshaler(
+                System.err), unMarshaler));
 
-            assertTrue(response.error != null);
+        assertNotNull(response.error);
 
-            System.out.println("locality response error: " + response.error);
+        System.out.println("locality response error: " + response.error);
 
-            /* in case of failure the response is still not null */
-            assertTrue(response.responseContent != null);
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        } catch (KlavaMalformedPhyLocalityException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
+        /* in case of failure the response is still not null */
+        assertNotNull(response.responseContent);
     }
 }

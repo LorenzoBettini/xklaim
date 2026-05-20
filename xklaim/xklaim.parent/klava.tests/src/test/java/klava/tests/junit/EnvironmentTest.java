@@ -37,46 +37,46 @@ public class EnvironmentTest extends TestCase {
         PhysicalLocality physicalLocality2 = new PhysicalLocality("127.0.0.1", 10000);
         
         assertTrue(environment.try_add(logicalLocality, physicalLocality));
-        assertTrue(environment.toPhysical(logicalLocality) != null);
+        assertNotNull(environment.toPhysical(logicalLocality));
         assertEquals(environment.toPhysical(logicalLocality), physicalLocality);
         
         System.out.println("environment: " + environment);
         
         HashSet<LogicalLocality> logicalLocalities = environment.toLogical(physicalLocality);
-        assertTrue(logicalLocalities != null);
+        assertNotNull(logicalLocalities);
         assertTrue(logicalLocalities.contains(logicalLocality));
         
         assertFalse(environment.try_add(logicalLocality, physicalLocality));
         
         /* map to the same physical locality */
         assertTrue(environment.try_add(logicalLocality2, physicalLocality));
-        assertTrue(environment.toPhysical(logicalLocality2) != null);
+        assertNotNull(environment.toPhysical(logicalLocality2));
         assertEquals(environment.toPhysical(logicalLocality2), physicalLocality);
         
         System.out.println("environment: " + environment);
         
         logicalLocalities = environment.toLogical(physicalLocality);
-        assertTrue(logicalLocalities != null);
+        assertNotNull(logicalLocalities);
         assertTrue(logicalLocalities.contains(logicalLocality2));
         
         assertTrue(environment.try_add(logicalLocality3, physicalLocality2));
-        assertTrue(environment.toPhysical(logicalLocality3) != null);
+        assertNotNull(environment.toPhysical(logicalLocality3));
         assertEquals(environment.toPhysical(logicalLocality3), physicalLocality2);
         
         System.out.println("environment: " + environment);
         
         /* should remove also the mapping for logical locality 1 */
-        assertTrue(environment.remove(logicalLocality2) != null);
+        assertNotNull(environment.remove(logicalLocality2));
         
         System.out.println("environment: " + environment);
-        assertTrue(environment.toPhysical(logicalLocality) == null);
-        assertTrue(environment.toPhysical(logicalLocality2) == null);
+        assertNull(environment.toPhysical(logicalLocality));
+        assertNull(environment.toPhysical(logicalLocality2));
         
         /* should remove also the logical mapping */
-        assertTrue(environment.removePhysical(physicalLocality2) != null);
+        assertNotNull(environment.removePhysical(physicalLocality2));
         
         System.out.println("environment: " + environment);
         
-        assertTrue(environment.toPhysical(logicalLocality3) == null);
+        assertNull(environment.toPhysical(logicalLocality3));
     }
 }

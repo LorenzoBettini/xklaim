@@ -350,14 +350,14 @@ public abstract class ClientServerBase extends TestCase {
 
         /* check that the events were created correctly */
         ProtocolStack serverStack = clientNode.getNodeStack(server);
-        assertTrue(serverStack != null);
+        assertNotNull(serverStack);
         LoginSubscribeEvent loginSubscribeEvent = new LoginSubscribeEvent(this,
                 serverStack.getSession());
         assertTrue(clientEvents.indexOf(loginSubscribeEvent.toString()) >= 0);
         assertTrue(clientRouteEvents.indexOf(server.toString()) >= 0);
 
         ProtocolStack clientStack = serverN.getNodeStack(clientLoc);
-        assertTrue(clientStack != null);
+        assertNotNull(clientStack);
         loginSubscribeEvent = new LoginSubscribeEvent(this, clientStack
                 .getSession());
         assertTrue(serverEvents.indexOf(loginSubscribeEvent.toString()) >= 0);
@@ -400,13 +400,13 @@ public abstract class ClientServerBase extends TestCase {
 
         /* check that the events were created correctly */
         ProtocolStack serverStack = clientNode.getNodeStack(serverLoc);
-        assertTrue(serverStack != null);
+        assertNotNull(serverStack);
         LoginSubscribeEvent loginSubscribeEvent = new LoginSubscribeEvent(this,
                 serverStack.getSession());
         assertTrue(clientEvents.indexOf(loginSubscribeEvent.toString()) >= 0);
 
         ProtocolStack clientStack = serverNode.getNodeStack(clientLoc);
-        assertTrue(clientStack != null);
+        assertNotNull(clientStack);
         loginSubscribeEvent = new LoginSubscribeEvent(this, clientStack
                 .getSession());
         assertTrue(serverEvents.indexOf(loginSubscribeEvent.toString()) >= 0);
@@ -432,7 +432,7 @@ public abstract class ClientServerBase extends TestCase {
 
         PhysicalLocality physicalLocality = serverNode.getEnvironment()
                 .toPhysical(clientLogLocVar);
-        assertTrue(physicalLocality != null);
+        assertNotNull(physicalLocality);
         assertEquals(physicalLocality, clientLoc);
 
         System.out.println("client events: " + clientListener);
@@ -443,13 +443,13 @@ public abstract class ClientServerBase extends TestCase {
 
         /* check that the events were created correctly */
         ProtocolStack serverStack = clientNode.getNodeStack(serverLoc);
-        assertTrue(serverStack != null);
+        assertNotNull(serverStack);
         LoginSubscribeEvent loginSubscribeEvent = new LoginSubscribeEvent(this,
                 serverStack.getSession(), clientLogLoc);
         assertTrue(clientEvents.indexOf(loginSubscribeEvent.toString()) >= 0);
 
         ProtocolStack clientStack = serverNode.getNodeStack(clientLoc);
-        assertTrue(clientStack != null);
+        assertNotNull(clientStack);
         loginSubscribeEvent = new LoginSubscribeEvent(this, clientStack
                 .getSession(), clientLogLoc);
         assertTrue(serverEvents.indexOf(loginSubscribeEvent.toString()) >= 0);
@@ -478,7 +478,7 @@ public abstract class ClientServerBase extends TestCase {
 
         PhysicalLocality physicalLocality = serverNode.getEnvironment()
                 .toPhysical(clientLogLocVar);
-        assertTrue(physicalLocality != null);
+        assertNotNull(physicalLocality);
         assertEquals(physicalLocality, clientLoc);
 
         System.out.println("client events: " + clientListener);
@@ -489,13 +489,13 @@ public abstract class ClientServerBase extends TestCase {
 
         /* check that the events were created correctly */
         ProtocolStack serverStack = clientNode.getNodeStack(serverLoc);
-        assertTrue(serverStack != null);
+        assertNotNull(serverStack);
         LoginSubscribeEvent loginSubscribeEvent = new LoginSubscribeEvent(this,
                 serverStack.getSession(), clientLogLoc);
         assertTrue(clientEvents.indexOf(loginSubscribeEvent.toString()) >= 0);
 
         ProtocolStack clientStack = serverNode.getNodeStack(clientLoc);
-        assertTrue(clientStack != null);
+        assertNotNull(clientStack);
         loginSubscribeEvent = new LoginSubscribeEvent(this, clientStack
                 .getSession(), clientLogLoc);
         assertTrue(serverEvents.indexOf(loginSubscribeEvent.toString()) >= 0);

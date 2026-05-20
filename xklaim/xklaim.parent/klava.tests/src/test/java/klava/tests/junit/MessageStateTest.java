@@ -156,8 +156,8 @@ public class MessageStateTest extends TestCase {
 
         waitingForResponseProcess.join();
 
-        assertTrue(response.error == null);
-        assertTrue(response.responseContent != null);
+        assertNull(response.error);
+        assertNotNull(response.responseContent);
 
         System.out.println("response: " + response.responseContent);
 
@@ -224,8 +224,8 @@ public class MessageStateTest extends TestCase {
 
         waitingForResponseProcess.join();
 
-        assertTrue(response.error == null);
-        assertTrue(response.responseContent != null);
+        assertNull(response.error);
+        assertNotNull(response.responseContent);
 
         System.out.println("response: " + response.responseContent);
 
@@ -326,8 +326,8 @@ public class MessageStateTest extends TestCase {
 
         waitingForTupleProcess.join();
 
-        assertTrue(tupleResponse.error == null);
-        assertTrue(tupleResponse.responseContent != null);
+        assertNull(tupleResponse.error);
+        assertNotNull(tupleResponse.responseContent);
 
         System.out.println("response: " + tupleResponse.responseContent);
 
@@ -375,8 +375,8 @@ public class MessageStateTest extends TestCase {
 
         waitingForTupleProcess.join();
 
-        assertTrue(tupleResponse.error != null);
-        assertTrue(tupleResponse.responseContent == null);
+        assertNotNull(tupleResponse.error);
+        assertNull(tupleResponse.responseContent);
 
         System.out.println("error: " + tupleResponse.error);
 
@@ -429,8 +429,8 @@ public class MessageStateTest extends TestCase {
         protocolStack.setSession(sourceToDest);
         klavaMessageState.enter(null, null);
 
-        assertTrue(tupleResponse.error == null);
-        assertTrue(tupleResponse.responseContent != null);
+        assertNull(tupleResponse.error);
+        assertNotNull(tupleResponse.responseContent);
 
         System.out.println("response: " + tupleResponse.responseContent);
 
@@ -481,8 +481,8 @@ public class MessageStateTest extends TestCase {
         protocolStack.setSession(sourceToDest);
         klavaMessageState.enter(null, null);
 
-        assertTrue(tupleResponse.error != null);
-        assertTrue(tupleResponse.responseContent == null);
+        assertNotNull(tupleResponse.error);
+        assertNull(tupleResponse.responseContent);
 
         System.out.println("error: " + tupleResponse.error);
     }

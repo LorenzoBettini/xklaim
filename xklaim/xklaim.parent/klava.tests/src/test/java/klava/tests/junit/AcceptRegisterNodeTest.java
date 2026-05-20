@@ -214,7 +214,7 @@ public class AcceptRegisterNodeTest extends ClientServerBase {
         loginCoordinator.join();
 
         assertFalse(loginCoordinator.success);
-        assertTrue(loginCoordinator.klavaException != null);
+        assertNotNull(loginCoordinator.klavaException);
 
         System.out.println("expected exception: "
                 + loginCoordinator.klavaException);
@@ -238,7 +238,7 @@ public class AcceptRegisterNodeTest extends ClientServerBase {
         loginCoordinator.join();
 
         assertFalse(loginCoordinator.success);
-        assertTrue(loginCoordinator.klavaException != null);
+        assertNotNull(loginCoordinator.klavaException);
 
         System.out.println("expected exception: "
                 + loginCoordinator.klavaException);
@@ -259,7 +259,7 @@ public class AcceptRegisterNodeTest extends ClientServerBase {
         subscribeCoordinator.join();
 
         assertFalse(subscribeCoordinator.success);
-        assertTrue(subscribeCoordinator.klavaException != null);
+        assertNotNull(subscribeCoordinator.klavaException);
 
         System.out.println("expected exception: "
                 + subscribeCoordinator.klavaException);
@@ -283,7 +283,7 @@ public class AcceptRegisterNodeTest extends ClientServerBase {
         subscribeCoordinator.join();
 
         assertFalse(subscribeCoordinator.success);
-        assertTrue(subscribeCoordinator.klavaException != null);
+        assertNotNull(subscribeCoordinator.klavaException);
 
         System.out.println("expected exception: "
                 + subscribeCoordinator.klavaException);
@@ -311,7 +311,7 @@ public class AcceptRegisterNodeTest extends ClientServerBase {
         assertFalse(registerCoordinator.success);
         assertFalse(subscribeCoordinator.success);
         /* it must not have failed due to an exception */
-        assertTrue(subscribeCoordinator.klavaException == null);
+        assertNull(subscribeCoordinator.klavaException);
     }
     
     /**
@@ -426,37 +426,30 @@ public class AcceptRegisterNodeTest extends ClientServerBase {
         assertEquals(template.getItem(0), new KString());
     }
 
-    public void testResponseTimeout() {
+    public void testResponseTimeout() throws InterruptedException {
         Response<String> response = new Response<String>();
 
         try {
             response.waitForResponse(1000);
-        } catch (KlavaTimeOutException e) {
-            assertTrue(true);
-            assertTrue(response.error == null);
-            assertTrue(response.responseContent == null);
-        } catch (InterruptedException e) {
             fail();
+        } catch (KlavaTimeOutException e) {
+            assertNull(response.error);
+            assertNull(response.responseContent);
         }
     }
 
-    public void testResponseTimeout2() {
+    public void testResponseTimeout2() throws KlavaTimeOutException,
+            InterruptedException {
         Response<String> response = new Response<String>();
         NotifyResponseThread notifyResponseThread = new NotifyResponseThread(
                 response);
         notifyResponseThread.start();
 
-        try {
-            response.waitForResponse(10000); // the thread should be able to
-            // notify before this time
-            // elapses
-        } catch (KlavaTimeOutException e) {
-            fail();
-        } catch (InterruptedException e) {
-            fail();
-        }
+        response.waitForResponse(10000); // the thread should be able to
+        // notify before this time
+        // elapses
 
-        assertTrue(response.error == null);
-        assertTrue(response.responseContent != null);
+        assertNull(response.error);
+        assertNotNull(response.responseContent);
     }
 }
