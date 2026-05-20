@@ -492,6 +492,11 @@ public class ResponseStateTest extends TestCase {
 
             System.out.println("tuple put back: " + tuplePacket);
 
+            assertEquals(TuplePacket.TUPLEBACK_S, tuplePacket.operation);
+            assertEquals(protocolStack.getSession().getRemoteEnd().toString(),
+                    tuplePacket.Dest.toString());
+            assertEquals(protocolStack.getSession().getLocalEnd().toString(),
+                    tuplePacket.Source.toString());
             assertEquals(tuple, tuplePacket.tuple);
         } catch (ProtocolException e) {
             e.printStackTrace();
