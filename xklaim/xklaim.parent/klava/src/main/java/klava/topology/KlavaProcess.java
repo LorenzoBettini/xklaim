@@ -147,7 +147,9 @@ public abstract class KlavaProcess extends NodeProcess {
      * Defers Java thread interruption while Klava is performing a short
      * communication step. Interrupting a thread during NIO channel I/O can close
      * the channel, so the request is recorded and replayed when the critical
-     * section ends.
+     * section ends. This override only changes the timing of the Java interrupt:
+     * the interrupt request is not lost, it is delivered at the first safe point
+     * after the communication section.
      */
     @Override
     public void interrupt() {
@@ -173,6 +175,12 @@ public abstract class KlavaProcess extends NodeProcess {
     private InterruptDeferral deferInterrupts() {
         synchronized (this) {
             ++interruptDeferralDepth;
+            /*
+             * If the current process was already interrupted before entering
+             * this critical section, clear the Java interrupt flag now and
+             * remember it. Otherwise the next NIO write could still observe the
+             * flag and close the communication channel.
+             */
             if (Thread.currentThread() == this && Thread.interrupted()) {
                 interruptDeferred = true;
             }
@@ -197,6 +205,12 @@ public abstract class KlavaProcess extends NodeProcess {
         }
 
         if (replayInterrupt) {
+            /*
+             * Replay the interrupt only after leaving the outermost deferral
+             * scope. The next interruptible operation, typically waiting for the
+             * tuple-operation response, will then observe the cancellation in
+             * the usual Java way.
+             */
             super.interrupt();
         }
     }

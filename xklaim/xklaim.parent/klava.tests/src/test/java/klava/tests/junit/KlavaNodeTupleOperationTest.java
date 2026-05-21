@@ -75,6 +75,12 @@ public class KlavaNodeTupleOperationTest extends TestCase {
 
         @Override
         public Marshaler doCreateMarshaler(Marshaler marshaler) {
+            /*
+             * Simulate a cancellation request arriving after the stack has an
+             * endpoint marshaler but before TupleOpState writes into it. Without
+             * Klava's deferral, the interrupt flag would be visible here and the
+             * following NIO pipe write could close the channel.
+             */
             interruptAttempted = true;
             Thread.currentThread().interrupt();
             interruptStatusVisibleDuringCommunication =
@@ -156,6 +162,11 @@ public class KlavaNodeTupleOperationTest extends TestCase {
             assertTrue("KlavaException should wrap the InterruptedException",
                     process.klavaException.getCause() instanceof InterruptedException);
 
+            /*
+             * Reaching the peer endpoint proves that the interrupted send did
+             * not close the NIO pipe before the tuple-operation packet was
+             * written and flushed.
+             */
             UnMarshaler unMarshaler = pipe.getProtocolLayer2()
                     .doCreateUnMarshaler(null);
             assertEquals("tuple operation packet should have reached the pipe",

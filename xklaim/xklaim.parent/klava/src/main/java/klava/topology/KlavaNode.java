@@ -1129,9 +1129,19 @@ public class KlavaNode extends Node {
             /* this is needed to retrieve the response */
             tuplePacket.processName = processName;
 
+            /*
+             * The send phase must not see a Java interrupt flag: for NIO-backed
+             * local pipes, an interrupt during create/write/flush closes the
+             * channel and makes the peer think the connection was lost. Keep the
+             * protected scope small and replay any interrupt immediately before
+             * waiting for the response, where cancellation is expected.
+             */
             try (KlavaProcess.InterruptDeferral ignored =
                     KlavaProcess.deferInterruptsForCurrentProcess()) {
-                /* binds the passed response to the thread name */
+                /*
+                 * Bind the response before the message can be sent. A response
+                 * may arrive as soon as the remote side reads the packet.
+                 */
                 waitingForResponse.put(tuplePacket.processName, response);
 
                 /* actually sends the operation message */
