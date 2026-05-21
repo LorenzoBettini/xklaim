@@ -59,6 +59,17 @@ public abstract class KlavaProcess extends NodeProcess {
     protected boolean doAutomaticClosure = false;
 
     /**
+     * Depth of critical sections where a Java interrupt would damage the
+     * underlying communication channel.
+     */
+    private transient int interruptDeferralDepth = 0;
+
+    /**
+     * Whether an interrupt request arrived while interrupts were deferred.
+     */
+    private transient boolean interruptDeferred = false;
+
+    /**
      * Initial state of a process
      */
     public static final int NOT_MIGRATED = 0;
@@ -130,6 +141,84 @@ public abstract class KlavaProcess extends NodeProcess {
          */
         addExcludePackage("klava.");
         addExcludePackage("momi.");
+    }
+
+    /**
+     * Defers Java thread interruption while Klava is performing a short
+     * communication step. Interrupting a thread during NIO channel I/O can close
+     * the channel, so the request is recorded and replayed when the critical
+     * section ends.
+     */
+    @Override
+    public void interrupt() {
+        synchronized (this) {
+            if (interruptDeferralDepth > 0) {
+                interruptDeferred = true;
+                return;
+            }
+        }
+
+        super.interrupt();
+    }
+
+    static InterruptDeferral deferInterruptsForCurrentProcess() {
+        Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof KlavaProcess) {
+            return ((KlavaProcess) currentThread).deferInterrupts();
+        }
+
+        return InterruptDeferral.NONE;
+    }
+
+    private InterruptDeferral deferInterrupts() {
+        synchronized (this) {
+            ++interruptDeferralDepth;
+            if (Thread.currentThread() == this && Thread.interrupted()) {
+                interruptDeferred = true;
+            }
+        }
+
+        return new InterruptDeferral(this);
+    }
+
+    private void resumeInterrupts() {
+        boolean replayInterrupt = false;
+
+        synchronized (this) {
+            if (interruptDeferralDepth <= 0) {
+                throw new IllegalStateException("no interrupt deferral active");
+            }
+
+            --interruptDeferralDepth;
+            if (interruptDeferralDepth == 0 && interruptDeferred) {
+                interruptDeferred = false;
+                replayInterrupt = true;
+            }
+        }
+
+        if (replayInterrupt) {
+            super.interrupt();
+        }
+    }
+
+    static final class InterruptDeferral implements AutoCloseable {
+        private static final InterruptDeferral NONE = new InterruptDeferral(null);
+
+        private final KlavaProcess process;
+
+        private boolean closed;
+
+        private InterruptDeferral(KlavaProcess process) {
+            this.process = process;
+        }
+
+        @Override
+        public void close() {
+            if (!closed && process != null) {
+                closed = true;
+                process.resumeInterrupts();
+            }
+        }
     }
 
     /**

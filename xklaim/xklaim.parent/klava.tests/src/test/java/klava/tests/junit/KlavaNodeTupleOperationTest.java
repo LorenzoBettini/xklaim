@@ -1,10 +1,14 @@
 package klava.tests.junit;
 
 import org.mikado.imc.protocols.IpSessionId;
+import org.mikado.imc.protocols.Marshaler;
 import org.mikado.imc.protocols.ProtocolLayer;
 import org.mikado.imc.protocols.ProtocolLayerSharedBuffer;
 import org.mikado.imc.protocols.ProtocolStack;
 import org.mikado.imc.protocols.Session;
+import org.mikado.imc.protocols.SessionId;
+import org.mikado.imc.protocols.UnMarshaler;
+import org.mikado.imc.protocols.pipe.ProtocolLayerPipe;
 
 import junit.framework.TestCase;
 import klava.KString;
@@ -13,6 +17,7 @@ import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.WaitingForResponse;
 import klava.proto.TuplePacket;
+import klava.proto.TupleOpState;
 import klava.proto.TupleResponse;
 import klava.topology.KlavaNode;
 import klava.topology.KlavaProcess;
@@ -62,6 +67,22 @@ public class KlavaNodeTupleOperationTest extends TestCase {
         }
     }
 
+    private static class InterruptingProtocolLayer extends ProtocolLayer {
+
+        private volatile boolean interruptAttempted;
+
+        private volatile boolean interruptStatusVisibleDuringCommunication;
+
+        @Override
+        public Marshaler doCreateMarshaler(Marshaler marshaler) {
+            interruptAttempted = true;
+            Thread.currentThread().interrupt();
+            interruptStatusVisibleDuringCommunication =
+                    Thread.currentThread().isInterrupted();
+            return marshaler;
+        }
+    }
+
     public void testInterruptedTupleOperationRemovesWaitingResponse()
             throws Exception {
         KlavaNode node = new KlavaNode();
@@ -88,6 +109,57 @@ public class KlavaNodeTupleOperationTest extends TestCase {
                     process.klavaException);
             assertTrue("KlavaException should wrap the InterruptedException",
                     process.klavaException.getCause() instanceof InterruptedException);
+        } finally {
+            if (process.isAlive()) {
+                process.interrupt();
+                process.join(WAIT_TIMEOUT);
+            }
+            node.close();
+        }
+    }
+
+    public void testInterruptDuringTupleOperationSendIsDeferred()
+            throws Exception {
+        KlavaNode node = new KlavaNode();
+        WaitingForResponse<TupleResponse> waitingForResponse =
+                new WaitingForResponse<TupleResponse>();
+        ProtocolLayerPipe pipe = new ProtocolLayerPipe();
+        InterruptingProtocolLayer interruptingProtocolLayer =
+                new InterruptingProtocolLayer();
+        ProtocolLayer localPipeEnd = pipe.getProtocolLayer1();
+        ProtocolStack protocolStack = new ProtocolStack(
+                interruptingProtocolLayer);
+        protocolStack.setLowLayer(localPipeEnd);
+        protocolStack.setSession(new Session(localPipeEnd,
+                new SessionId("pipe", "local"),
+                new SessionId("pipe", "remote")));
+        PhysicalLocality destination = new PhysicalLocality(protocolStack
+                .getSession().getRemoteEnd());
+        TupleOperationProcess process = new TupleOperationProcess(node,
+                protocolStack, destination, waitingForResponse);
+
+        try {
+            process.start();
+            process.join(WAIT_TIMEOUT);
+
+            assertFalse("process should have terminated after deferred interrupt",
+                    process.isAlive());
+            assertTrue("test protocol layer should have requested an interrupt",
+                    interruptingProtocolLayer.interruptAttempted);
+            assertFalse("interrupt must not be visible while writing to the pipe",
+                    interruptingProtocolLayer
+                            .interruptStatusVisibleDuringCommunication);
+            assertFalse("interrupted process must be removed from waiting responses",
+                    waitingForResponse.containsKey(process.getName()));
+            assertNotNull("interruption should be reported as KlavaException",
+                    process.klavaException);
+            assertTrue("KlavaException should wrap the InterruptedException",
+                    process.klavaException.getCause() instanceof InterruptedException);
+
+            UnMarshaler unMarshaler = pipe.getProtocolLayer2()
+                    .doCreateUnMarshaler(null);
+            assertEquals("tuple operation packet should have reached the pipe",
+                    TupleOpState.OPERATION_S, unMarshaler.readStringLine());
         } finally {
             if (process.isAlive()) {
                 process.interrupt();

@@ -1129,19 +1129,23 @@ public class KlavaNode extends Node {
             /* this is needed to retrieve the response */
             tuplePacket.processName = processName;
 
-            /* binds the passed response to the thread name */
-            waitingForResponse.put(tuplePacket.processName, response);
+            try (KlavaProcess.InterruptDeferral ignored =
+                    KlavaProcess.deferInterruptsForCurrentProcess()) {
+                /* binds the passed response to the thread name */
+                waitingForResponse.put(tuplePacket.processName, response);
 
-            /* actually sends the operation message */
-            Marshaler marshaler = protocolStack.createMarshaler();
-
-            TupleOpState tupleOpState = new TupleOpState();
-            tupleOpState.setTuplePacket(tuplePacket);
-            tupleOpState.setProtocolStack(protocolStack);
-            tupleOpState.setDoRead(false);
-            tupleOpState.enter(null, new TransmissionChannel(marshaler));
-
-            protocolStack.releaseMarshaler(marshaler);
+                /* actually sends the operation message */
+                Marshaler marshaler = protocolStack.createMarshaler();
+                try {
+                    TupleOpState tupleOpState = new TupleOpState();
+                    tupleOpState.setTuplePacket(tuplePacket);
+                    tupleOpState.setProtocolStack(protocolStack);
+                    tupleOpState.setDoRead(false);
+                    tupleOpState.enter(null, new TransmissionChannel(marshaler));
+                } finally {
+                    protocolStack.releaseMarshaler(marshaler);
+                }
+            }
 
             /* now wait for response */
             response.waitForResponse();
