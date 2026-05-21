@@ -143,11 +143,9 @@ public class TupleOpState extends ProtocolStateSimple {
                     tupleOpManager.handle(tuplePacket, ourSessionId);
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | KlavaMalformedPhyLocalityException e) {
             throw new ProtocolException(e);
-        } catch (KlavaMalformedPhyLocalityException e) {
-            throw new ProtocolException(e);
-        } catch (InterruptedException e) {
+        }  catch (InterruptedException e) {
             throw new ProtocolException(e);
         }
     }
@@ -175,7 +173,7 @@ public class TupleOpState extends ProtocolStateSimple {
      * @throws IOException
      * @throws ProtocolException
      */
-    static public void writePacket(ProtocolStack protocolStack, TuplePacket tuplePacket)
+    public static void writePacket(ProtocolStack protocolStack, TuplePacket tuplePacket)
             throws IOException, ProtocolException {
         Marshaler marshaler = protocolStack.createMarshaler();
 
