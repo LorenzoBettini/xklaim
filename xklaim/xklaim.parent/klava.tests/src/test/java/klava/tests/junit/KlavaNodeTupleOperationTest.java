@@ -1,5 +1,8 @@
 package klava.tests.junit;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
 import org.mikado.imc.protocols.IpSessionId;
 import org.mikado.imc.protocols.Marshaler;
 import org.mikado.imc.protocols.ProtocolLayer;
@@ -67,6 +70,20 @@ public class KlavaNodeTupleOperationTest extends TestCase {
         }
     }
 
+    private static class UncaughtInterruptedProcess extends KlavaProcess {
+
+        private static final long serialVersionUID = 1L;
+
+        UncaughtInterruptedProcess() {
+            super("uncaught interrupted process");
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            in(new Tuple(new KString("missing")), self);
+        }
+    }
+
     private static class InterruptingProtocolLayer extends ProtocolLayer {
 
         private volatile boolean interruptAttempted;
@@ -115,6 +132,8 @@ public class KlavaNodeTupleOperationTest extends TestCase {
                     process.klavaException);
             assertTrue("KlavaException should wrap the InterruptedException",
                     process.klavaException.getCause() instanceof InterruptedException);
+            assertTrue("tuple-operation process should restore interrupt status",
+                    process.isInterrupted());
         } finally {
             if (process.isAlive()) {
                 process.interrupt();
@@ -161,6 +180,8 @@ public class KlavaNodeTupleOperationTest extends TestCase {
                     process.klavaException);
             assertTrue("KlavaException should wrap the InterruptedException",
                     process.klavaException.getCause() instanceof InterruptedException);
+            assertTrue("tuple-operation process should restore interrupt status",
+                    process.isInterrupted());
 
             /*
              * Reaching the peer endpoint proves that the interrupted send did
@@ -178,6 +199,40 @@ public class KlavaNodeTupleOperationTest extends TestCase {
             }
             node.close();
         }
+    }
+
+    public void testUncaughtInterruptedProcessTerminatesWithoutFinalException()
+            throws Exception {
+        KlavaNode node = new KlavaNode();
+        UncaughtInterruptedProcess process = new UncaughtInterruptedProcess();
+        ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
+        PrintStream originalError = System.err;
+
+        try {
+            System.setErr(new PrintStream(errorOutput));
+            node.eval(process);
+            waitUntilAlive(process);
+
+            process.interrupt();
+            process.join(WAIT_TIMEOUT);
+
+            assertFalse("process should have terminated after interrupt",
+                    process.isAlive());
+            assertNull("interruption should not be stored as an uncaught failure",
+                    process.getFinalException());
+            assertTrue("process should keep interrupted status",
+                    process.isInterrupted());
+        } finally {
+            System.setErr(originalError);
+            if (process.isAlive()) {
+                process.interrupt();
+                process.join(WAIT_TIMEOUT);
+            }
+            node.close();
+        }
+
+        assertFalse("interruption should not be printed as a stack trace",
+                errorOutput.toString().contains("InterruptedException"));
     }
 
     private ProtocolStack createProtocolStack() throws Exception {
@@ -200,5 +255,15 @@ public class KlavaNodeTupleOperationTest extends TestCase {
 
         assertTrue("tuple operation should register a waiting response",
                 waitingForResponse.containsKey(process.getName()));
+    }
+
+    private void waitUntilAlive(KlavaProcess process)
+            throws InterruptedException {
+        long deadline = System.currentTimeMillis() + WAIT_TIMEOUT;
+        while (!process.isAlive() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10); // NOSONAR we need some delay
+        }
+
+        assertTrue("process should have started", process.isAlive());
     }
 }

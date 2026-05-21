@@ -346,15 +346,16 @@ public class KlavaOrProcessTest extends TestCase {
      * (TOKEN is initially absent). The loser's interrupt flag is already set,
      * so the very first {@code wait()} inside that operation throws
      * {@link InterruptedException} immediately (Java threading specification),
-     * which propagates as a {@link klava.KlavaException} and is recorded as a
-     * non-null {@code finalException} on the loser. TOKEN is inserted after a
-     * short delay so the winner can complete its body.</p>
+     * which propagates as a {@link klava.KlavaException}. Klava treats that as
+     * normal interruption-driven termination, restoring the loser's interrupt
+     * status without recording an uncaught {@code finalException}. TOKEN is
+     * inserted after a short delay so the winner can complete its body.</p>
      *
      * <p>The test verifies:</p>
      * <ul>
      *   <li>Exactly one process completed its body (the winner).</li>
-     *   <li>Exactly one process has a non-null {@code finalException} (the
-     *       loser, interrupted on the blocking body operation).</li>
+     *   <li>Exactly one process has interrupted status (the loser, interrupted
+     *       on the blocking body operation).</li>
      *   <li>Tuple {@code "A"} is still present ({@code read} does not
      *       consume).</li>
      * </ul>
@@ -384,11 +385,14 @@ public class KlavaOrProcessTest extends TestCase {
         assertTrue("Exactly one process should have completed its body",
                 processA.isBodyCompleted() != processB.isBodyCompleted());
 
-        /* The loser should have a non-null finalException: the interrupted
-         * wait() inside in() propagates as KlavaException, which execute()
-         * wraps as IMCException and stores as finalException */
+        /* The loser should be interrupted, but interruption should not be
+         * stored as an uncaught finalException. */
         assertTrue("Exactly one process should have been interrupted on its body operation",
-                (processA.getFinalException() != null) != (processB.getFinalException() != null));
+                processA.isInterrupted() != processB.isInterrupted());
+        assertNull("Process A should not store interruption as finalException",
+                processA.getFinalException());
+        assertNull("Process B should not store interruption as finalException",
+                processB.getFinalException());
 
         /* read does not consume — 'A' must still be in the tuple space */
         assertTrue("Tuple 'A' should still be present after read guard",
@@ -405,10 +409,9 @@ public class KlavaOrProcessTest extends TestCase {
      * after a short delay; at that point the orchestrator is inside
      * {@link Thread#join()} on the OR process. {@code join()} throws
      * {@link InterruptedException}, which {@code or()} wraps in a
-     * {@link klava.KlavaException} and re-throws. That exception propagates
-     * through {@link klava.topology.KlavaProcess#execute() execute()} as an
-     * {@link org.mikado.imc.common.IMCException} and is stored as
-     * {@code finalException}.</p>
+     * {@link klava.KlavaException} and re-throws. Klava treats that as
+     * interruption-driven termination, restoring the orchestrator interrupt
+     * status without storing a {@code finalException}.</p>
      *
      * <p>The OR process is still alive after the orchestrator terminates; it is
      * explicitly interrupted in the test tear-down to avoid dangling threads.</p>
@@ -435,12 +438,10 @@ public class KlavaOrProcessTest extends TestCase {
         orchestrator.join(5000);
         assertFalse("Orchestrator should have terminated", orchestrator.isAlive());
 
-        /* or() wraps the InterruptedException in KlavaException;
-         * execute() wraps that in IMCException and stores it as finalException */
-        assertNotNull("Orchestrator should have a non-null finalException",
+        assertNull("Orchestrator should not store interruption as finalException",
                 orchestrator.getFinalException());
-        assertTrue("The finalException cause should be a KlavaException",
-                orchestrator.getFinalException().getCause() instanceof KlavaException);
+        assertTrue("Orchestrator should keep interrupted status",
+                orchestrator.isInterrupted());
 
         /* clean up: the OR process is still blocking on in("A"); interrupt it
          * so the test leaves no dangling threads */

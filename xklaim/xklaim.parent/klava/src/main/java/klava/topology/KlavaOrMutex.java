@@ -85,8 +85,9 @@ public class KlavaOrMutex {
      * <p>
      * Called by the winning process (the first to complete its guard) to terminate
      * all competitors. Each interrupted process will receive an
-     * {@link InterruptedException} from its blocking retrieval operation, which
-     * will be wrapped in a {@link klava.KlavaException}.
+     * {@link InterruptedException} from its blocking retrieval operation; the
+     * process wrapper restores the interrupt status and treats that as normal
+     * cancellation.
      * </p>
      *
      * @param winner the process that must <em>not</em> be interrupted
@@ -125,6 +126,7 @@ public class KlavaOrMutex {
             }
         }
         if (interrupted != null) {
+            Thread.currentThread().interrupt();
             throw new KlavaException(interrupted);
         }
     }

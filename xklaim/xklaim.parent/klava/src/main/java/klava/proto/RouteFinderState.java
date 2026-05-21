@@ -76,8 +76,7 @@ public class RouteFinderState extends RequestState {
                 // we can't do much
                 e.printStackTrace();
             } catch (InterruptedException e) {
-                // we can't do much
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
 

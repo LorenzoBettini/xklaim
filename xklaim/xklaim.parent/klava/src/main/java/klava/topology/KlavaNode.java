@@ -600,6 +600,7 @@ public class KlavaNode extends Node {
         } catch (ClassCastException e) {
             throw new KlavaException(e);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new KlavaException(e);
         }
     }
@@ -626,6 +627,7 @@ public class KlavaNode extends Node {
         } catch (ClassCastException e) {
             throw new KlavaException(e);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new KlavaException(e);
         }
     }
@@ -737,6 +739,7 @@ public class KlavaNode extends Node {
         try {
             tupleSpace.in(tuple);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new KlavaException(e);
         }
     }
@@ -764,6 +767,7 @@ public class KlavaNode extends Node {
         try {
             return tupleSpace.in_t(tuple, timeout);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new KlavaException(e);
         }
     }
@@ -842,6 +846,7 @@ public class KlavaNode extends Node {
         try {
             tupleSpace.read(tuple);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new KlavaException(e);
         }
     }
@@ -870,6 +875,7 @@ public class KlavaNode extends Node {
         try {
             return tupleSpace.read_t(tuple, timeout);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new KlavaException(e);
         }
     }
@@ -1082,6 +1088,9 @@ public class KlavaNode extends Node {
                         response.reset(); // reset the error state
                     }
                 } catch (KlavaException e) {
+                    if (e.wasCausedByInterruptedException())
+                        throw e;
+
                     /* we go on with the next stack */
                     e.printStackTrace();
                 }
@@ -1167,6 +1176,11 @@ public class KlavaNode extends Node {
             Thread.currentThread().interrupt();
             throw new KlavaException(e);
         } catch (ProtocolException e) {
+            if (KlavaException.wasCausedByInterruptedException(e)) {
+                waitingForResponse.remove(processName);
+                Thread.currentThread().interrupt();
+            }
+
             throw new KlavaException(e);
         }
     }
@@ -1391,6 +1405,7 @@ public class KlavaNode extends Node {
         } catch (ProtocolException e) {
             throw new KlavaException(e);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new KlavaException(e);
         } catch (IMCException | ClassCastException e) {
             throw new KlavaException(e);

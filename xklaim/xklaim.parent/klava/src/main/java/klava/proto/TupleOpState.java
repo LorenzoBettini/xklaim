@@ -146,6 +146,7 @@ public class TupleOpState extends ProtocolStateSimple {
         } catch (IOException | KlavaMalformedPhyLocalityException e) {
             throw new ProtocolException(e);
         }  catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new ProtocolException(e);
         }
     }

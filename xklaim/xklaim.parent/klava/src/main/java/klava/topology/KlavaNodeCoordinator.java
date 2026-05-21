@@ -70,6 +70,11 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
         try {
             executeProcess();
         } catch (KlavaException e) {
+            if (e.wasCausedByInterruptedException()) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+
             e.printStackTrace();
             throw new IMCException("Uncaught exception", e);
         }
@@ -394,9 +399,9 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      * <p>The OR operator runs a set of {@link KlavaOrProcess}es concurrently.
      * Each process blocks on its first retrieval operation (the "guard"). The
      * first process to complete its guard interrupts all the others and then
-     * proceeds with the rest of its body. The interrupted processes terminate
-     * with a {@link KlavaException} wrapping the {@link InterruptedException}
-     * that arises from their blocked retrieval.</p>
+     * proceeds with the rest of its body. Interrupted processes preserve their
+     * Java interrupt status and terminate without being treated as uncaught
+     * failures.</p>
      *
      * <p>This method performs the following steps:</p>
      * <ol>

@@ -77,8 +77,10 @@ public abstract class KlavaOrProcess extends KlavaProcess {
      *
      * <p>
      * If the underlying {@code in} is interrupted (because another process won the
-     * OR competition), the resulting {@link KlavaException} propagates normally,
-     * terminating this process without calling {@link #handleOrRetrieval()}.
+     * OR competition), the resulting {@link KlavaException} propagates to the
+     * process wrapper, terminating this process without calling
+     * {@link #handleOrRetrieval()} and without treating the interruption as an
+     * uncaught failure.
      * </p>
      *
      * {@inheritDoc}
@@ -102,9 +104,10 @@ public abstract class KlavaOrProcess extends KlavaProcess {
      *
      * <p>
      * If the underlying {@code read} is interrupted (because another process won
-     * the OR competition), the resulting {@link KlavaException} propagates
-     * normally, terminating this process without calling
-     * {@link #handleOrRetrieval()}.
+     * the OR competition), the resulting {@link KlavaException} propagates to the
+     * process wrapper, terminating this process without calling
+     * {@link #handleOrRetrieval()} and without treating the interruption as an
+     * uncaught failure.
      * </p>
      *
      * {@inheritDoc}
