@@ -558,11 +558,9 @@ public class KlavaNode extends Node {
             disconnect(protocolStack);
 
             return true;
-        } catch (ProtocolException e) {
+        } catch (ProtocolException | IOException e) {
             throw new KlavaException(e);
-        } catch (IOException e) {
-            throw new KlavaException(e);
-        }
+        } 
     }
 
     /**
@@ -1118,6 +1116,7 @@ public class KlavaNode extends Node {
             WaitingForResponse<ResponseType> waitingForResponse,
             ResponseType response, long timeout, PhysicalLocality destination)
             throws KlavaException {
+        String processName = Thread.currentThread().getName();
         try {
             /* Retrieves the source locality from the ProtocolStack */
             PhysicalLocality source = new PhysicalLocality(protocolStack
@@ -1128,7 +1127,7 @@ public class KlavaNode extends Node {
             tuplePacket.timeout = timeout;
 
             /* this is needed to retrieve the response */
-            tuplePacket.processName = Thread.currentThread().getName();
+            tuplePacket.processName = processName;
 
             /* binds the passed response to the thread name */
             waitingForResponse.put(tuplePacket.processName, response);
@@ -1147,6 +1146,11 @@ public class KlavaNode extends Node {
             /* now wait for response */
             response.waitForResponse();
         } catch (InterruptedException e) {
+            // ensure to remove the waiting response from the map, otherwise we might
+            // consume an IN result that would be lost
+            // see https://github.com/LorenzoBettini/xklaim/issues/91
+            waitingForResponse.remove(processName);
+            Thread.currentThread().interrupt();
             throw new KlavaException(e);
         } catch (ProtocolException e) {
             throw new KlavaException(e);
