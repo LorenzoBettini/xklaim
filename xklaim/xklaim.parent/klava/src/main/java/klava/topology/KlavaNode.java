@@ -1378,11 +1378,9 @@ public class KlavaNode extends Node {
             throw new KlavaException(e);
         } catch (InterruptedException e) {
             throw new KlavaException(e);
-        } catch (IMCException e) {
+        } catch (IMCException | ClassCastException e) {
             throw new KlavaException(e);
-        } catch (ClassCastException e) {
-            throw new KlavaException(e);
-        }
+        } 
 
     }
 
