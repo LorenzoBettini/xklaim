@@ -1129,19 +1129,33 @@ public class KlavaNode extends Node {
             /* this is needed to retrieve the response */
             tuplePacket.processName = processName;
 
-            /* binds the passed response to the thread name */
-            waitingForResponse.put(tuplePacket.processName, response);
+            /*
+             * The send phase must not see a Java interrupt flag: for NIO-backed
+             * local pipes, an interrupt during create/write/flush closes the
+             * channel and makes the peer think the connection was lost. Keep the
+             * protected scope small and replay any interrupt immediately before
+             * waiting for the response, where cancellation is expected.
+             */
+            try (KlavaProcess.InterruptDeferral ignored =
+                    KlavaProcess.deferInterruptsForCurrentProcess()) {
+                /*
+                 * Bind the response before the message can be sent. A response
+                 * may arrive as soon as the remote side reads the packet.
+                 */
+                waitingForResponse.put(tuplePacket.processName, response);
 
-            /* actually sends the operation message */
-            Marshaler marshaler = protocolStack.createMarshaler();
-
-            TupleOpState tupleOpState = new TupleOpState();
-            tupleOpState.setTuplePacket(tuplePacket);
-            tupleOpState.setProtocolStack(protocolStack);
-            tupleOpState.setDoRead(false);
-            tupleOpState.enter(null, new TransmissionChannel(marshaler));
-
-            protocolStack.releaseMarshaler(marshaler);
+                /* actually sends the operation message */
+                Marshaler marshaler = protocolStack.createMarshaler();
+                try {
+                    TupleOpState tupleOpState = new TupleOpState();
+                    tupleOpState.setTuplePacket(tuplePacket);
+                    tupleOpState.setProtocolStack(protocolStack);
+                    tupleOpState.setDoRead(false);
+                    tupleOpState.enter(null, new TransmissionChannel(marshaler));
+                } finally {
+                    protocolStack.releaseMarshaler(marshaler);
+                }
+            }
 
             /* now wait for response */
             response.waitForResponse();
