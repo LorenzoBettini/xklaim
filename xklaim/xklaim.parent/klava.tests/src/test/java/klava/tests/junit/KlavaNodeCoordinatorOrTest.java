@@ -326,7 +326,7 @@ public class KlavaNodeCoordinatorOrTest extends TestCase {
         /* interrupt the coordinator after a short delay to let it reach join() */
         Thread interrupter = new Thread(() -> {
             try {
-                Thread.sleep(100);
+                Thread.sleep(100); // NOSONAR we need the delay
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -338,8 +338,6 @@ public class KlavaNodeCoordinatorOrTest extends TestCase {
         coordinator.join(5000);
         assertFalse("Coordinator should have terminated", coordinator.isAlive());
 
-        /* or() wraps the InterruptedException in KlavaException and re-throws it;
-         * OrCoordinator.executeProcess() captures it in caughtKlavaException */
         assertNotNull("Coordinator should have caught a KlavaException",
                 coordinator.caughtKlavaException);
         assertTrue("The KlavaException cause should be an InterruptedException",
