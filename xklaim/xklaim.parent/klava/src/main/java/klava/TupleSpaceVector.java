@@ -189,7 +189,7 @@ public class TupleSpaceVector extends EventGeneratorAdapter implements
                         waitTime = TimeOut - timeSoFar;
                         tuples.wait(waitTime);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        Thread.currentThread().interrupt();
                         return false;
                     }
                     timeSoFar = System.currentTimeMillis() - startTime;

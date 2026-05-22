@@ -308,10 +308,9 @@ public class KlavaNodeCoordinatorOrTest extends TestCase {
      * after a short delay; at that point the coordinator is inside
      * {@link Thread#join()} on the OR process. {@code join()} throws
      * {@link InterruptedException}, which {@code or()} wraps in a
-     * {@link KlavaException} and re-throws. That exception propagates through
-     * {@link KlavaNodeCoordinator#execute() execute()} as an
-     * {@link org.mikado.imc.common.IMCException} and is stored as
-     * {@code finalException}.</p>
+     * {@link KlavaException} and re-throws. Klava treats that as
+     * interruption-driven termination, restoring the coordinator interrupt
+     * status instead of printing an uncaught exception stack trace.</p>
      *
      * <p>The OR process is still alive after the coordinator terminates; it is
      * explicitly interrupted in the test to avoid dangling threads.</p>
@@ -342,6 +341,8 @@ public class KlavaNodeCoordinatorOrTest extends TestCase {
                 coordinator.caughtKlavaException);
         assertTrue("The KlavaException cause should be an InterruptedException",
                 coordinator.caughtKlavaException.getCause() instanceof InterruptedException);
+        assertTrue("Coordinator should keep interrupted status",
+                coordinator.isInterrupted());
 
         /* clean up: the OR process is still blocking on in("A"); interrupt it
          * so the test leaves no dangling threads */

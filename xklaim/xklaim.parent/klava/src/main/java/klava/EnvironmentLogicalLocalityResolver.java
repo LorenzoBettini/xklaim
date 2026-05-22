@@ -71,12 +71,12 @@ public class EnvironmentLogicalLocalityResolver implements
                 Enumeration<ProtocolStack> stacks = sessionManager.getStacks();
                 while (stacks.hasMoreElements()) {
                     ProtocolStack protocolStack = stacks.nextElement();
+                    String processName = Thread.currentThread().getName();
 
                     Marshaler marshaler;
                     try {
                         Response<PhysicalLocality> response = new Response<PhysicalLocality>();
                         /* register for response */
-                        String processName = Thread.currentThread().getName();
                         waitingForLocality.put(processName, response);
                         marshaler = protocolStack.createMarshaler();
                         LocalityResolverState.sendResolveLocality(marshaler,
@@ -94,6 +94,8 @@ public class EnvironmentLogicalLocalityResolver implements
                     } catch (IOException e) {
                         throw new KlavaException(e);
                     } catch (InterruptedException e) {
+                        waitingForLocality.remove(processName);
+                        Thread.currentThread().interrupt();
                         throw new KlavaException(e);
                     }
                 }
