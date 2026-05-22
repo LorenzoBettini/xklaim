@@ -1,5 +1,8 @@
 package org.mikado.imc.log;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A MessagePrinter specialized to simply print on the screen
  * 
@@ -7,6 +10,8 @@ package org.mikado.imc.log;
  * @version $Revision: 1.3 $
  */
 public class DefaultMessagePrinter implements MessagePrinter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultMessagePrinter.class);
+
     /**
      * If specified, each printed line is prefixed with it.
      */
@@ -36,6 +41,6 @@ public class DefaultMessagePrinter implements MessagePrinter {
      *            the message to print
      */
     public void Print(String s) {
-        System.out.println((name.length() > 0 ? name + ": " : "") + s);
+        LOGGER.atInfo().log(() -> (name.length() > 0 ? name + ": " : "") + s);
     }
 }

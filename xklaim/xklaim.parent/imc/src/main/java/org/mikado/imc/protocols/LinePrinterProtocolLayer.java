@@ -7,6 +7,9 @@ package org.mikado.imc.protocols;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Reads a line and writes it to a specified OutputStream (by default
@@ -18,6 +21,8 @@ import java.io.OutputStream;
  * @version $Revision: 1.4 $
  */
 public class LinePrinterProtocolLayer extends ProtocolLayer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LinePrinterProtocolLayer.class);
+
     /** the output stream where we write the lines we read */
     protected OutputStream out;
     
@@ -76,7 +81,7 @@ public class LinePrinterProtocolLayer extends ProtocolLayer {
      * @param s
      */
     void print(String s) {
-        System.out.println(getClass().getSimpleName() + ": " + s);
+        LOGGER.debug("{}: {}", getClass().getSimpleName(), s);
     }
 
     /**

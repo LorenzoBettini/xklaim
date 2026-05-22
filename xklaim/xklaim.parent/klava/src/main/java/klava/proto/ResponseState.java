@@ -25,6 +25,8 @@ import org.mikado.imc.topology.CollectableThread;
 import org.mikado.imc.topology.RoutingTable;
 import org.mikado.imc.topology.SessionManager;
 import org.mikado.imc.topology.ThreadContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Deals with responses to operations.
@@ -33,6 +35,7 @@ import org.mikado.imc.topology.ThreadContainer;
  * @version $Revision: 1.5 $
  */
 public class ResponseState extends ProtocolSwitchState {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResponseState.class);
 
     /**
      * In case of a forwarding of response OK/ERROR, this thread waits to find a
@@ -74,8 +77,10 @@ public class ResponseState extends ProtocolSwitchState {
                         sessionManager, waitingForResponse);
 
                 if (route == null) {
-                    System.err.println("cannot route response " + result
-                            + " to " + destination);
+                    LOGGER.atWarn()
+                            .addKeyValue("result", result)
+                            .addKeyValue("destination", destination)
+                            .log("cannot route response");
 
                     /* we can't do much more here */
                     return;
@@ -211,8 +216,10 @@ public class ResponseState extends ProtocolSwitchState {
                             destination, sessionManager, waitingForResponse);
 
                     if (route == null) {
-                        System.err.println("cannot route tuple response "
-                                + tuple + " to " + destination);
+                        LOGGER.atWarn()
+                                .addKeyValue("tuple", tuple)
+                                .addKeyValue("destination", destination)
+                                .log("cannot route tuple response");
 
                         /* if it was an IN response we must put it back */
                         if (op.equals(TuplePacket.IN_S)) {
@@ -368,7 +375,9 @@ public class ResponseState extends ProtocolSwitchState {
 
                 releaseMarshaler(transmissionChannel2.marshaler);
             } catch (KlavaMalformedPhyLocalityException e) {
-                e.printStackTrace();
+                LOGGER.atWarn()
+                        .setCause(e)
+                        .log("cannot put tuple back");
                 /* there's nothing we can do about it. */
             }
         }

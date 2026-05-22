@@ -6,6 +6,9 @@ package org.mikado.imc.protocols;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Simple state that just echoes what it receives.
  * 
@@ -13,6 +16,8 @@ import java.io.IOException;
  * @version $Revision: 1.6 $
  */
 public class EchoProtocolState extends ProtocolStateSimple {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EchoProtocolState.class);
+
     /**
      * Creates a new EchoProtocolState object.
      */
@@ -31,12 +36,12 @@ public class EchoProtocolState extends ProtocolStateSimple {
 
     public void enter(Object param, TransmissionChannel transmissionChannel)
             throws ProtocolException {
-        print("reading a line");
+        LOGGER.debug("{}: reading a line", getClass().getSimpleName());
 
         try {
             UnMarshaler unMarshaler = getUnMarshaler(transmissionChannel);
             String line = unMarshaler.readStringLine();
-            print("read line: " + line);
+            LOGGER.debug("{}: read line: {}", getClass().getSimpleName(), line);
             releaseUnMarshaler(unMarshaler);
             Marshaler marshaler = getMarshaler(transmissionChannel);
             marshaler.writeStringLine(line);
@@ -44,9 +49,5 @@ public class EchoProtocolState extends ProtocolStateSimple {
         } catch (IOException e) {
             throw new ProtocolException(e);
         }
-    }
-
-    void print(String s) {
-        System.out.println(getClass().getSimpleName() + ": " + s);
     }
 }
