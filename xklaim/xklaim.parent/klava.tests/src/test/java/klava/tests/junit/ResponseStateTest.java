@@ -6,6 +6,7 @@ package klava.tests.junit;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import org.mikado.imc.common.IMCException;
 import org.mikado.imc.protocols.IMCMarshaler;
 import org.mikado.imc.protocols.IMCUnMarshaler;
 import org.mikado.imc.protocols.IpSessionId;
@@ -18,6 +19,7 @@ import org.mikado.imc.protocols.Session;
 import org.mikado.imc.protocols.TransmissionChannel;
 import org.mikado.imc.protocols.UnMarshaler;
 import org.mikado.imc.topology.RoutingTable;
+import org.mikado.imc.topology.SessionManager;
 
 import junit.framework.TestCase;
 import klava.Environment;
@@ -458,6 +460,42 @@ public class ResponseStateTest extends TestCase {
         assertEquals(TuplePacket.TUPLEBACK_S, tuplePacket.operation);
         assertEquals(protocolStack.getSession().getRemoteEnd().toString(),
                 tuplePacket.Dest.toString());
+        assertEquals(protocolStack.getSession().getLocalEnd().toString(),
+                tuplePacket.Source.toString());
+        assertEquals(tuple, tuplePacket.tuple);
+    }
+
+    public void testForwardedInResponseWithoutRoute_putsTupleBack()
+            throws IMCException, IOException {
+        // exercises the selected ResponseTupleThread.execute() path
+        // by using an empty SessionManager, forcing route lookup to fail,
+        // then verifying the emitted TUPLEBACK packet contains the original tuple
+        // and correct source/destination.
+        responseState.setSessionManager(new SessionManager());
+
+        Tuple tuple = new Tuple(new KInteger(10), new String("foo"));
+        IpSessionId from = new IpSessionId("localhost", 11000);
+        IpSessionId destination = new IpSessionId("localhost", 12000);
+
+        ResponseState.ResponseTupleState responseTupleState = (ResponseState.ResponseTupleState) responseState
+                .getRequestState(TuplePacket.IN_S);
+        ResponseState.ResponseTupleState.ResponseTupleThread responseTupleThread = responseTupleState.new ResponseTupleThread(
+                TuplePacket.IN_S, true, from, destination, "waiting thread",
+                tuple);
+
+        responseTupleThread.execute();
+
+        TupleOpState tupleOpState = new TupleOpState();
+        tupleOpState.setDoRead(true);
+        tupleOpState.enter(null, new TransmissionChannel(protocolStack
+                .createUnMarshaler()));
+
+        TuplePacket tuplePacket = tupleOpState.getTuplePacket();
+
+        System.out.println("forwarded tuple put back: " + tuplePacket);
+
+        assertEquals(TuplePacket.TUPLEBACK_S, tuplePacket.operation);
+        assertEquals(from.toString(), tuplePacket.Dest.toString());
         assertEquals(protocolStack.getSession().getLocalEnd().toString(),
                 tuplePacket.Source.toString());
         assertEquals(tuple, tuplePacket.tuple);
