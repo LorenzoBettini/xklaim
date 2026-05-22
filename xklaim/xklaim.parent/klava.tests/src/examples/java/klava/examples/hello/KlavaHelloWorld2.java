@@ -10,7 +10,6 @@ import klava.topology.Net;
 
 public class KlavaHelloWorld2 {
 
-	@SuppressWarnings("serial")
 	public static void main(String[] args) throws Exception {
 		PhysicalLocality serverLoc = new PhysicalLocality("tcp-127.0.0.1:9999");
 		KlavaNode serverNode = new Net(serverLoc);
