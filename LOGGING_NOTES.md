@@ -104,6 +104,8 @@ The standalone Eclipse product installs `slf4j.simple` through `xklaim.feature`.
 Do not configure `org.eclipse.equinox.slf4j` as an auto-started product bundle unless
 it is also installed by one of the product features; otherwise product materialization
 fails because the generated product configuration IU requires a missing bundle.
+The product starts `org.apache.aries.spifly.dynamic.bundle` and `slf4j.simple` early
+so SLF4J 2 provider discovery works during Eclipse/SWTBot startup.
 
 ## Initial Implementation Plan
 
