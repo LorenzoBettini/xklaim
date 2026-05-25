@@ -166,7 +166,7 @@ public abstract class XklaimAbstractSwtbotTest {
 		SWTBotShell shell = bot.shell("New Template Project");
 		shell.activate();
 
-		bot.textWithLabel("Project name:").setText(TEST_PROJECT);
+		shell.bot().textWithLabel("Project name:").setText(TEST_PROJECT);
 
 		bot.button("Finish").click();
 
