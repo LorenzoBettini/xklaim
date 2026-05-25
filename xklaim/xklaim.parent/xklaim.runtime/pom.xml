@@ -24,5 +24,10 @@
 			<artifactId>org.eclipse.xtext.xbase.lib</artifactId>
 			<version>${xtextVersion}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
 	</dependencies>
 </project>
