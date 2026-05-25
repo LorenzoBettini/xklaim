@@ -60,6 +60,7 @@ final class HelloWorldProject {
 			folders += "src"
 			folders += "src-gen"
 			requiredBundles += "xklaim.runtime"
+			requiredBundles += "slf4j.simple"
 			addFile(".settings/org.eclipse.core.resources.prefs", '''
 				eclipse.preferences.version=1
 				encoding/<project>=UTF-8

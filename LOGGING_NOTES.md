@@ -85,6 +85,21 @@ For a friendlier out-of-the-box experience, default backend/configuration belong
 
 It should not live inside the core runtime libraries.
 
+## XKlaim Wizard Projects
+
+Wizard-created projects are plain Java launches, so they need an SLF4J provider on
+their project classpath. `xklaim.runtime` reexports only `slf4j-api`; the wizard adds
+`slf4j.simple` as a required bundle to provide a small default console backend.
+
+The XKlaim feature includes `slf4j.simple`, and the target platform resolves that
+bundle from the Eclipse release train, so it is available in the installed IDE and in
+development. Existing wizard-created projects can opt in by adding `slf4j.simple` to
+their `Require-Bundle` list.
+
+Because the development target may contain both `org.eclipse.equinox.slf4j` and
+`slf4j.simple`, the Xtext/MWE2 generator is pinned to the Equinox provider at build
+time to avoid multiple-provider warnings during Maven builds.
+
 ## Initial Implementation Plan
 
 1. Add SLF4J API dependencies/imports to `imc` and `klava`.

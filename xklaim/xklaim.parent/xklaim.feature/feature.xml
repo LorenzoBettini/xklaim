@@ -39,6 +39,13 @@
          unpack="false"/>
 
    <plugin
+         id="slf4j.simple"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
          id="xklaim.ui.examples"
          download-size="0"
          install-size="0"
