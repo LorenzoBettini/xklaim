@@ -9,10 +9,15 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceDescription;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swtbot.swt.finder.SWTBot;
@@ -21,12 +26,15 @@ import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.utils.SWTBotPreferences;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
+import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.IWorkbenchWizard;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.wizards.IWizardDescriptor;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -35,6 +43,7 @@ public abstract class XklaimAbstractSwtbotTest {
 
 	protected static final String TEST_PROJECT = "MyTestProject";
 	protected static final String PROJECT_EXPLORER = "Project Explorer";
+	private static final String XKLAIM_PROJECT_WIZARD_ID = "xklaim.ui.wizard.XklaimNewProjectWizard";
 	protected static SWTWorkbenchBot bot;
 
 	@BeforeClass
@@ -43,12 +52,10 @@ public abstract class XklaimAbstractSwtbotTest {
 		
 		bot = new SWTWorkbenchBot();
 
-		waitForActiveWorkbenchShell();
+		waitForWorkbenchWindow();
 		closeWelcomePage();
-		waitForActiveWorkbenchShell();
-
-		bot.viewByPartName("Problems").show();
-		bot.menu("Window").menu("Show View").menu(PROJECT_EXPLORER).click();
+		showView(IPageLayout.ID_PROBLEM_VIEW);
+		showView(IPageLayout.ID_PROJECT_EXPLORER);
 	}
 
 	@AfterClass
@@ -74,17 +81,20 @@ public abstract class XklaimAbstractSwtbotTest {
 		});
 	}
 
-	private static void waitForActiveWorkbenchShell() {
+	private static void waitForWorkbenchWindow() {
 		bot.waitUntil(new ICondition() {
 			@Override
 			public boolean test() throws Exception {
-				activateWorkbenchShell();
-				try {
-					bot.activeShell();
-					return true;
-				} catch (WidgetNotFoundException e) {
-					return false;
-				}
+				final boolean[] available = new boolean[1];
+				runOnDisplay(new Runnable() {
+					@Override
+					public void run() {
+						IWorkbenchWindow window = getWorkbenchWindow();
+						Shell shell = window != null ? window.getShell() : null;
+						available[0] = shell != null && !shell.isDisposed();
+					}
+				});
+				return available[0];
 			}
 
 			@Override
@@ -93,34 +103,38 @@ public abstract class XklaimAbstractSwtbotTest {
 
 			@Override
 			public String getFailureMessage() {
-				return "No active workbench shell";
+				return "No workbench window";
 			}
 		});
 	}
 
-	private static void activateWorkbenchShell() {
+	private static void showView(final String viewId) {
 		runOnDisplay(new Runnable() {
 			@Override
 			public void run() {
-				if (!PlatformUI.isWorkbenchRunning()) {
-					return;
+				IWorkbenchWindow window = getWorkbenchWindow();
+				if (window == null || window.getActivePage() == null) {
+					throw new IllegalStateException("No workbench page available");
 				}
-				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-				if (window == null) {
-					IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
-					if (windows.length > 0) {
-						window = windows[0];
-					}
-				}
-				if (window != null) {
-					Shell shell = window.getShell();
-					if (shell != null && !shell.isDisposed()) {
-						shell.forceActive();
-						shell.forceFocus();
-					}
+				try {
+					window.getActivePage().showView(viewId);
+				} catch (PartInitException e) {
+					throw new RuntimeException("Cannot show view " + viewId, e);
 				}
 			}
 		});
+	}
+
+	private static IWorkbenchWindow getWorkbenchWindow() {
+		if (!PlatformUI.isWorkbenchRunning()) {
+			return null;
+		}
+		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		if (window != null) {
+			return window;
+		}
+		IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
+		return windows.length > 0 ? windows[0] : null;
 	}
 
 	private static void runOnDisplay(Runnable runnable) {
@@ -132,25 +146,29 @@ public abstract class XklaimAbstractSwtbotTest {
 		}
 	}
 
+	private static void runAsyncOnDisplay(Runnable runnable) {
+		Display.getDefault().asyncExec(runnable);
+	}
+
 	protected void disableBuildAutomatically() {
-		clickOnBuildAutomatically(false);
+		setBuildAutomatically(false);
 	}
 
 	protected void enableBuildAutomatically() {
-		clickOnBuildAutomatically(true);
+		setBuildAutomatically(true);
 	}
 
-	private void clickOnBuildAutomatically(boolean shouldBeEnabled) {
-		if (buildAutomaticallyMenu().isChecked() == shouldBeEnabled)
-			return;
-		// see http://www.eclipse.org/forums/index.php/mv/msg/165852/#msg_525521
-		// for the reason why we need to specify 1
-		buildAutomaticallyMenu().click();
-		assertEquals(shouldBeEnabled, buildAutomaticallyMenu().isChecked());
-	}
-
-	private SWTBotMenu buildAutomaticallyMenu() {
-		return bot.menu("Project", 1).menu("Build Automatically");
+	private void setBuildAutomatically(boolean shouldBeEnabled) {
+		try {
+			IWorkspaceDescription description = ResourcesPlugin.getWorkspace().getDescription();
+			if (description.isAutoBuilding() != shouldBeEnabled) {
+				description.setAutoBuilding(shouldBeEnabled);
+				ResourcesPlugin.getWorkspace().setDescription(description);
+			}
+			assertEquals(shouldBeEnabled, ResourcesPlugin.getWorkspace().getDescription().isAutoBuilding());
+		} catch (CoreException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	protected boolean isProjectCreated(String name) {
@@ -225,18 +243,68 @@ public abstract class XklaimAbstractSwtbotTest {
 	}
 
 	protected void createProjectAndAssertCreated(String projectName) {
-		bot.menu("File").menu("New").menu("Xklaim Project").click();
+		openXklaimProjectWizard();
 
 		SWTBotShell shell = bot.shell("New Template Project");
 		shell.activate();
 
-		bot.textWithLabel("Project name:").setText(TEST_PROJECT);
+		bot.textWithLabel("Project name:").setText(projectName);
 
 		bot.button("Finish").click();
 
 		// creation of a project might require some time
 		bot.waitUntil(shellCloses(shell), SWTBotPreferences.TIMEOUT);
 		assertProjectCreated(projectName);
+	}
+
+	private void openXklaimProjectWizard() {
+		final AtomicReference<RuntimeException> failure = new AtomicReference<RuntimeException>();
+		runAsyncOnDisplay(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					IWorkbenchWindow window = getWorkbenchWindow();
+					if (window == null) {
+						throw new IllegalStateException("No workbench window available");
+					}
+					IWizardDescriptor descriptor = PlatformUI.getWorkbench().getNewWizardRegistry()
+							.findWizard(XKLAIM_PROJECT_WIZARD_ID);
+					if (descriptor == null) {
+						throw new IllegalStateException("Cannot find wizard " + XKLAIM_PROJECT_WIZARD_ID);
+					}
+					IWorkbenchWizard wizard = descriptor.createWizard();
+					wizard.init(PlatformUI.getWorkbench(), StructuredSelection.EMPTY);
+					new WizardDialog(window.getShell(), wizard).open();
+				} catch (CoreException e) {
+					failure.set(new RuntimeException("Cannot open wizard " + XKLAIM_PROJECT_WIZARD_ID, e));
+				} catch (RuntimeException e) {
+					failure.set(e);
+				}
+			}
+		});
+		bot.waitUntil(new ICondition() {
+			@Override
+			public boolean test() throws Exception {
+				if (failure.get() != null) {
+					throw failure.get();
+				}
+				try {
+					bot.shell("New Template Project");
+					return true;
+				} catch (WidgetNotFoundException e) {
+					return false;
+				}
+			}
+
+			@Override
+			public void init(SWTBot bot) {
+			}
+
+			@Override
+			public String getFailureMessage() {
+				return "Xklaim project wizard did not open";
+			}
+		});
 	}
 
 	protected void assertProjectCreated(String projectName) {
