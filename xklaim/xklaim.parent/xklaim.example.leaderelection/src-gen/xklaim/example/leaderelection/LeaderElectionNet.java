@@ -16,13 +16,13 @@ import org.mikado.imc.common.IMCException;
 @SuppressWarnings("all")
 public class LeaderElectionNet extends LogicalNet {
   private static final LogicalLocality L1 = new LogicalLocality("L1");
-  
+
   private static final LogicalLocality L2 = new LogicalLocality("L2");
-  
+
   private static final LogicalLocality L3 = new LogicalLocality("L3");
-  
+
   private static final LogicalLocality rg = new LogicalLocality("rg");
-  
+
   public static class L1 extends ClientNode {
     private static class L1Process extends KlavaNodeCoordinator {
       @Override
@@ -31,22 +31,22 @@ public class LeaderElectionNet extends LogicalNet {
         eval(_initialProc, this.self);
       }
     }
-    
+
     private static final LogicalLocality next = new LogicalLocality("next");
-    
+
     public L1() {
       super(new PhysicalLocality("localhost:9999"), new LogicalLocality("L1"));
     }
-    
+
     public void setupEnvironment() {
       addToEnvironment(next, getPhysical(LeaderElectionNet.L2));
     }
-    
+
     public void addMainProcess() throws IMCException {
       addNodeCoordinator(new LeaderElectionNet.L1.L1Process());
     }
   }
-  
+
   public static class L2 extends ClientNode {
     private static class L2Process extends KlavaNodeCoordinator {
       @Override
@@ -55,22 +55,22 @@ public class LeaderElectionNet extends LogicalNet {
         eval(_initialProc, this.self);
       }
     }
-    
+
     private static final LogicalLocality next = new LogicalLocality("next");
-    
+
     public L2() {
       super(new PhysicalLocality("localhost:9999"), new LogicalLocality("L2"));
     }
-    
+
     public void setupEnvironment() {
       addToEnvironment(next, getPhysical(LeaderElectionNet.L3));
     }
-    
+
     public void addMainProcess() throws IMCException {
       addNodeCoordinator(new LeaderElectionNet.L2.L2Process());
     }
   }
-  
+
   public static class L3 extends ClientNode {
     private static class L3Process extends KlavaNodeCoordinator {
       @Override
@@ -79,22 +79,22 @@ public class LeaderElectionNet extends LogicalNet {
         eval(_initialProc, this.self);
       }
     }
-    
+
     private static final LogicalLocality next = new LogicalLocality("next");
-    
+
     public L3() {
       super(new PhysicalLocality("localhost:9999"), new LogicalLocality("L3"));
     }
-    
+
     public void setupEnvironment() {
       addToEnvironment(next, getPhysical(LeaderElectionNet.L1));
     }
-    
+
     public void addMainProcess() throws IMCException {
       addNodeCoordinator(new LeaderElectionNet.L3.L3Process());
     }
   }
-  
+
   public static class RG extends ClientNode {
     private static class RGProcess extends KlavaNodeCoordinator {
       @Override
@@ -104,20 +104,20 @@ public class LeaderElectionNet extends LogicalNet {
         out(new Tuple(new Object[] {"ID", 2}), this.self);
       }
     }
-    
+
     public RG() {
       super(new PhysicalLocality("localhost:9999"), new LogicalLocality("rg"));
     }
-    
+
     public void addMainProcess() throws IMCException {
       addNodeCoordinator(new LeaderElectionNet.RG.RGProcess());
     }
   }
-  
+
   public LeaderElectionNet() throws IMCException {
     super(new PhysicalLocality("localhost:9999"));
   }
-  
+
   public void addNodes() throws IMCException {
     LeaderElectionNet.L1 l1 = new LeaderElectionNet.L1();
     LeaderElectionNet.L2 l2 = new LeaderElectionNet.L2();

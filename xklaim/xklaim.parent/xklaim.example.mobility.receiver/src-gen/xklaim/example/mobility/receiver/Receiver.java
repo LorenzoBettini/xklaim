@@ -26,11 +26,11 @@ public class Receiver extends KlavaNode {
       }
     }
   }
-  
+
   public Receiver() {
     setMainPhysicalLocality(new PhysicalLocality("tcp-127.0.0.1:9999"));
   }
-  
+
   public void addMainProcess() throws IMCException {
     addNodeCoordinator(new Receiver.ReceiverProcess());
   }

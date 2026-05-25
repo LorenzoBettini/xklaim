@@ -45,14 +45,14 @@ public class Sender extends KlavaNode {
       System.exit(0);
     }
   }
-  
+
   private static final LogicalLocality server = new LogicalLocality("server");
-  
+
   public void setupEnvironment() {
     PhysicalLocality _phyloc = XklaimRuntimeUtil.phyloc("tcp-127.0.0.1:9999");
     addToEnvironment(server, getPhysical(_phyloc));
   }
-  
+
   public void addMainProcess() throws IMCException {
     addNodeCoordinator(new Sender.SenderProcess());
   }

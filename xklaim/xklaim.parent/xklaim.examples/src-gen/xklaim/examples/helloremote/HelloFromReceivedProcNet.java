@@ -20,9 +20,9 @@ import org.mikado.imc.common.IMCException;
 @SuppressWarnings("all")
 public class HelloFromReceivedProcNet extends LogicalNet {
   private static final LogicalLocality reader = new LogicalLocality("reader");
-  
+
   private static final LogicalLocality writer = new LogicalLocality("writer");
-  
+
   /**
    * Sends a process to the Writer node to retrieve the tuple
    */
@@ -48,16 +48,16 @@ public class HelloFromReceivedProcNet extends LogicalNet {
         out(new Tuple(new Object[] {_Proc}), HelloFromReceivedProcNet.writer);
       }
     }
-    
+
     public Reader() {
       super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("reader"));
     }
-    
+
     public void addMainProcess() throws IMCException {
       addNodeCoordinator(new HelloFromReceivedProcNet.Reader.ReaderProcess());
     }
   }
-  
+
   /**
    * Retrieves the migrating process and executes it locally.
    */
@@ -74,20 +74,20 @@ public class HelloFromReceivedProcNet extends LogicalNet {
         eval(P, this.self);
       }
     }
-    
+
     public Writer() {
       super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("writer"));
     }
-    
+
     public void addMainProcess() throws IMCException {
       addNodeCoordinator(new HelloFromReceivedProcNet.Writer.WriterProcess());
     }
   }
-  
+
   public HelloFromReceivedProcNet() throws IMCException {
     super(new PhysicalLocality("tcp-127.0.0.1:9999"));
   }
-  
+
   public void addNodes() throws IMCException {
     HelloFromReceivedProcNet.Reader reader = new HelloFromReceivedProcNet.Reader();
     HelloFromReceivedProcNet.Writer writer = new HelloFromReceivedProcNet.Writer();

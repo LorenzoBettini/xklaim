@@ -10,11 +10,11 @@ import xklaim.runtime.util.XklaimRuntimeUtil;
 @SuppressWarnings("all")
 public class InitialProc extends KlavaProcess {
   private String nodeName;
-  
+
   public InitialProc(final String nodeName) {
     this.nodeName = nodeName;
   }
-  
+
   @Override
   public void executeProcess() {
     final PhysicalLocality rg = this.getPhysical(XklaimRuntimeUtil.logloc("rg"));

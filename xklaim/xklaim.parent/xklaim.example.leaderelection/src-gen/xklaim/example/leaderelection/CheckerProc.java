@@ -8,11 +8,11 @@ import xklaim.runtime.util.XklaimRuntimeUtil;
 @SuppressWarnings("all")
 public class CheckerProc extends KlavaProcess {
   private Integer myId;
-  
+
   public CheckerProc(final Integer myId) {
     this.myId = myId;
   }
-  
+
   @Override
   public void executeProcess() {
     final LogicalLocality next = XklaimRuntimeUtil.logloc("next");

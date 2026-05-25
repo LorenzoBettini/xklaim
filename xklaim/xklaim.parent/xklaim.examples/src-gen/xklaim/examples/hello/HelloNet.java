@@ -18,9 +18,9 @@ import org.mikado.imc.common.IMCException;
 @SuppressWarnings("all")
 public class HelloNet extends LogicalNet {
   private static final LogicalLocality reader = new LogicalLocality("reader");
-  
+
   private static final LogicalLocality writer = new LogicalLocality("writer");
-  
+
   /**
    * Tries to retrieve a matching tuple from the Writer node.
    */
@@ -36,22 +36,22 @@ public class HelloNet extends LogicalNet {
         System.exit(0);
       }
     }
-    
+
     private static final LogicalLocality writerLoc = new LogicalLocality("writerLoc");
-    
+
     public Reader() {
       super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("reader"));
     }
-    
+
     public void setupEnvironment() {
       addToEnvironment(writerLoc, getPhysical(HelloNet.writer));
     }
-    
+
     public void addMainProcess() throws IMCException {
       addNodeCoordinator(new HelloNet.Reader.ReaderProcess());
     }
   }
-  
+
   public static class Writer extends ClientNode {
     private static class WriterProcess extends KlavaNodeCoordinator {
       @Override
@@ -59,20 +59,20 @@ public class HelloNet extends LogicalNet {
         out(new Tuple(new Object[] {"Hello World"}), this.self);
       }
     }
-    
+
     public Writer() {
       super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("writer"));
     }
-    
+
     public void addMainProcess() throws IMCException {
       addNodeCoordinator(new HelloNet.Writer.WriterProcess());
     }
   }
-  
+
   public HelloNet() throws IMCException {
     super(new PhysicalLocality("tcp-127.0.0.1:9999"));
   }
-  
+
   public void addNodes() throws IMCException {
     HelloNet.Reader reader = new HelloNet.Reader();
     HelloNet.Writer writer = new HelloNet.Writer();

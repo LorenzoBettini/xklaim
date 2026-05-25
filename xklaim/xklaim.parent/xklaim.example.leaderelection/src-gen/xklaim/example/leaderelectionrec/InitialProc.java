@@ -1,6 +1,6 @@
 package xklaim.example.leaderelectionrec;
 
-import com.google.common.base.Objects;
+import java.util.Objects;
 import klava.LogicalLocality;
 import klava.PhysicalLocality;
 import klava.Tuple;
@@ -11,11 +11,11 @@ import xklaim.runtime.util.XklaimRuntimeUtil;
 @SuppressWarnings("all")
 public class InitialProc extends KlavaProcess {
   private String nodeName;
-  
+
   public InitialProc(final String nodeName) {
     this.nodeName = nodeName;
   }
-  
+
   @Override
   public void executeProcess() {
     final PhysicalLocality rg = this.getPhysical(XklaimRuntimeUtil.logloc("rg"));
@@ -59,7 +59,7 @@ public class InitialProc extends KlavaProcess {
                     Tuple _Tuple_2 = new Tuple(new Object[] {"ID", Integer.class});
                     read(_Tuple_2, this.self);
                     x1 = (Integer) _Tuple_2.getItem(1);
-                    boolean _equals = Objects.equal(x1, myId);
+                    boolean _equals = Objects.equals(x1, myId);
                     if (_equals) {
                       out(new Tuple(new Object[] {"FOLLOWER"}), this.self);
                     } else {
