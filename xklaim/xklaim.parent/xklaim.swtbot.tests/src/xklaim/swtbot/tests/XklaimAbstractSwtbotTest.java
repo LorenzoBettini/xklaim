@@ -14,18 +14,14 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.utils.SWTBotPreferences;
-import org.eclipse.swtbot.swt.finder.waits.ICondition;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -43,9 +39,7 @@ public abstract class XklaimAbstractSwtbotTest {
 		
 		bot = new SWTWorkbenchBot();
 
-		waitForActiveWorkbenchShell();
 		closeWelcomePage();
-		waitForActiveWorkbenchShell();
 
 		bot.viewByPartName("Problems").show();
 		bot.menu("Window").menu("Show View").menu(PROJECT_EXPLORER).click();
@@ -63,7 +57,7 @@ public abstract class XklaimAbstractSwtbotTest {
 	}
 
 	protected static void closeWelcomePage() throws InterruptedException {
-		runOnDisplay(new Runnable() {
+		Display.getDefault().syncExec(new Runnable() {
 			@Override
 			public void run() {
 				if (PlatformUI.getWorkbench().getIntroManager().getIntro() != null) {
@@ -72,64 +66,6 @@ public abstract class XklaimAbstractSwtbotTest {
 				}
 			}
 		});
-	}
-
-	private static void waitForActiveWorkbenchShell() {
-		bot.waitUntil(new ICondition() {
-			@Override
-			public boolean test() throws Exception {
-				activateWorkbenchShell();
-				try {
-					bot.activeShell();
-					return true;
-				} catch (WidgetNotFoundException e) {
-					return false;
-				}
-			}
-
-			@Override
-			public void init(SWTBot bot) {
-			}
-
-			@Override
-			public String getFailureMessage() {
-				return "No active workbench shell";
-			}
-		});
-	}
-
-	private static void activateWorkbenchShell() {
-		runOnDisplay(new Runnable() {
-			@Override
-			public void run() {
-				if (!PlatformUI.isWorkbenchRunning()) {
-					return;
-				}
-				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-				if (window == null) {
-					IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
-					if (windows.length > 0) {
-						window = windows[0];
-					}
-				}
-				if (window != null) {
-					Shell shell = window.getShell();
-					if (shell != null && !shell.isDisposed()) {
-						shell.forceActive();
-						shell.forceFocus();
-					}
-				}
-			}
-		});
-	}
-
-	private static void runOnDisplay(Runnable runnable) {
-		Display display = Display.getDefault();
-		if (display.getThread() == Thread.currentThread()) {
-			runnable.run();
-		} else {
-			display.syncExec(runnable);
-		}
 	}
 
 	protected void disableBuildAutomatically() {
