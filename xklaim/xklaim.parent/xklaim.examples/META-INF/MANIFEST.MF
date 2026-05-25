@@ -6,5 +6,6 @@ Bundle-Vendor: Lorenzo Bettini
 Bundle-Version: 2.5.1.qualifier
 Bundle-SymbolicName: xklaim.examples; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: xklaim.runtime
+Require-Bundle: xklaim.runtime,
+ slf4j.simple
 Bundle-RequiredExecutionEnvironment: JavaSE-21
