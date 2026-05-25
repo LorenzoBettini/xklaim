@@ -100,6 +100,11 @@ Because the development target may contain both `org.eclipse.equinox.slf4j` and
 `slf4j.simple`, the Xtext/MWE2 generator is pinned to the Equinox provider at build
 time to avoid multiple-provider warnings during Maven builds.
 
+The standalone Eclipse product installs `slf4j.simple` through `xklaim.feature`.
+Do not configure `org.eclipse.equinox.slf4j` as an auto-started product bundle unless
+it is also installed by one of the product features; otherwise product materialization
+fails because the generated product configuration IU requires a missing bundle.
+
 ## Initial Implementation Plan
 
 1. Add SLF4J API dependencies/imports to `imc` and `klava`.
