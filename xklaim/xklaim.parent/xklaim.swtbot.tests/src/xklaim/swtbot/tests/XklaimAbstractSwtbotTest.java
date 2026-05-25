@@ -42,7 +42,7 @@ public abstract class XklaimAbstractSwtbotTest {
 		closeWelcomePage();
 
 		bot.viewByPartName("Problems").show();
-		bot.menu("Window").menu("Show View").menu(PROJECT_EXPLORER).click();
+		bot.shell().bot().menu("Window").menu("Show View").menu(PROJECT_EXPLORER).click();
 	}
 
 	@AfterClass
