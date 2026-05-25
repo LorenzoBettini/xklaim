@@ -168,7 +168,7 @@ public abstract class XklaimAbstractSwtbotTest {
 
 		shell.bot().textWithLabel("Project name:").setText(TEST_PROJECT);
 
-		bot.button("Finish").click();
+		shell.bot().button("Finish").click();
 
 		// creation of a project might require some time
 		bot.waitUntil(shellCloses(shell), SWTBotPreferences.TIMEOUT);
