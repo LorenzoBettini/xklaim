@@ -695,12 +695,93 @@ public class KlavaNode extends Node {
     }
 
     /**
+     * Formats a locality for log messages. When the destination is the special
+     * {@code self} sentinel, returns {@code "self"}. When it is a logical
+     * locality (not {@code self}), returns {@code "logicalName - physicalAddr"}.
+     * Otherwise returns the resolved physical address.
+     */
+    private static String formatLocality(Locality destination,
+            PhysicalLocality resolvedPhysical) {
+        if (destination == self) {
+            return "self";
+        } else if (destination instanceof LogicalLocality) {
+            return destination + " - " + resolvedPhysical;
+        } else {
+            return resolvedPhysical.toString();
+        }
+    }
+
+    /**
+     * Returns only the physical part of a locality for the right-hand side of a
+     * retrieval log message. When the destination is {@code self}, returns
+     * {@code "self"}; otherwise returns the resolved physical address.
+     */
+    private static String physicalLocalityString(Locality destination,
+            PhysicalLocality resolvedPhysical) {
+        if (destination == self) {
+            return "self";
+        }
+        return resolvedPhysical.toString();
+    }
+
+    private void outLocalImpl(Tuple tuple) {
+        tupleSpace.out(tuple);
+    }
+
+    private void inLocalImpl(Tuple tuple) throws KlavaException {
+        try {
+            tupleSpace.in(tuple);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new KlavaException(e);
+        }
+    }
+
+    private boolean inNbLocalImpl(Tuple tuple) {
+        return tupleSpace.in_nb(tuple);
+    }
+
+    private boolean inTLocalImpl(Tuple tuple, long timeout)
+            throws KlavaException {
+        try {
+            return tupleSpace.in_t(tuple, timeout);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new KlavaException(e);
+        }
+    }
+
+    private void readLocalImpl(Tuple tuple) throws KlavaException {
+        try {
+            tupleSpace.read(tuple);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new KlavaException(e);
+        }
+    }
+
+    private boolean readNbLocalImpl(Tuple tuple) {
+        return tupleSpace.read_nb(tuple);
+    }
+
+    private boolean readTLocalImpl(Tuple tuple, long timeout)
+            throws KlavaException {
+        try {
+            return tupleSpace.read_t(tuple, timeout);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new KlavaException(e);
+        }
+    }
+
+    /**
      * Performs an OUT operation at the local tuple space.
      * 
      * @param tuple
      */
     public void out(Tuple tuple) {
-        tupleSpace.out(tuple);
+        LOGGER.atDebug().setMessage(() -> "out" + tuple + "@self").log();
+        outLocalImpl(tuple);
     }
 
     /**
@@ -715,9 +796,15 @@ public class KlavaNode extends Node {
         PhysicalLocality realDestination = new PhysicalLocality();
         if (checkLocalDestination(destination, realDestination)) {
             /* this is a local operation */
-            out(tuple);
+            String locStr = formatLocality(destination, realDestination);
+            LOGGER.atDebug().setMessage(() -> "out" + tuple + "@" + locStr)
+                    .log();
+            outLocalImpl(tuple);
             return;
         }
+
+        String locStr = formatLocality(destination, realDestination);
+        LOGGER.atDebug().setMessage(() -> "out" + tuple + "@" + locStr).log();
 
         /* the response we will wait for */
         Response<String> response = new Response<String>();
@@ -739,12 +826,12 @@ public class KlavaNode extends Node {
      * @throws KlavaException
      */
     public void in(Tuple tuple) throws KlavaException {
-        try {
-            tupleSpace.in(tuple);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new KlavaException(e);
-        }
+        LOGGER.atDebug().setMessage(() -> "in" + tuple + "@self").log();
+        inLocalImpl(tuple);
+        LOGGER.atDebug()
+                .setMessage(() -> "in" + tuple.getOriginalTemplate()
+                        + "@self -> in" + tuple + "@self")
+                .log();
     }
 
     /**
@@ -754,7 +841,8 @@ public class KlavaNode extends Node {
      * @return Whether a matching tuple is found
      */
     public boolean in_nb(Tuple tuple) {
-        return tupleSpace.in_nb(tuple);
+        LOGGER.atDebug().setMessage(() -> "in_nb" + tuple + "@self").log();
+        return inNbLocalImpl(tuple);
     }
 
     /**
@@ -767,12 +855,15 @@ public class KlavaNode extends Node {
      * @throws KlavaException
      */
     public boolean in_t(Tuple tuple, long timeout) throws KlavaException {
-        try {
-            return tupleSpace.in_t(tuple, timeout);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new KlavaException(e);
+        LOGGER.atDebug().setMessage(() -> "in_t" + tuple + "@self").log();
+        boolean result = inTLocalImpl(tuple, timeout);
+        if (result) {
+            LOGGER.atDebug()
+                    .setMessage(() -> "in_t" + tuple.getOriginalTemplate()
+                            + "@self -> in_t" + tuple + "@self")
+                    .log();
         }
+        return result;
     }
 
     /**
@@ -787,11 +878,26 @@ public class KlavaNode extends Node {
         PhysicalLocality realDestination = new PhysicalLocality();
         if (checkLocalDestination(destination, realDestination)) {
             /* this is a local operation */
-            in(tuple);
+            String locStr = formatLocality(destination, realDestination);
+            String physLocStr = physicalLocalityString(destination,
+                    realDestination);
+            LOGGER.atDebug().setMessage(() -> "in" + tuple + "@" + locStr)
+                    .log();
+            inLocalImpl(tuple);
+            LOGGER.atDebug()
+                    .setMessage(() -> "in" + tuple.getOriginalTemplate() + "@"
+                            + locStr + " -> in" + tuple + "@" + physLocStr)
+                    .log();
             return;
         }
 
+        String locStr = formatLocality(destination, realDestination);
+        LOGGER.atDebug().setMessage(() -> "in" + tuple + "@" + locStr).log();
         operationInRead(TuplePacket.IN_S, tuple, realDestination, true, -1);
+        LOGGER.atDebug()
+                .setMessage(() -> "in" + tuple.getOriginalTemplate() + "@"
+                        + locStr + " -> in" + tuple + "@" + realDestination)
+                .log();
     }
 
     /**
@@ -808,8 +914,14 @@ public class KlavaNode extends Node {
         PhysicalLocality realDestination = new PhysicalLocality();
         if (checkLocalDestination(destination, realDestination)) {
             /* this is a local operation */
-            return in_nb(tuple);
+            String locStr = formatLocality(destination, realDestination);
+            LOGGER.atDebug().setMessage(() -> "in_nb" + tuple + "@" + locStr)
+                    .log();
+            return inNbLocalImpl(tuple);
         }
+        String locStr = formatLocality(destination, realDestination);
+        LOGGER.atDebug().setMessage(() -> "in_nb" + tuple + "@" + locStr)
+                .log();
         return operationInRead(TuplePacket.IN_S, tuple, realDestination, false,
                 -1);
     }
@@ -831,38 +943,61 @@ public class KlavaNode extends Node {
         PhysicalLocality realDestination = new PhysicalLocality();
         if (checkLocalDestination(destination, realDestination)) {
             /* this is a local operation */
-            return in_t(tuple, timeout);
+            String locStr = formatLocality(destination, realDestination);
+            String physLocStr = physicalLocalityString(destination,
+                    realDestination);
+            LOGGER.atDebug().setMessage(() -> "in_t" + tuple + "@" + locStr)
+                    .log();
+            boolean result = inTLocalImpl(tuple, timeout);
+            if (result) {
+                LOGGER.atDebug()
+                        .setMessage(
+                                () -> "in_t" + tuple.getOriginalTemplate() + "@"
+                                        + locStr + " -> in_t" + tuple + "@"
+                                        + physLocStr)
+                        .log();
+            }
+            return result;
         }
 
-        return operationInRead(TuplePacket.IN_S, tuple, realDestination, true,
-                timeout);
+        String locStr = formatLocality(destination, realDestination);
+        LOGGER.atDebug().setMessage(() -> "in_t" + tuple + "@" + locStr).log();
+        boolean result = operationInRead(TuplePacket.IN_S, tuple,
+                realDestination, true, timeout);
+        if (result) {
+            LOGGER.atDebug()
+                    .setMessage(() -> "in_t" + tuple.getOriginalTemplate() + "@"
+                            + locStr + " -> in_t" + tuple + "@"
+                            + realDestination)
+                    .log();
+        }
+        return result;
     }
 
     /**
      * Performs an READ operation at the local tuple space.
      * 
      * @param tuple
-     * @param destination
      * @throws KlavaException
      */
     public void read(Tuple tuple) throws KlavaException {
-        try {
-            tupleSpace.read(tuple);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new KlavaException(e);
-        }
+        LOGGER.atDebug().setMessage(() -> "read" + tuple + "@self").log();
+        readLocalImpl(tuple);
+        LOGGER.atDebug()
+                .setMessage(() -> "read" + tuple.getOriginalTemplate()
+                        + "@self -> read" + tuple + "@self")
+                .log();
     }
 
     /**
      * Performs a non blocking READ operation at the local tuple space.
      * 
      * @param tuple
-     * @param destination
      * @return Whether a matching tuple is found
      */
     public boolean read_nb(Tuple tuple) {
-        return tupleSpace.read_nb(tuple);
+        LOGGER.atDebug().setMessage(() -> "read_nb" + tuple + "@self").log();
+        return readNbLocalImpl(tuple);
     }
 
     /**
@@ -875,12 +1010,15 @@ public class KlavaNode extends Node {
      * @throws KlavaException
      */
     public boolean read_t(Tuple tuple, long timeout) throws KlavaException {
-        try {
-            return tupleSpace.read_t(tuple, timeout);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new KlavaException(e);
+        LOGGER.atDebug().setMessage(() -> "read_t" + tuple + "@self").log();
+        boolean result = readTLocalImpl(tuple, timeout);
+        if (result) {
+            LOGGER.atDebug()
+                    .setMessage(() -> "read_t" + tuple.getOriginalTemplate()
+                            + "@self -> read_t" + tuple + "@self")
+                    .log();
         }
+        return result;
     }
 
     /**
@@ -895,11 +1033,26 @@ public class KlavaNode extends Node {
         PhysicalLocality realDestination = new PhysicalLocality();
         if (checkLocalDestination(destination, realDestination)) {
             /* this is a local operation */
-            read(tuple);
+            String locStr = formatLocality(destination, realDestination);
+            String physLocStr = physicalLocalityString(destination,
+                    realDestination);
+            LOGGER.atDebug().setMessage(() -> "read" + tuple + "@" + locStr)
+                    .log();
+            readLocalImpl(tuple);
+            LOGGER.atDebug()
+                    .setMessage(() -> "read" + tuple.getOriginalTemplate() + "@"
+                            + locStr + " -> read" + tuple + "@" + physLocStr)
+                    .log();
             return;
         }
 
+        String locStr = formatLocality(destination, realDestination);
+        LOGGER.atDebug().setMessage(() -> "read" + tuple + "@" + locStr).log();
         operationInRead(TuplePacket.READ_S, tuple, realDestination, true, -1);
+        LOGGER.atDebug()
+                .setMessage(() -> "read" + tuple.getOriginalTemplate() + "@"
+                        + locStr + " -> read" + tuple + "@" + realDestination)
+                .log();
     }
 
     /**
@@ -916,9 +1069,15 @@ public class KlavaNode extends Node {
         PhysicalLocality realDestination = new PhysicalLocality();
         if (checkLocalDestination(destination, realDestination)) {
             /* this is a local operation */
-            return read_nb(tuple);
+            String locStr = formatLocality(destination, realDestination);
+            LOGGER.atDebug().setMessage(() -> "read_nb" + tuple + "@" + locStr)
+                    .log();
+            return readNbLocalImpl(tuple);
         }
 
+        String locStr = formatLocality(destination, realDestination);
+        LOGGER.atDebug().setMessage(() -> "read_nb" + tuple + "@" + locStr)
+                .log();
         return operationInRead(TuplePacket.READ_S, tuple, realDestination,
                 false, -1);
     }
@@ -940,11 +1099,36 @@ public class KlavaNode extends Node {
         PhysicalLocality realDestination = new PhysicalLocality();
         if (checkLocalDestination(destination, realDestination)) {
             /* this is a local operation */
-            return read_t(tuple, timeout);
+            String locStr = formatLocality(destination, realDestination);
+            String physLocStr = physicalLocalityString(destination,
+                    realDestination);
+            LOGGER.atDebug().setMessage(() -> "read_t" + tuple + "@" + locStr)
+                    .log();
+            boolean result = readTLocalImpl(tuple, timeout);
+            if (result) {
+                LOGGER.atDebug()
+                        .setMessage(
+                                () -> "read_t" + tuple.getOriginalTemplate()
+                                        + "@" + locStr + " -> read_t" + tuple
+                                        + "@" + physLocStr)
+                        .log();
+            }
+            return result;
         }
 
-        return operationInRead(TuplePacket.READ_S, tuple, realDestination,
-                true, timeout);
+        String locStr = formatLocality(destination, realDestination);
+        LOGGER.atDebug().setMessage(() -> "read_t" + tuple + "@" + locStr)
+                .log();
+        boolean result = operationInRead(TuplePacket.READ_S, tuple,
+                realDestination, true, timeout);
+        if (result) {
+            LOGGER.atDebug()
+                    .setMessage(() -> "read_t" + tuple.getOriginalTemplate()
+                            + "@" + locStr + " -> read_t" + tuple + "@"
+                            + realDestination)
+                    .log();
+        }
+        return result;
     }
 
     /**
