@@ -92,6 +92,7 @@
     <module>imc</module>
     <module>klava</module>
     <module>xklaim.target</module>
+    <module>xklaim.lib</module>
     <module>xklaim.runtime</module>
     <module>xklaim</module>
   </modules>
