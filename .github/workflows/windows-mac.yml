@@ -29,6 +29,33 @@ jobs:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml', '**/*.yml', '**/*.target') }}
         restore-keys: ${{ runner.os }}-m2-
+    - name: Dismiss macOS Analytics setup dialog
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        for i in {1..30}; do
+          if pgrep -x "Setup Assistant" >/dev/null; then
+            echo "Found macOS Setup Assistant; trying to dismiss it"
+            osascript <<'APPLESCRIPT' || true
+            tell application "System Events"
+              if exists process "Setup Assistant" then
+                tell process "Setup Assistant"
+                  set frontmost to true
+                  delay 0.2
+                  try
+                    click button "Continue" of window 1
+                  on error
+                    key code 36
+                  end try
+                end tell
+              end if
+            end tell
+        APPLESCRIPT
+            sleep 2
+            pgrep -x "Setup Assistant" >/dev/null || exit 0
+          fi
+          sleep 1
+        done
     - name: Build with Maven
       run: >
         ./mvnw
