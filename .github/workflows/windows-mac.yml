@@ -41,21 +41,20 @@ jobs:
 
           echo "Setup Assistant is running; trying to dismiss it"
 
-          osascript <<'APPLESCRIPT' >/dev/null 2>&1 || true
-          tell application "System Events"
-            if exists process "Setup Assistant" then
-              tell process "Setup Assistant"
-                set frontmost to true
-                delay 0.2
-                try
-                  perform action "AXPress" of button "Continue" of window 1
-                end try
-                delay 0.5
-              end tell
-              key code 36
-            end if
-          end tell
-          APPLESCRIPT
+          osascript \
+            -e 'tell application "System Events"' \
+            -e 'if exists process "Setup Assistant" then' \
+            -e 'tell process "Setup Assistant"' \
+            -e 'set frontmost to true' \
+            -e 'delay 0.2' \
+            -e 'try' \
+            -e 'perform action "AXPress" of button "Continue" of window 1' \
+            -e 'end try' \
+            -e 'delay 0.5' \
+            -e 'end tell' \
+            -e 'key code 36' \
+            -e 'end if' \
+            -e 'end tell' >/dev/null 2>&1 || true
 
           sleep 2
         done
