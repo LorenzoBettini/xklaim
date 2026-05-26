@@ -6,6 +6,5 @@ Bundle-Vendor: Lorenzo Bettini
 Bundle-Version: 2.5.1.qualifier
 Bundle-SymbolicName: xklaim.example.mobility.receiver; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: xklaim.runtime,
- slf4j.simple
+Require-Bundle: xklaim.runtime
 Bundle-RequiredExecutionEnvironment: JavaSE-21
