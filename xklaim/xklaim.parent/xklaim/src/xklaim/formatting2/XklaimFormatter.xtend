@@ -4,9 +4,12 @@
 package xklaim.formatting2
 
 import org.eclipse.xtext.formatting2.IFormattableDocument
+import org.eclipse.xtext.xbase.XBlockExpression
 import org.eclipse.xtext.xbase.annotations.formatting2.XbaseWithAnnotationsFormatter
+import xklaim.xklaim.XklaimInlineProcess
 import xklaim.xklaim.XklaimModel
 import xklaim.xklaim.XklaimNet
+import xklaim.xklaim.XklaimOrOperation
 
 class XklaimFormatter extends XbaseWithAnnotationsFormatter {
 	
@@ -31,6 +34,57 @@ class XklaimFormatter extends XbaseWithAnnotationsFormatter {
 		for (element : n.nodes) {
 			element.format
 			element.append[setNewLines(1, 1, 2)]
+		}
+	}
+
+	def dispatch void format(XklaimInlineProcess p, extension IFormattableDocument document) {
+		if (p.body === null) {
+			return
+		}
+		p.body.prepend[oneSpace]
+		p.body.format
+	}
+
+	def dispatch void format(XklaimOrOperation o, extension IFormattableDocument document) {
+		val open = o.regionFor.keyword("(")
+		val close = o.regionFor.keyword(")")
+		if (open === null || close === null) {
+			for (arg : o.arguments) {
+				arg.format
+			}
+			return
+		}
+		open.prepend[noSpace]
+		if (o.arguments.empty) {
+			open.append[noSpace]
+			return
+		}
+		val forceMultiline = close.previousHiddenRegion.multiline ||
+			o.arguments.exists[it instanceof XklaimInlineProcess && (it as XklaimInlineProcess).body instanceof XBlockExpression]
+		if (forceMultiline) {
+			open.append[newLine]
+			interior(open, close)[indent]
+			for (arg : o.arguments) {
+				arg.format
+				val comma = arg.immediatelyFollowing.keyword(",")
+				if (comma !== null) {
+					comma.prepend[noSpace].append[newLine]
+				} else {
+					arg.append[newLine]
+				}
+			}
+		} else {
+			open.append[noSpace]
+			for (arg : o.arguments) {
+				arg.format
+				val comma = arg.immediatelyFollowing.keyword(",")
+				if (comma !== null) {
+					comma.prepend[noSpace].append[oneSpace]
+				} else {
+					arg.append[noSpace]
+				}
+			}
+			close.prepend[noSpace]
 		}
 	}
 }

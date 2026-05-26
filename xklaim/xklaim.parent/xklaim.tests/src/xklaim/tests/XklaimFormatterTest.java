@@ -57,4 +57,29 @@ public class XklaimFormatterTest {
 						""".replace("\n", System.lineSeparator()));
 		});
 	}
+
+	@Test
+	public void testFormatterOrWithInlineProcBlocks() {
+		formatterTestHelper.assertFormatted(it -> {
+			it.setExpectation("""
+					proc TestProcess(String s) {
+						or(
+							proc {
+								in(var Integer i)@self
+								println(i)
+							},
+							proc {
+								read(var String s2)@self
+								println(s2)
+							}
+						)
+					}
+					""".replace("\n", System.lineSeparator()));
+			it.setToBeFormatted("""
+					proc TestProcess(String s) {
+						or(proc { in(var Integer i)@self println(i) }, proc { read(var String s2)@self println(s2) })
+					}
+					""".replace("\n", System.lineSeparator()));
+		});
+	}
 }
