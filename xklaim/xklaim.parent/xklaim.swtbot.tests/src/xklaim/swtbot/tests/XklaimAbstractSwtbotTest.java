@@ -42,7 +42,7 @@ public abstract class XklaimAbstractSwtbotTest {
 		closeWelcomePage();
 
 		bot.viewByPartName("Problems").show();
-		bot.shell().menu().menu("Window").menu("Show View").menu(PROJECT_EXPLORER).click();
+		bot.menu("Window").menu("Show View").menu(PROJECT_EXPLORER).click();
 	}
 
 	@AfterClass
@@ -161,14 +161,14 @@ public abstract class XklaimAbstractSwtbotTest {
 	}
 
 	protected void createProjectAndAssertCreated(String projectName) {
-		bot.shell().menu().menu("File").menu("New").menu("Xklaim Project").click();
+		bot.menu("File").menu("New").menu("Xklaim Project").click();
 
 		SWTBotShell shell = bot.shell("New Template Project");
-		// shell.activate();
+		shell.activate();
 
-		shell.bot().textWithLabel("Project name:").setText(TEST_PROJECT);
+		bot.textWithLabel("Project name:").setText(TEST_PROJECT);
 
-		shell.bot().button("Finish").click();
+		bot.button("Finish").click();
 
 		// creation of a project might require some time
 		bot.waitUntil(shellCloses(shell), SWTBotPreferences.TIMEOUT);
