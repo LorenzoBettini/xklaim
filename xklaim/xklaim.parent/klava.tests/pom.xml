@@ -26,9 +26,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.5.18</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -40,9 +40,32 @@
         <configuration>
           <systemPropertyVariables>
             <slf4j.internal.verbosity>WARN</slf4j.internal.verbosity>
-            <slf4j.provider>org.slf4j.simple.SimpleServiceProvider</slf4j.provider>
           </systemPropertyVariables>
+          <!-- exclude the logging tests from the default execution -->
+          <excludes>
+            <exclude>**/KlavaNodeOperationLoggingTest.java</exclude>
+          </excludes>
         </configuration>
+        <executions>
+          <!-- run the logging tests in a separate fork with logback as the SLF4J provider -->
+          <execution>
+            <id>logging-tests</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <excludes>
+                <exclude>none</exclude>
+              </excludes>
+              <includes>
+                <include>**/KlavaNodeOperationLoggingTest.java</include>
+              </includes>
+              <systemPropertyVariables>
+                <slf4j.provider>ch.qos.logback.classic.spi.LogbackServiceProvider</slf4j.provider>
+              </systemPropertyVariables>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

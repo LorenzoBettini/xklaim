@@ -75,10 +75,24 @@ final class HelloWorldProject {
 				 */
 				net HelloNet physical "localhost:9999" {
 					node Hello {
-						println("Hello World!")
+						out("Hello World")@self
+						in(var String message)@self
+						println(message)
 						System.exit(0)
 					}
 				}
+			''')
+			addFile('''src/simplelogger.properties''', '''
+				# Uncomment to enable DEBUG for all Klava/XKlaim loggers
+				# org.slf4j.simpleLogger.log.klava=debug
+				# org.slf4j.simpleLogger.log.xklaim=debug
+				
+				# Alternatively, enable DEBUG globally (more verbose):
+				# org.slf4j.simpleLogger.defaultLogLevel=debug
+				
+				# Recommended: include the timestamp in log output
+				# org.slf4j.simpleLogger.showDateTime=true
+				# org.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS
 			''')
 		])
 	}

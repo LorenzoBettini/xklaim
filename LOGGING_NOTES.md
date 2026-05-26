@@ -110,3 +110,48 @@ fails because the generated product configuration IU requires a missing bundle.
    expensive message construction.
 5. Add application/test-level backend configuration separately once the library API
    migration is stable.
+
+## Enabling Debug Logging in a Wizard-Created Project
+
+By default, XKlaim wizard projects use `slf4j.simple` as the SLF4J backend. The simple
+backend reads configuration from a `simplelogger.properties` file on the classpath.
+
+### Using `simplelogger.properties`
+
+Place a file named `simplelogger.properties` in `src/main/resources/` (or in any
+source folder that ends up on the classpath):
+
+```properties
+# Enable DEBUG for all Klava/XKlaim loggers
+org.slf4j.simpleLogger.log.klava=debug
+org.slf4j.simpleLogger.log.xklaim=debug
+
+# Alternatively, enable DEBUG globally (more verbose):
+# org.slf4j.simpleLogger.defaultLogLevel=debug
+
+# Recommended: include the timestamp in log output
+org.slf4j.simpleLogger.showDateTime=true
+org.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS
+```
+
+This file is picked up automatically by `slf4j-simple` at runtime. Only the
+packages listed are affected; the rest remain at the default `INFO` level.
+
+### Using system properties in a launch configuration
+
+If you prefer not to add a properties file, you can set system properties in
+the Eclipse **Run/Debug Configuration** (under *Arguments > VM arguments*):
+
+```
+-Dorg.slf4j.simpleLogger.log.klava=debug
+-Dorg.slf4j.simpleLogger.log.xklaim=debug
+```
+
+System properties override the `simplelogger.properties` file.
+
+### Switching to a richer backend (Logback, Log4j 2)
+
+For more control (appenders, rolling files, MDC, …) add a Logback or Log4j 2
+provider JAR to the project's build path and replace `slf4j.simple` in
+`Require-Bundle` (or the Maven dependency) accordingly. Then add the corresponding
+`logback.xml` or `log4j2.xml` configuration file to `src/main/resources/`.
