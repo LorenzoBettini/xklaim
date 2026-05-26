@@ -7,6 +7,8 @@ package org.mikado.imc.topology;
 import org.mikado.imc.common.IMCException;
 import org.mikado.imc.protocols.Protocol;
 import org.mikado.imc.protocols.ProtocolException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A NodeProcess that executes a run of a protocol.
@@ -15,6 +17,8 @@ import org.mikado.imc.protocols.ProtocolException;
  * @version $Revision: 1.2 $
  */
 public class ProtocolThread extends NodeProcess {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProtocolThread.class);
+
     /**
      * 
      */
@@ -42,7 +46,7 @@ public class ProtocolThread extends NodeProcess {
         try {
             protocol.start();
         } catch (ProtocolException e) {
-            e.printStackTrace();
+            LOGGER.error("protocol error in thread {}", getName(), e);
         } finally {
             try {
                 protocol.close();

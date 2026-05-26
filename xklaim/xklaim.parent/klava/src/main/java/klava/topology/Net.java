@@ -10,6 +10,8 @@ import klava.KlavaException;
 import klava.PhysicalLocality;
 
 import org.mikado.imc.common.IMCException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -19,6 +21,8 @@ import org.mikado.imc.common.IMCException;
  * @author Lorenzo Bettini
  */
 public class Net extends KlavaNode {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Net.class);
+
     /**
      * The localities where we listen for incoming accept request
      */
@@ -65,8 +69,8 @@ public class Net extends KlavaNode {
         
         if (args.length == 0) {
             PhysicalLocality physicalLocality = new PhysicalLocality("localhost:9999");
-            System.err.println("syntax: locality [localities...]");
-            System.err.println("using default: " + physicalLocality);
+            LOGGER.warn("syntax: locality [localities...]");
+            LOGGER.warn("using default: {}", physicalLocality);
             localities.addElement(physicalLocality);
         }
 

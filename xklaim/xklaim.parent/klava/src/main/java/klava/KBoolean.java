@@ -1,8 +1,12 @@
 package klava;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // Customized Boolean
 
 public class KBoolean implements TupleItem {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KBoolean.class);
 
     private static final long serialVersionUID = 1895671327288035356L;
 
@@ -58,7 +62,7 @@ public class KBoolean implements TupleItem {
                     bool = b;
             }
         } catch (ClassCastException e) {
-            System.err.println("KBoolean : " + e);
+            LOGGER.error("KBoolean type error: {}", e.toString());
         }
     }
 

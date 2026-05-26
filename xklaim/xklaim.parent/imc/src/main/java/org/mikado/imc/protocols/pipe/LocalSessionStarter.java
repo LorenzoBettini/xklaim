@@ -14,6 +14,8 @@ import org.mikado.imc.protocols.SessionId;
 import org.mikado.imc.protocols.SessionIdBindException;
 import org.mikado.imc.protocols.SessionStarter;
 import org.mikado.imc.protocols.UnboundSessionStarterException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A SessionStarter that creates "local" sessions, i.e., communications among
@@ -23,6 +25,7 @@ import org.mikado.imc.protocols.UnboundSessionStarterException;
  * @version $Revision: 1.4 $
  */
 public class LocalSessionStarter extends SessionStarter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LocalSessionStarter.class);
 
     /**
      * @author Lorenzo Bettini
@@ -300,15 +303,11 @@ public class LocalSessionStarter extends SessionStarter {
                         break;
                     } catch (IOException e) {
                         exception = e;
-                        System.err.print("accept fail on "
-                                + getLocalSessionId());
+                        LOGGER.warn("accept fail on {}, retry in {} second(s) {}", getLocalSessionId(), pause, Thread.currentThread().getName());
                     } catch (ProtocolException e) {
                         exception = e;
-                        System.err.print("accept fail on "
-                                + getLocalSessionId());
+                        LOGGER.warn("accept fail on {}, retry in {} second(s) {}", getLocalSessionId(), pause, Thread.currentThread().getName());
                     }
-                    System.err.println(" retry in " + pause + " second(s)"
-                            + Thread.currentThread().getName());
 
                     try {
                         Thread.sleep(pause * 1000);
@@ -377,15 +376,13 @@ public class LocalSessionStarter extends SessionStarter {
                 break;
             } catch (IOException e) {
                 exception = e;
-                System.err.print("connect fail to " + getRemoteSessionId());
+                LOGGER.warn("connect fail to {}, retry in {} second(s) {}", getRemoteSessionId(), pause, Thread.currentThread().getName());
             } catch (ProtocolException e) {
                 exception = e;
-                System.err.print("connect fail to " + getRemoteSessionId());
+                LOGGER.warn("connect fail to {}, retry in {} second(s) {}", getRemoteSessionId(), pause, Thread.currentThread().getName());
             } catch (InterruptedException e) {
                 throw new ProtocolException(e);
             }
-            System.err.println(" retry in " + pause + " second(s)"
-                    + Thread.currentThread().getName());
 
             try {
                 Thread.sleep(pause * 1000);

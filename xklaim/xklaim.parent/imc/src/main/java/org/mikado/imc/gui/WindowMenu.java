@@ -4,6 +4,8 @@ import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.event.*;
 import java.beans.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Menu component that handles the functionality expected of a standard
@@ -14,6 +16,8 @@ import java.beans.*;
  * article</a> appeared on JavaWorld by Gerald Nunn)
  */
 public class WindowMenu extends JMenu {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WindowMenu.class);
+
     /**
      * 
      */
@@ -76,7 +80,7 @@ public class WindowMenu extends JMenu {
                     try {
                         frame.setSelected(true);
                     } catch (PropertyVetoException e) {
-                        e.printStackTrace();
+                        LOGGER.error("error selecting window frame", e);
                     }
                 }
             });

@@ -3,7 +3,8 @@
  */
 package org.mikado.imc.protocols;
 
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A simple thread that, given a ProtocolStack, continuosly performs a read
@@ -13,6 +14,8 @@ package org.mikado.imc.protocols;
  * @version $Revision: 1.3 $
  */
 public class ProtocolStackThread extends Thread {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProtocolStackThread.class);
+
     /** the protocol stack used to read */
     protected ProtocolStack protocolStack;
 
@@ -44,7 +47,7 @@ public class ProtocolStackThread extends Thread {
             try {
                 protocolStack.createUnMarshaler();
             } catch (ProtocolException e) {
-                e.printStackTrace();
+                LOGGER.error("protocol stack error", e);
 
                 return;
             }

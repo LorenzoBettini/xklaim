@@ -17,6 +17,8 @@ import org.mikado.imc.protocols.ProtocolStack;
 import org.mikado.imc.protocols.Session;
 import org.mikado.imc.protocols.SessionId;
 import org.mikado.imc.topology.SessionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Waits for RouteEvent and propagates the operation to all the nodes it is
@@ -26,6 +28,7 @@ import org.mikado.imc.topology.SessionManager;
  * @version $Revision: 1.2 $
  */
 public class RouteEventListener implements EventListener {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RouteEventListener.class);
     SessionManager outgoingSessions;
 
     /**
@@ -82,9 +85,9 @@ public class RouteEventListener implements EventListener {
                             protocolStack, routeEvent.destination);
                 }
             } catch (ProtocolException e) {
-                e.printStackTrace();
+                LOGGER.error("error propagating locality event", e);
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("IO error propagating locality event", e);
             }
         }
     }

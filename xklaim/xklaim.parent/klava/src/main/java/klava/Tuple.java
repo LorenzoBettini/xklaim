@@ -5,11 +5,14 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import klava.topology.KlavaProcess;
 import klava.topology.KlavaProcessVar;
 
 public class Tuple implements Cloneable, java.io.Serializable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Tuple.class);
 
     /**
      * 
@@ -389,7 +392,7 @@ public class Tuple implements Cloneable, java.io.Serializable {
                         return false;
                     }
                 } catch (Exception e) {
-                    System.out.println(e);
+                    LOGGER.warn("type mismatch during tuple matching: {}", e.toString());
                     return false;
                 }
             } else if (itsElement instanceof TupleItem) {

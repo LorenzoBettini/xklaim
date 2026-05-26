@@ -23,6 +23,8 @@ import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 
 import org.mikado.imc.common.ClassEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A dialog that allows the user to select a class from a list
@@ -31,6 +33,7 @@ import org.mikado.imc.common.ClassEntry;
  * @version $Revision: 1.4 $
  */
 public class ClassChooserDialog extends JDialog {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClassChooserDialog.class);
 
     /**
      * @author bettini
@@ -243,7 +246,7 @@ public class ClassChooserDialog extends JDialog {
         classChooser.setVisible(true);
 
         if (classChooser.getChosenEntry() != null) {
-            System.out.println("chosen: " + classChooser.getChosenEntry());
+            LOGGER.info("chosen: {}", classChooser.getChosenEntry());
             classChooser.dispose();
         }
     }

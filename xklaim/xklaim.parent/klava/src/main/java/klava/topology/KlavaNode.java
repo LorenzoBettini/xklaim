@@ -56,6 +56,8 @@ import org.mikado.imc.topology.NodeCoordinatorProxy;
 import org.mikado.imc.topology.NodeLocation;
 import org.mikado.imc.topology.NodeProcessProxy;
 import org.mikado.imc.topology.RoutingTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A generic klava Node
@@ -64,6 +66,7 @@ import org.mikado.imc.topology.RoutingTable;
  * @version $Revision: 1.11 $
  */
 public class KlavaNode extends Node {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KlavaNode.class);
 
     /**
      * The tuple space of this node.
@@ -454,7 +457,7 @@ public class KlavaNode extends Node {
 
             if (!protocolState.isSuccess()) {
                 /* print the error on the screen */
-                System.err.println(remote + ": " + protocolState.getError());
+                LOGGER.error("{}: {}", remote, protocolState.getError());
 
                 /* be sure to update also the session manager */
                 sessionManagers.outgoingSessionManager
@@ -1092,7 +1095,7 @@ public class KlavaNode extends Node {
                         throw e;
 
                     /* we go on with the next stack */
-                    e.printStackTrace();
+                    LOGGER.warn("klava exception on stack, trying next", e);
                 }
             }
 
@@ -1490,7 +1493,7 @@ public class KlavaNode extends Node {
                     myNodes.nextElement().close();
                 } catch (IMCException e) {
                     /* we have to go on anyway and close all the nodes */
-                    e.printStackTrace();
+                    LOGGER.error("error closing node", e);
                 }
             }
         }

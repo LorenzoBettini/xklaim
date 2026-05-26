@@ -5,6 +5,8 @@ package klava.gui;
 
 import org.mikado.imc.events.EventManager;
 import org.mikado.imc.gui.PanelWithTitle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.swing.JPanel;
 import java.awt.GridBagLayout;
 import java.awt.HeadlessException;
@@ -41,6 +43,7 @@ import klava.TupleSpaceVector;
  * @version $Revision: 1.5 $
  */
 public class TupleSpaceKeyboard extends PanelWithTitle implements TupleSpace {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TupleSpaceKeyboard.class);
 
     /**
      * 
@@ -117,7 +120,7 @@ public class TupleSpaceKeyboard extends PanelWithTitle implements TupleSpace {
                         try {
                             out(parseTuple());
                         } catch (HeadlessException e1) {
-                            e1.printStackTrace();
+                            LOGGER.error("error processing key event", e1);
                         } catch (KlavaTupleParsingException e1) {
                             showException(e1);
                         }
@@ -305,7 +308,7 @@ public class TupleSpaceKeyboard extends PanelWithTitle implements TupleSpace {
                 getJTextField().setText(tuple.getItem(1).toString());
             }
         } catch (KlavaException e) {
-            e.printStackTrace();
+            LOGGER.error("error processing tuple command", e);
             return false;
         }
 

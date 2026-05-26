@@ -12,6 +12,8 @@ import java.util.Enumeration;
 import klava.events.EnvironmentEvent;
 
 import org.mikado.imc.events.EventGeneratorAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -23,6 +25,8 @@ import org.mikado.imc.events.EventGeneratorAdapter;
  * @version $Revision: 1.2 $
  */
 public class Environment extends EventGeneratorAdapter implements Serializable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Environment.class);
+
     /**
      * Represents an entry in the environment
      * 
@@ -87,7 +91,7 @@ public class Environment extends EventGeneratorAdapter implements Serializable {
     protected void readEnvironment(String filename)
             throws KlavaMalformedPhyLocalityException {
         try {
-            System.out.println("Reading Environment " + filename + "...");
+            LOGGER.debug("Reading Environment {}...", filename);
             FileInputStream file = new FileInputStream(filename);
             BufferedReader ifile = new BufferedReader(new InputStreamReader(
                     file));
@@ -104,15 +108,12 @@ public class Environment extends EventGeneratorAdapter implements Serializable {
                 }
                 ifile.close();
             } catch (IOException ioe) {
-                ioe.printStackTrace();
+                LOGGER.error("error reading environment file", ioe);
             }
         } catch (FileNotFoundException e) {
-            System.err.println("No file " + filename
-                    + " for the environment found... skipping.");
+            LOGGER.warn("No file {} for the environment found... skipping.", filename);
         } catch (SecurityException ex) {
-            System.err
-                    .println("Skipping reading environment, due to Security:");
-            System.err.println(ex);
+            LOGGER.warn("Skipping reading environment, due to Security: {}", ex.toString());
             // this catches SecurityException in Applets as well
         }
     }

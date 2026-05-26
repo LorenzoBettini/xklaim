@@ -19,6 +19,8 @@ import org.mikado.imc.protocols.ProtocolException;
 import org.mikado.imc.protocols.SessionId;
 import org.mikado.imc.protocols.SessionIdBindException;
 import org.mikado.imc.protocols.SessionIdException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Associates SessionId to DatagramDispatcher
@@ -27,6 +29,8 @@ import org.mikado.imc.protocols.SessionIdException;
  * @version $Revision: 1.3 $
  */
 public class DatagramDispatcherTable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatagramDispatcherTable.class);
+
     /**
      * The sets of the SessionIds that are bound for accepts.
      * 
@@ -202,8 +206,7 @@ public class DatagramDispatcherTable {
 
         datagramDispatcher.stopAccept();
 
-        System.out.println("*** released dispatcher for "
-                + datagramDispatcher.getSessionId());
+        LOGGER.debug("*** released dispatcher for {}", datagramDispatcher.getSessionId());
     }
 
     /**
@@ -221,8 +224,7 @@ public class DatagramDispatcherTable {
 
         table.remove(datagramDispatcher.getSessionId());
 
-        System.out.println("### removed dispatcher for "
-                + datagramDispatcher.getSessionId());
+        LOGGER.debug("### removed dispatcher for {}", datagramDispatcher.getSessionId());
     }
 
     /**

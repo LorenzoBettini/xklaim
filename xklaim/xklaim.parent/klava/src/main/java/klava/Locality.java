@@ -2,6 +2,9 @@
 
 package klava;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * The base class for a LogicalLocality and a PhysicalLocality
  * 
@@ -10,6 +13,8 @@ package klava;
  */
 abstract public class Locality implements java.io.Serializable, TupleItem,
         Comparable<Locality> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Locality.class);
+
     private static final long serialVersionUID = -2710354413608283989L;
     protected Object locality;
 
@@ -53,7 +58,7 @@ abstract public class Locality implements java.io.Serializable, TupleItem,
                     locality = null;
             }
         } catch (ClassCastException e) {
-            e.printStackTrace();
+            LOGGER.error("Locality type error", e);
         }
     }
 

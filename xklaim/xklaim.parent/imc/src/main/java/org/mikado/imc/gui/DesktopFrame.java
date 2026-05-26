@@ -17,8 +17,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import org.mikado.imc.common.IMCException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DesktopFrame extends JFrame {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DesktopFrame.class);
 
     /**
      * 
@@ -84,7 +87,7 @@ public class DesktopFrame extends JFrame {
                 try {
                     closeDesktop();
                 } catch (IMCException e1) {
-                    e1.printStackTrace();
+                    LOGGER.error("error closing desktop", e1);
                     showException(e1);
                 }
             }
@@ -199,7 +202,7 @@ public class DesktopFrame extends JFrame {
                     try {
                         closeDesktop();
                     } catch (IMCException e1) {
-                        e1.printStackTrace();
+                        LOGGER.error("error closing desktop", e1);
                         showException(e1);
                     }
                 }

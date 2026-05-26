@@ -13,6 +13,8 @@ import org.mikado.imc.protocols.ProtocolException;
 import org.mikado.imc.protocols.ProtocolStack;
 import org.mikado.imc.protocols.SessionId;
 import org.mikado.imc.protocols.SessionStarter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A node process that can execute privileged actions.
@@ -21,6 +23,8 @@ import org.mikado.imc.protocols.SessionStarter;
  * @version $Revision: 1.21 $
  */
 public abstract class NodeCoordinator extends Thread implements Serializable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeCoordinator.class);
+
     /**
      * 
      */
@@ -104,7 +108,7 @@ public abstract class NodeCoordinator extends Thread implements Serializable {
         try {
             execute();
         } catch (IMCException e) {
-            e.printStackTrace();
+            LOGGER.error("uncaught exception in coordinator {}", getName(), e);
         } finally {
             /* finally remove me from the list of running processes */
             if (nodeCoordinatorProxy != null)

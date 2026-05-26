@@ -14,6 +14,8 @@ import klava.LogicalLocality;
 import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.TupleItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -22,6 +24,7 @@ import klava.TupleItem;
  * @author Lorenzo Bettini
  */
 public abstract class KlavaProcess extends NodeProcess {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KlavaProcess.class);
 
     /**
      * 
@@ -271,7 +274,7 @@ public abstract class KlavaProcess extends NodeProcess {
                 return;
             }
 
-            e.printStackTrace();
+            LOGGER.error("uncaught exception in process {}", getName(), e);
             throw new IMCException("Uncaught exception", e);
         } catch (ProcessTerminatedException e) {
             /*

@@ -8,6 +8,8 @@ import org.mikado.imc.common.IMCException;
 import org.mikado.imc.events.EventManager;
 import org.mikado.imc.mobility.JavaMigratingCode;
 import org.mikado.imc.protocols.ProtocolStack;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A node process that can execute standard actions.
@@ -17,6 +19,8 @@ import org.mikado.imc.protocols.ProtocolStack;
  */
 public abstract class NodeProcess extends JavaMigratingCode implements
         Closeable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeProcess.class);
+
     /**
      * 
      */
@@ -97,14 +101,14 @@ public abstract class NodeProcess extends JavaMigratingCode implements
             execute();
             postExecute();
         } catch (IMCException e) {
-            e.printStackTrace();
+            LOGGER.error("uncaught exception in process {}", getName(), e);
             finalException = e;
         } finally {
             /* finally remove me from the list of running processes */
             if (nodeProcessProxy != null)
                 nodeProcessProxy.removeNodeProcess(this);
 
-            System.out.println("terminated " + getName());
+            LOGGER.info("terminated {}", getName());
         }
     }
 

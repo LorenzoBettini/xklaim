@@ -8,6 +8,8 @@ import java.util.Iterator;
 import org.mikado.imc.events.EventGeneratorAdapter;
 import org.mikado.imc.events.RouteEvent;
 import org.mikado.imc.protocols.ProtocolException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.mikado.imc.protocols.ProtocolStack;
 import org.mikado.imc.protocols.SessionId;
 
@@ -18,6 +20,8 @@ import org.mikado.imc.protocols.SessionId;
  * @version $Revision: 1.6 $
  */
 public class RoutingTable extends EventGeneratorAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RoutingTable.class);
+
     /**
      * The stack corresponding to a SessionId.
      * 
@@ -312,8 +316,8 @@ public class RoutingTable extends EventGeneratorAdapter {
             ProtocolStack protocolStack = stacks.get(sessionId);
 
             if (sessionId.equals(protocolStack.getSession().getLocalEnd())) {
-                System.err.println("non consistent entry: " + sessionId + "="
-                        + protocolStack.getSession());
+                LOGGER.error("non consistent entry: {}={}", sessionId,
+                        protocolStack.getSession());
 
                 return false;
             }

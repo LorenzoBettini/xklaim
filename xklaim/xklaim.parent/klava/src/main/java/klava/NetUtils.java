@@ -8,8 +8,11 @@ import java.net.*;
 
 import org.mikado.imc.protocols.IpSessionId;
 import org.mikado.imc.protocols.SessionIdException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NetUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NetUtils.class);
     /**
      * if set use localhost address even when connected to Internet
      */
@@ -74,7 +77,7 @@ public class NetUtils {
             return getNodeIPAddress(InetAddress.getByName(address)) + ":"
                     + port;
         } catch (UnknownHostException ue) {
-            ue.printStackTrace();
+            LOGGER.warn("unknown host {}, using as-is", address, ue);
             return address + ":" + port;
         }
     }
@@ -101,7 +104,7 @@ public class NetUtils {
         try {
             return new PhysicalLocality(createLocalNodeAddress(port));
         } catch (KlavaMalformedPhyLocalityException e) {
-            e.printStackTrace(); // should never come here
+            LOGGER.error("should never come here: malformed local address", e);
             return null;
         }
     }
@@ -171,7 +174,7 @@ public class NetUtils {
                 port = Integer.parseInt(loc);
                 return NetUtils.createLocalPhyLocAddress(port);
             } catch (NumberFormatException ne) {
-                ne.printStackTrace();
+                LOGGER.warn("cannot parse port number: {}", loc, ne);
             }
         }
 

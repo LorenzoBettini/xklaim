@@ -20,6 +20,8 @@ import org.mikado.imc.protocols.UnMarshaler;
 import org.mikado.imc.protocols.WrongStringProtocolException;
 import org.mikado.imc.topology.ProtocolThread;
 import org.mikado.imc.topology.RoutingTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -32,6 +34,7 @@ import org.mikado.imc.topology.RoutingTable;
  * 
  */
 public class AcceptRegisterState extends ProtocolStateSimple {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AcceptRegisterState.class);
     /**
      * The RoutingTable used to keep tracks of routes.
      */
@@ -179,8 +182,8 @@ public class AcceptRegisterState extends ProtocolStateSimple {
                             .getSessionId());
 
                     if (!success)
-                        System.err.println("Physical Locality "
-                                + readPhysicalLocality + " not present!");
+                        LOGGER.error("Physical Locality {} not present!",
+                                readPhysicalLocality);
                 } else {
                     success = !routingTable.hasRoute(readPhysicalLocality
                             .getSessionId());
@@ -188,7 +191,7 @@ public class AcceptRegisterState extends ProtocolStateSimple {
                     if (!success) {
                         error = "Physical Locality " + readPhysicalLocality
                                 + " already present!";
-                        System.err.println(error);
+                        LOGGER.error("{}", error);
                     }
                 }
 
@@ -200,8 +203,8 @@ public class AcceptRegisterState extends ProtocolStateSimple {
                         success = (environment.remove(log_loc) != null);
 
                         if (!success)
-                            System.err.println("Logical Locality " + log_loc
-                                    + " not present!");
+                            LOGGER.error("Logical Locality {} not present!",
+                                log_loc);
                     } else {
                         success = environment.try_add(log_loc,
                                 readPhysicalLocality);
@@ -209,7 +212,7 @@ public class AcceptRegisterState extends ProtocolStateSimple {
                         if (!success) {
                             error = "Logical Locality " + log_loc
                                     + " already present!";
-                            System.err.println(error);
+                            LOGGER.error("{}", error);
                         }
                     }
                 }

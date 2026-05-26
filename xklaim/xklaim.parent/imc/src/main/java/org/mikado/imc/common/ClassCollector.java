@@ -13,6 +13,8 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
  * import javax.jnlp.BasicService; import javax.jnlp.ServiceManager; import
@@ -27,6 +29,8 @@ import java.util.jar.JarFile;
  * @version $Revision: 1.9 $
  */
 public class ClassCollector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClassCollector.class);
+
     protected Vector<ClassEntry> classEntries = new Vector<ClassEntry>();
 
     protected ClassFilter classFilter;
@@ -71,17 +75,17 @@ public class ClassCollector {
 
         classPath = classPathDirectories.toString();
 
-        System.out.println("classpath: " + classPath);
+        LOGGER.debug("classpath: {}", classPath);
 
         ClassLoader classLoader = getClass().getClassLoader();
-        System.out.println("classloader: " + classLoader.getClass().getName());
-        System.out.println("parent: " + classLoader.getParent());
-        System.out.println("jnlpx.home = " + System.getProperty("jnlpx.home"));
+        LOGGER.debug("classloader: {}", classLoader.getClass().getName());
+        LOGGER.debug("parent: {}", classLoader.getParent());
+        LOGGER.debug("jnlpx.home = {}", System.getProperty("jnlpx.home"));
         // System.out.println("webappcontext = " + getWebAppContextUrl());
 
         if (classLoader instanceof URLClassLoader) {
             URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
-            System.out.println("URLS: " + urlClassLoader.getURLs());
+            LOGGER.debug("URLS: {}", (Object) urlClassLoader.getURLs());
         }
 
         Enumeration<String> classPathEntries = classPathDirectories.elements();
@@ -89,7 +93,7 @@ public class ClassCollector {
             try {
                 inspectClassPathEntry(classPathEntries.nextElement());
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("error inspecting classpath entry", e);
                 /* we just go on */
             }
         }
@@ -136,7 +140,7 @@ public class ClassCollector {
     }
 
     protected void inspectDirEntry(File dir) throws IOException {
-        System.out.println("Inspecting dir entry: " + dir);
+        LOGGER.debug("Inspecting dir entry: {}", dir);
         String[] files = dir.list();
         if (files == null)
             return;

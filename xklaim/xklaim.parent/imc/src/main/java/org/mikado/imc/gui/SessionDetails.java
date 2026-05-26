@@ -15,6 +15,8 @@ import javax.swing.JTextField;
 
 import org.mikado.imc.protocols.ProtocolException;
 import org.mikado.imc.protocols.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Shows the details of a Session.
@@ -24,6 +26,7 @@ import org.mikado.imc.protocols.Session;
  */
 public class SessionDetails extends Frame {
     private static final long serialVersionUID = 3906646401629631800L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SessionDetails.class);
 
     private JButton closeSessionButton = null;
 
@@ -54,7 +57,7 @@ public class SessionDetails extends Frame {
         this.add(getMainPanel(), java.awt.BorderLayout.NORTH);
         this.addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent e) {
-                System.out.println("windowClosing()");
+                LOGGER.debug("windowClosing()");
                 dispose();
             }
         });
@@ -73,11 +76,11 @@ public class SessionDetails extends Frame {
             closeSessionButton
                     .addActionListener(new java.awt.event.ActionListener() {
                         public void actionPerformed(java.awt.event.ActionEvent e) {
-                            System.out.println("actionPerformed()");
+                            LOGGER.debug("actionPerformed()");
                             try {
                                 session.close();
                             } catch (ProtocolException e1) {
-                                e1.printStackTrace();
+                                LOGGER.error("error closing session", e1);
                             } finally {
                                 dispose();
                             }
