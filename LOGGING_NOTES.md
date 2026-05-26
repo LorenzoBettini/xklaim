@@ -73,17 +73,12 @@ Eclipse/OSGi:
 
 ## Client Projects
 
-`xklaim.runtime` should not force a concrete backend on client projects. Clients that
+`xklaim.lib` should not force a concrete backend on client projects. Clients that
 use XKlaim/Klava should transitively receive the SLF4J API through the runtime stack,
 but they should remain free to choose their own backend and configuration.
 
-For a friendlier out-of-the-box experience, default backend/configuration belongs in:
-
-- generated Maven example/client projects;
-- the XKlaim Eclipse product;
-- tests.
-
-It should not live inside the core runtime libraries.
+For a friendlier out-of-the-box experience, `xklaim.runtime` defaults backend/configuration to `slf4j.simple`
+so that projects created by the XKlaim wizard have logging without extra setup. The `slf4j.simple` backend is small and has a simple configuration format, so it is a good default for new users and examples.
 
 ## XKlaim Wizard Projects
 
