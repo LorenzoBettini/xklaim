@@ -17,6 +17,8 @@ import org.mikado.imc.protocols.ProtocolStateSimple;
 import org.mikado.imc.protocols.TransmissionChannel;
 import org.mikado.imc.protocols.UnMarshaler;
 import org.mikado.imc.protocols.WrongStringProtocolException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -26,6 +28,7 @@ import org.mikado.imc.protocols.WrongStringProtocolException;
  * @version $Revision: 1.1 $
  */
 public class LocalityResolverState extends ProtocolStateSimple {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LocalityResolverState.class);
     /**
      * Actually takes care of resolving a logical locality into a physical
      * locality.
@@ -85,9 +88,9 @@ public class LocalityResolverState extends ProtocolStateSimple {
                     protocolStack.releaseMarshaler(marshaler);
                 }
             } catch (ProtocolException e) {
-                e.printStackTrace();
+                LOGGER.error("protocol error in locality resolver", e);
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("IO error in locality resolver", e);
             } /* if we get exceptions we can't do much... */
         }
     }

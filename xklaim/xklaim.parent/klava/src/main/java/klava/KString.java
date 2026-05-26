@@ -1,8 +1,12 @@
 package klava;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // Customized String
 
 public class KString implements TupleItem {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KString.class);
 
     /**
      * 
@@ -65,7 +69,7 @@ public class KString implements TupleItem {
                     string = new String(s);
             }
         } catch (ClassCastException e) {
-            e.printStackTrace();
+            LOGGER.error("KString type error", e);
         }
     }
 

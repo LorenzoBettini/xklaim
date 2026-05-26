@@ -17,6 +17,8 @@ import org.mikado.imc.protocols.Marshaler;
 import org.mikado.imc.protocols.ProtocolException;
 import org.mikado.imc.protocols.ProtocolLayer;
 import org.mikado.imc.protocols.UnMarshaler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This protocol layer wraps a UDP transmission.
@@ -25,6 +27,7 @@ import org.mikado.imc.protocols.UnMarshaler;
  * @version $Revision: 1.2 $
  */
 public class UdpIpProtocolLayer extends ProtocolLayer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UdpIpProtocolLayer.class);
     /**
      * The wrapped udp socket.
      */
@@ -129,8 +132,7 @@ public class UdpIpProtocolLayer extends ProtocolLayer {
                     packet.length);
             try {
                 datagramSocket.receive(datagramPacket);
-                System.err.println("UdpLayer: received packet from "
-                        + datagramPacket.getSocketAddress());
+                LOGGER.debug("UdpLayer: received packet from {}", datagramPacket.getSocketAddress());
                 // TODO abstract from the specific unmarshaler
             } catch (IOException e) {
                 throw new ProtocolException(e);

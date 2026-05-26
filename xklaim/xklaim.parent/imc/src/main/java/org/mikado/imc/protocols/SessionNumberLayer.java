@@ -7,6 +7,8 @@
 package org.mikado.imc.protocols;
 
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Keeps track of the session incremental number for input and output packets.
@@ -17,6 +19,7 @@ import java.io.IOException;
  * @version $Revision: 1.4 $
  */
 public class SessionNumberLayer extends ProtocolLayer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SessionNumberLayer.class);
 
     /**
      * The incremental number for sent packets
@@ -42,8 +45,8 @@ public class SessionNumberLayer extends ProtocolLayer {
 
             if (sequence < 0) {
                 /* a negative number means close communication */
-                System.err.println(getProtocolStack().getSession()
-                        + ": received closing packet");
+                LOGGER.debug("{}: received closing packet",
+                        getProtocolStack().getSession());
 
                 /* in turn send the closing packet */
                 doClose();
@@ -100,7 +103,7 @@ public class SessionNumberLayer extends ProtocolLayer {
         try {
             marshaler.writeInt(-1);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("error sending closing packet", e);
         } finally {
             try {
                 releaseMarshaler(marshaler);
@@ -110,11 +113,10 @@ public class SessionNumberLayer extends ProtocolLayer {
                         /* wait for the communication to be closed */
                         try {
                             createUnMarshaler();
-                            System.err.print(getProtocolStack().getSession());
+                            LOGGER.debug("{} received last packet",
+                                    getProtocolStack().getSession());
                         } catch (ProtocolException e) {
-                            e.printStackTrace();
-                        } finally {
-                            System.err.println(" received last packet");
+                            LOGGER.error("error waiting for last packet", e);
                         }
                     }
                 };

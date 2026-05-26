@@ -16,6 +16,8 @@ import javax.swing.JCheckBox;
 
 import org.mikado.imc.events.EventManager;
 import java.awt.FlowLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A generic panel which also contains a title (in the north part).
@@ -24,6 +26,7 @@ import java.awt.FlowLayout;
  * @version $Revision: 1.6 $
  */
 public class PanelWithTitle extends JPanel {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PanelWithTitle.class);
 
     /**
      * 
@@ -183,7 +186,7 @@ public class PanelWithTitle extends JPanel {
      * @throws HeadlessException
      */
     protected void showException(Exception e) throws HeadlessException {
-        e.printStackTrace();
+        LOGGER.error("exception in panel", e);
         JOptionPane.showMessageDialog(null, e.getClass().getName() + "\n"
                 + e.getMessage(), "alert", JOptionPane.ERROR_MESSAGE);
     }

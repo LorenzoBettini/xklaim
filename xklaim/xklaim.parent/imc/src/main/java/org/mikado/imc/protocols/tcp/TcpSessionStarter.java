@@ -17,6 +17,8 @@ import org.mikado.imc.protocols.Session;
 import org.mikado.imc.protocols.SessionId;
 import org.mikado.imc.protocols.SessionIdBindException;
 import org.mikado.imc.protocols.SessionStarter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Lorenzo Bettini
@@ -25,6 +27,7 @@ import org.mikado.imc.protocols.SessionStarter;
  * Deal with sessions over Tcp sockets.
  */
 public class TcpSessionStarter extends SessionStarter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TcpSessionStarter.class);
     /**
      * Used for accepting an incoming connection.
      */
@@ -117,10 +120,8 @@ public class TcpSessionStarter extends SessionStarter {
                             throw new ProtocolException(e1);
                         }
 
-                        System.err.println("TCP server socket creation failed "
-                                + getLocalSessionId() + ", retry in " + pause
-                                + " second(s) - "
-                                + Thread.currentThread().getName());
+                        LOGGER.warn("TCP server socket creation failed {}, retry in {} second(s) - {}",
+                                getLocalSessionId(), pause, Thread.currentThread().getName());
 
                         try {
                             Thread.sleep(pause * 1000);
@@ -215,10 +216,8 @@ public class TcpSessionStarter extends SessionStarter {
                 } catch (ClassCastException e) {
                     throw new ProtocolException(e);
                 } catch (IOException e) {
-                    System.err.println("connection failed "
-                            + getRemoteSessionId() + ", " + e.getMessage()
-                            + ", retry in " + pause + " second(s)- "
-                            + Thread.currentThread().getName());
+                    LOGGER.warn("connection failed {}, {}, retry in {} second(s) {}",
+                            getRemoteSessionId(), e.getMessage(), pause, Thread.currentThread().getName());
 
                     try {
                         Thread.sleep(pause * 1000);

@@ -17,6 +17,8 @@ import org.mikado.imc.topology.NodeCoordinator;
 import org.mikado.imc.topology.NodeCoordinatorProxy;
 import org.mikado.imc.topology.NodeLocation;
 import org.mikado.imc.topology.NodeProcess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -25,6 +27,8 @@ import org.mikado.imc.topology.NodeProcess;
  * @author Lorenzo Bettini
  */
 public abstract class KlavaNodeCoordinator extends NodeCoordinator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KlavaNodeCoordinator.class);
+
     /**
      * The proxy of the node for this coordinator
      */
@@ -75,7 +79,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
                 return;
             }
 
-            e.printStackTrace();
+            LOGGER.error("uncaught exception in coordinator {}", getName(), e);
             throw new IMCException("Uncaught exception", e);
         }
 

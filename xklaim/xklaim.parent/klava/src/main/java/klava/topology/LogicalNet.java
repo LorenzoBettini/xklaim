@@ -10,6 +10,8 @@ import klava.KlavaException;
 import klava.PhysicalLocality;
 
 import org.mikado.imc.common.IMCException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A specialization of Net that performs register instead of accept.
@@ -19,6 +21,7 @@ import org.mikado.imc.common.IMCException;
  * @author Lorenzo Bettini
  */
 public class LogicalNet extends Net {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LogicalNet.class);
 
     /**
      * @param localities
@@ -66,8 +69,8 @@ public class LogicalNet extends Net {
         if (args.length == 0) {
             PhysicalLocality physicalLocality = new PhysicalLocality(
                     "localhost:9999");
-            System.err.println("syntax: locality [localities...]");
-            System.err.println("using default: " + physicalLocality);
+            LOGGER.warn("syntax: locality [localities...]");
+            LOGGER.warn("using default: {}", physicalLocality);
             localities.addElement(physicalLocality);
         }
 

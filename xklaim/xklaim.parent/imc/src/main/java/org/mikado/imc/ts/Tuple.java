@@ -5,8 +5,11 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Tuple implements Cloneable, java.io.Serializable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Tuple.class);
 
     /** */
     private static final long serialVersionUID = 3727185460037014311L;
@@ -369,7 +372,7 @@ public class Tuple implements Cloneable, java.io.Serializable {
                         return false;
                     }
                 } catch (Exception e) {
-                    System.out.println(e);
+                    LOGGER.warn("type mismatch during tuple matching: {}", e.toString());
                     return false;
                 }
             } else if (ItsElement instanceof TupleItem) {

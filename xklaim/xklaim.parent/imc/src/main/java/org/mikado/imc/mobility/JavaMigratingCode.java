@@ -8,6 +8,8 @@ import java.util.*;
 
 import org.mikado.imc.log.MessagePrinter;
 import org.mikado.imc.log.MessagePrinters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The base class for Java "mobile" (possibly active) objects
@@ -17,6 +19,8 @@ import org.mikado.imc.log.MessagePrinters;
  */
 public class JavaMigratingCode extends Thread implements Serializable,
         MigratingCode {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaMigratingCode.class);
+
     private static final long serialVersionUID = 3257008752333894450L;
 
     /**
@@ -205,11 +209,11 @@ public class JavaMigratingCode extends Thread implements Serializable,
 
             return result;
         } catch (FileNotFoundException nof) {
-            nof.printStackTrace();
+            LOGGER.error("class bytes not found for {}", className, nof);
 
             return null;
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("error loading class bytes for {}", className, e);
         }
 
         return null;
