@@ -4,6 +4,8 @@ import java.util.Vector;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.io.File;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Some utility functions dealing with files.
@@ -12,6 +14,8 @@ import java.io.File;
  * @version $Revision: 1.3 $
  */
 public class FileUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileUtils.class);
+
     /**
      * @return A vector of directories in the class path
      */
@@ -26,7 +30,7 @@ public class FileUtils {
                 v.addElement((new File(tok.nextElement().toString()))
                         .getCanonicalPath());
             } catch (java.io.IOException ioe) {
-                ioe.printStackTrace();
+                LOGGER.error("error resolving classpath entry", ioe);
             }
         }
 

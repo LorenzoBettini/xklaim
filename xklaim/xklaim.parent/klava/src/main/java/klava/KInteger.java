@@ -1,8 +1,12 @@
 package klava;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // Customized Integer
 
 public class KInteger implements TupleItem {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KInteger.class);
 
     private static final long serialVersionUID = -2472657424836506350L;
 
@@ -59,7 +63,7 @@ public class KInteger implements TupleItem {
                     integer = ((KInteger) o).integer;
             }
         } catch (ClassCastException e) {
-            System.err.println("KInteger : " + e);
+            LOGGER.error("KInteger type error: {}", e.toString());
         }
     }
 

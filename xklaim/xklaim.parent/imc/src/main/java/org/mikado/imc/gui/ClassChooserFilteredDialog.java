@@ -21,6 +21,8 @@ import org.mikado.imc.common.ClassCollector;
 import org.mikado.imc.common.ClassEntry;
 import org.mikado.imc.common.ClassFilter;
 import org.mikado.imc.topology.NodeProcess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A specialized ClassChooserDialog that collects all the classes that are
@@ -30,6 +32,7 @@ import org.mikado.imc.topology.NodeProcess;
  * @version $Revision: 1.2 $
  */
 public class ClassChooserFilteredDialog extends ClassChooserDialog {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClassChooserFilteredDialog.class);
     /**
      * Updates the progress bar while filtering
      * 
@@ -167,7 +170,7 @@ public class ClassChooserFilteredDialog extends ClassChooserDialog {
         classChooser.setVisible(true);
 
         if (classChooser.getChosenEntry() != null) {
-            System.out.println("chosen: " + classChooser.getChosenEntry());
+            LOGGER.info("chosen: {}", classChooser.getChosenEntry());
             classChooser.dispose();
         }
     }
@@ -219,7 +222,7 @@ public class ClassChooserFilteredDialog extends ClassChooserDialog {
             getFurtherSuperClassFilter().setModel(
                     new DefaultComboBoxModel(filtered));
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.error("error filtering classes", e);
         }
 
         resetButton.setEnabled(true);
@@ -252,7 +255,7 @@ public class ClassChooserFilteredDialog extends ClassChooserDialog {
             Vector<ClassEntry> filtered = classFilter.filter(allEntries);
             setJList(filtered);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.error("error further filtering classes", e);
         }
 
         resetButton.setEnabled(true);

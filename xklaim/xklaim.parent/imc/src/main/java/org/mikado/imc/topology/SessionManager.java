@@ -14,6 +14,8 @@ import org.mikado.imc.protocols.Session;
 import org.mikado.imc.protocols.SessionId;
 import org.mikado.imc.protocols.SessionStarter;
 import org.mikado.imc.protocols.SessionStarters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -25,6 +27,8 @@ import java.util.Hashtable;
  * @version $Revision: 1.9 $
  */
 public class SessionManager implements EventGenerator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SessionManager.class);
+
     /** The string representing connection/disconnection events. */
     public static final String EventClass = "CONNECTION";
 
@@ -59,7 +63,7 @@ public class SessionManager implements EventGenerator {
         }
 
         connections.put(id, protocolStack);
-        System.out.println("added session: " + id);
+        LOGGER.info("added session: {}", id);
         generateEvent(new SessionEvent(this, SessionEventType.CONNECTION, id));
 
         return true;
@@ -75,7 +79,7 @@ public class SessionManager implements EventGenerator {
      */
     public synchronized boolean removeSession(Session session) {
         if (connections.remove(session) != null) {
-            System.out.println("removed session: " + session);
+            LOGGER.info("removed session: {}", session);
             generateEvent(new SessionEvent(this,
                     SessionEventType.DISCONNECTION, session));
 

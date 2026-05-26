@@ -9,6 +9,8 @@ import java.io.IOException;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -50,6 +52,8 @@ import java.util.regex.Pattern;
  * @version $Revision: 1.4 $
  */
 public class HTTPTunnelProtocolLayer extends TunnelProtocolLayer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HTTPTunnelProtocolLayer.class);
+
     /** The regular expression for HTTP requests. */
     private static final String http_request_regex = "(GET [/]?)((?:.|[\r\n])*)( HTTP.*)((?:.|[\r\n])*)\r\n\r\n";
     private static final Pattern request_pattern = Pattern.compile(http_request_regex);
@@ -190,7 +194,7 @@ public class HTTPTunnelProtocolLayer extends TunnelProtocolLayer {
                 throw new ProtocolException(e);
             }
 
-            System.err.println("http read line: " + line);
+            LOGGER.debug("http read line: {}", line);
             buffer.append(line + "\r\n");
 
             if (line.length() == 0) {

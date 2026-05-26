@@ -27,6 +27,8 @@ import org.mikado.imc.protocols.UnMarshaler;
 import org.mikado.imc.protocols.WrongStringProtocolException;
 import org.mikado.imc.topology.RoutingTable;
 import org.mikado.imc.topology.SessionManagers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The main message state. After reading the string that identifies a message,
@@ -36,6 +38,7 @@ import org.mikado.imc.topology.SessionManagers;
  * @version $Revision: 1.4 $
  */
 public class MessageState extends ProtocolStateSimple {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageState.class);
 
     /**
      * The actual state that enters a specific state depending on the
@@ -222,7 +225,7 @@ public class MessageState extends ProtocolStateSimple {
                     .enter(null, new TransmissionChannel(unMarshaler));
         } catch (ProtocolException e) {
             printSession();
-            e.printStackTrace();
+            LOGGER.error("protocol error in message state", e);
             lostConnection();
             throw e;
             /* something bad happened so we end the protocol */

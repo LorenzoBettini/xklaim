@@ -57,6 +57,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
+    <slf4j.version>2.0.17</slf4j.version>
 
     <skip.imc.tests>false</skip.imc.tests>
     <skip.klava.tests>false</skip.klava.tests>
@@ -91,6 +92,7 @@
     <module>imc</module>
     <module>klava</module>
     <module>xklaim.target</module>
+    <module>xklaim.lib</module>
     <module>xklaim.runtime</module>
     <module>xklaim</module>
   </modules>

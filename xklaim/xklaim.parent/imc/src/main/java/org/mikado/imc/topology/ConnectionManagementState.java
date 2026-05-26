@@ -12,6 +12,8 @@ import org.mikado.imc.protocols.ProtocolStack;
 import org.mikado.imc.protocols.ProtocolStateSimple;
 import org.mikado.imc.protocols.Session;
 import org.mikado.imc.protocols.TransmissionChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -22,6 +24,8 @@ import java.io.IOException;
  * @version $Revision: 1.8 $
  */
 public class ConnectionManagementState extends ProtocolStateSimple {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionManagementState.class);
+
     /** The manager of the connections */
     protected SessionManager sessionManager;
 
@@ -165,7 +169,7 @@ public class ConnectionManagementState extends ProtocolStateSimple {
                 close();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("connection management error", e);
 
             // if we got here it means that somehow we cannot communicate
             // with the endpoint and we assume that connection is lost.

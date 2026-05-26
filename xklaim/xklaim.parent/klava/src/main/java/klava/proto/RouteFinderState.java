@@ -19,6 +19,8 @@ import org.mikado.imc.topology.CollectableThread;
 import org.mikado.imc.topology.RoutingTable;
 import org.mikado.imc.topology.SessionManager;
 import org.mikado.imc.topology.ThreadContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Responds to route finding requests, and if not able tries to query all the
@@ -28,6 +30,7 @@ import org.mikado.imc.topology.ThreadContainer;
  * 
  */
 public class RouteFinderState extends RequestState {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RouteFinderState.class);
     /**
      * @author bettini
      * 
@@ -62,7 +65,7 @@ public class RouteFinderState extends RequestState {
 
                 if (destination == null) {
                     /* unlikely but must check and we cannot do much */
-                    System.err.println("lost route with " + from);
+                    LOGGER.warn("lost route with {}", from);
                     return;
                 }
 
@@ -71,10 +74,10 @@ public class RouteFinderState extends RequestState {
                                 : ResponseState.FAIL_S), from, process);
             } catch (ProtocolException e) {
                 // we can't do much
-                e.printStackTrace();
+                LOGGER.error("protocol error in route finder", e);
             } catch (IOException e) {
                 // we can't do much
-                e.printStackTrace();
+                LOGGER.error("IO error in route finder", e);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

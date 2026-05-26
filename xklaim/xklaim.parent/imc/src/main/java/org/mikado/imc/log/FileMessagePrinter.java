@@ -3,6 +3,8 @@ package org.mikado.imc.log;
 import java.io.*;
 import java.util.Iterator;
 import java.util.TreeSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A MessagePrinter that print the messages in a file
@@ -11,6 +13,8 @@ import java.util.TreeSet;
  * @version $Revision: 1.4 $
  */
 public class FileMessagePrinter implements MessagePrinter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileMessagePrinter.class);
+
     /** the file output stream */
     protected FileWriter out;
 
@@ -43,7 +47,7 @@ public class FileMessagePrinter implements MessagePrinter {
             out.write(s + "\n");
             out.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("error writing to file {}", fileName, e);
         }
     }
 

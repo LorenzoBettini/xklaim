@@ -14,6 +14,8 @@ import javax.swing.JFrame;
 
 import org.mikado.imc.common.IMCException;
 import org.mikado.imc.topology.Closeable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A generic frame that contains something that is closed when the close button
@@ -23,6 +25,7 @@ import org.mikado.imc.topology.Closeable;
  * @version $Revision: 1.3 $
  */
 public class CloseableFrame extends JFrame {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CloseableFrame.class);
 
     /**
      * 
@@ -65,7 +68,7 @@ public class CloseableFrame extends JFrame {
                         closeable.close();
                     dispose();
                 } catch (IMCException e1) {
-                    e1.printStackTrace();
+                    LOGGER.error("error closing frame", e1);
                     JOptionPane.showMessageDialog(null, e1.getClass().getName()
                             + "\n" + e1.getMessage(), "alert",
                             JOptionPane.ERROR_MESSAGE);

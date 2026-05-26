@@ -39,6 +39,16 @@
 				</executions>
 				<configuration>
 					<includePluginDependencies>true</includePluginDependencies>
+					<systemProperties>
+						<systemProperty>
+							<key>slf4j.internal.verbosity</key>
+							<value>WARN</value>
+						</systemProperty>
+						<systemProperty>
+							<key>slf4j.provider</key>
+							<value>org.eclipse.equinox.slf4j.EquinoxSLF4JProvider</value>
+						</systemProperty>
+					</systemProperties>
 				</configuration>
 				<dependencies>
 					<dependency>

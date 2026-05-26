@@ -7,6 +7,8 @@
 package org.mikado.imc.topology;
 
 import org.mikado.imc.common.IMCException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A specialized Thread that is not a NodeProcess, i.e., it needs not a Node to
@@ -20,6 +22,8 @@ import org.mikado.imc.common.IMCException;
  * @version $Revision: 1.2 $
  */
 public abstract class CollectableThread extends Thread {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CollectableThread.class);
+
     /** Where this thread is collected */
     protected ThreadContainer threadContainer = null;
 
@@ -30,7 +34,7 @@ public abstract class CollectableThread extends Thread {
         try {
             execute();
         } catch (IMCException e) {
-            e.printStackTrace();
+            LOGGER.error("uncaught exception in thread {}", getName(), e);
         } finally {
             if (threadContainer != null)
                 threadContainer.removeElement(this);

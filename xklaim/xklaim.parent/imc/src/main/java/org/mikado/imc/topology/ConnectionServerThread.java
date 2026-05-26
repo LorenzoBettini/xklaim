@@ -10,6 +10,8 @@ import org.mikado.imc.protocols.Protocol;
 import org.mikado.imc.protocols.ProtocolException;
 import org.mikado.imc.protocols.ProtocolFactory;
 import org.mikado.imc.protocols.SessionId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -19,6 +21,8 @@ import org.mikado.imc.protocols.SessionId;
  * @version $Revision: 1.7 $
  */
 public class ConnectionServerThread extends Thread {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionServerThread.class);
+
     /**
      * The ConnectionServer used for accepting new sessions.
      */
@@ -74,7 +78,7 @@ public class ConnectionServerThread extends Thread {
                 }
             }
         } catch (ProtocolException e1) {
-            e1.printStackTrace();
+            LOGGER.error("connection server error", e1);
 
             return;
         }
@@ -120,6 +124,6 @@ public class ConnectionServerThread extends Thread {
                 }
             }, new IpSessionId(9999));
         connectionServer.start();
-        System.out.println("connection server started");
+        LOGGER.info("connection server started");
     }
 }

@@ -19,6 +19,8 @@ import org.mikado.imc.protocols.ProtocolLayer;
 import org.mikado.imc.protocols.Session;
 import org.mikado.imc.protocols.SessionId;
 import org.mikado.imc.protocols.SessionStarter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Deals with sessions over UDP packets. Nothing is added to the sent UDP
@@ -28,6 +30,7 @@ import org.mikado.imc.protocols.SessionStarter;
  * @version $Revision: 1.3 $
  */
 public class UdpSessionStarterPure extends SessionStarter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UdpSessionStarterPure.class);
 
     /**
      * The wrapped udp socket.
@@ -128,10 +131,8 @@ public class UdpSessionStarterPure extends SessionStarter {
                             throw new ProtocolException(e1);
                         }
 
-                        System.err.println("UDP socket creation failed "
-                                + getLocalSessionId() + ", " + e1.getMessage()
-                                + ", retry in " + pause + " second(s) - "
-                                + Thread.currentThread().getName());
+                        LOGGER.warn("UDP socket creation failed {}, {}, retry in {} second(s) - {}",
+                                getLocalSessionId(), e1.getMessage(), pause, Thread.currentThread().getName());
 
                         try {
                             wait(pause * 1000);
@@ -184,7 +185,7 @@ public class UdpSessionStarterPure extends SessionStarter {
                                 .getHostAddress() : ""), datagramPacket
                                 .getPort(), "udp"));
 
-                System.err.println("accepted session: " + session);
+                LOGGER.info("accepted session: {}", session);
 
                 return session;
             } catch (UnknownHostException e) {
@@ -270,10 +271,8 @@ public class UdpSessionStarterPure extends SessionStarter {
                     success = true;
                     break;
                 } catch (IOException e2) {
-                    System.err.println("UDP connection failed "
-                            + getRemoteSessionId() + ", retry in " + pause
-                            + " second(s) - "
-                            + Thread.currentThread().getName());
+                    LOGGER.warn("UDP connection failed {}, retry in {} second(s) - {}",
+                            getRemoteSessionId(), pause, Thread.currentThread().getName());
 
                     try {
                         Thread.sleep(pause * 1000);

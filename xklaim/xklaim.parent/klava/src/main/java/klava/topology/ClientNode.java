@@ -6,6 +6,8 @@ package klava.topology;
 import klava.KlavaException;
 import klava.LogicalLocality;
 import klava.PhysicalLocality;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A specialized klava node that connects to a server (Net).
@@ -16,6 +18,7 @@ import klava.PhysicalLocality;
  * @author Lorenzo Bettini
  */
 public class ClientNode extends KlavaNode {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClientNode.class);
     /**
      * The locality of the server to connect to
      */
@@ -32,7 +35,7 @@ public class ClientNode extends KlavaNode {
         if (!login(server))
             throw new KlavaException("failed to log to " + server);
 
-        System.out.println("logged to " + server);
+        LOGGER.info("logged to {}", server);
     }
 
     /**
@@ -50,8 +53,7 @@ public class ClientNode extends KlavaNode {
             throw new KlavaException("failed to subscribe to " + server
                     + " as " + logicalLocality);
 
-        System.out
-                .println("subscribed to " + server + " as " + logicalLocality);
+        LOGGER.info("subscribed to {} as {}", server, logicalLocality);
     }
 
     /**
@@ -63,12 +65,10 @@ public class ClientNode extends KlavaNode {
         PhysicalLocality server = new PhysicalLocality("localhost", 9999);
 
         if (args.length == 0) {
-            System.out
-                    .println("syntax: <locality of the server> [logical locality]");
-            System.out.println("using default: " + server);
+            LOGGER.warn("syntax: <locality of the server> [logical locality]");
+            LOGGER.warn("using default: {}", server);
         } else if (args.length > 2) {
-            System.out
-                    .println("syntax: <locality of the server> [logical locality]");
+            LOGGER.warn("syntax: <locality of the server> [logical locality]");
             System.exit(1);
         } else if (args.length > 0) {
             server = new PhysicalLocality(args[0]);

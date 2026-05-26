@@ -6,6 +6,9 @@ package org.mikado.imc.protocols;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * This layer removes an integer from the input, and writes the received number
@@ -15,6 +18,8 @@ import java.io.IOException;
  * @version $Revision: 1.4 $
  */
 public class IncrementProtocolLayer extends ProtocolLayer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IncrementProtocolLayer.class);
+
     /** The sequence number */
     int sequence = 0;
 
@@ -27,7 +32,7 @@ public class IncrementProtocolLayer extends ProtocolLayer {
     	while (true) {
 	        try {
 	            sequence = unMarshaler.readInt();
-	            System.out.println("received sequence number: " + sequence);
+	            LOGGER.debug("received sequence number: {}", sequence);
 	
 	            if (sequence < 0) {
 	            	Marshaler marshaler = createMarshaler();

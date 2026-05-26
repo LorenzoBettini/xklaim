@@ -14,6 +14,8 @@ import java.util.Set;
 
 import org.mikado.imc.protocols.ProtocolException;
 import org.mikado.imc.protocols.SessionId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Continuously Reads packets from a DatagramSocket and dispatch them according
@@ -24,6 +26,7 @@ import org.mikado.imc.protocols.SessionId;
  * @version $Revision: 1.5 $
  */
 public class DatagramDispatcher extends Thread {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatagramDispatcher.class);
     /**
      * Associates a sender address with a datagram queue.
      */
@@ -131,8 +134,7 @@ public class DatagramDispatcher extends Thread {
                              * fact that the sender didn't get a response in
                              * time and tried to send another connection packet
                              */
-                            System.err.println("discarding empty packet from "
-                                    + key);
+                            LOGGER.debug("discarding empty packet from {}", key);
                             // TODO: find a better way
                         } else {
                             datagramQueue.insert(datagramPacket);
@@ -204,7 +206,7 @@ public class DatagramDispatcher extends Thread {
             throw new ProtocolException("null queue identifier");
 
         queues.remove(id);
-        System.err.println("removed queue " + id);
+        LOGGER.debug("removed queue {}", id);
         if (notAccepting && queues.isEmpty())
             close();
     }

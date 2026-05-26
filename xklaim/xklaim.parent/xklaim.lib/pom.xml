@@ -7,21 +7,26 @@
 		<artifactId>xklaim.parent</artifactId>
 		<version>2.5.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>xklaim.runtime</artifactId>
+	<artifactId>xklaim.lib</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
-	<name>XKlaim Runtime</name>
-	<description>Runtime library for XKlaim.</description>
+	<name>XKlaim Library</name>
+	<description>Minimal runtime library for XKlaim.</description>
 
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>xklaim.lib</artifactId>
+			<artifactId>klava</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.eclipse.xtext</groupId>
+			<artifactId>org.eclipse.xtext.xbase.lib</artifactId>
+			<version>${xtextVersion}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
+			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
 		</dependency>
 	</dependencies>

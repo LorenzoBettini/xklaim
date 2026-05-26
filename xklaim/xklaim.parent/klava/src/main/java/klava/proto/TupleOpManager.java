@@ -20,6 +20,8 @@ import org.mikado.imc.topology.CollectableThread;
 import org.mikado.imc.topology.RoutingTable;
 import org.mikado.imc.topology.SessionManager;
 import org.mikado.imc.topology.ThreadContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Handles a TuplePacket
@@ -28,6 +30,8 @@ import org.mikado.imc.topology.ThreadContainer;
  * @version $Revision: 1.4 $
  */
 public class TupleOpManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TupleOpManager.class);
+
     /**
      * The thread that is blocked waiting for a matching tuple.
      * 
@@ -88,8 +92,10 @@ public class TupleOpManager {
                     TupleOpState.writePacket(route, tuplePacket);
                 } else {
                     /* if we're here we failed */
-                    System.err.println(ourSessionId + ": cannot route to "
-                            + tuplePacket.Dest);
+                    LOGGER.atWarn()
+                            .addKeyValue("session", ourSessionId)
+                            .addKeyValue("destination", tuplePacket.Dest)
+                            .log("cannot route tuple packet");
 
                     cannotForward(tuplePacket, ourSessionId);
                 }
@@ -125,9 +131,10 @@ public class TupleOpManager {
                     responseOut(tuplePacket, route);
                 } else {
                     /* if we're here we failed */
-                    System.err.println(ourSessionId
-                            + ": cannot route for response to "
-                            + tuplePacket.Source);
+                    LOGGER.atWarn()
+                            .addKeyValue("session", ourSessionId)
+                            .addKeyValue("destination", tuplePacket.Source)
+                            .log("cannot route out response");
                 }
             } catch (Exception e) {
                 throw new IMCException(e);
@@ -164,9 +171,10 @@ public class TupleOpManager {
                     responseEval(tuplePacket, route, error);
                 } else {
                     /* if we're here we failed */
-                    System.err.println(ourSessionId
-                            + ": cannot route for response to "
-                            + tuplePacket.Source);
+                    LOGGER.atWarn()
+                            .addKeyValue("session", ourSessionId)
+                            .addKeyValue("destination", tuplePacket.Source)
+                            .log("cannot route eval response");
                 }
             } catch (Exception e) {
                 throw new IMCException(e);
@@ -203,9 +211,10 @@ public class TupleOpManager {
                     responseTuple(tuplePacket, result, route);
                 } else {
                     /* if we're here we failed */
-                    System.err.println(ourSessionId
-                            + ": cannot route for response to "
-                            + tuplePacket.Source);
+                    LOGGER.atWarn()
+                            .addKeyValue("session", ourSessionId)
+                            .addKeyValue("destination", tuplePacket.Source)
+                            .log("cannot route tuple response");
 
                     /*
                      * if it was a successful in, we must put the tuple back

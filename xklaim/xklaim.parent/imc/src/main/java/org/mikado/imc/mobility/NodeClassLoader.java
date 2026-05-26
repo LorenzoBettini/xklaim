@@ -7,6 +7,8 @@ import java.util.Hashtable;
 import org.mikado.imc.log.DefaultMessagePrinter;
 import org.mikado.imc.log.MessagePrinter;
 import org.mikado.imc.log.MessagePrinters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The classloader that is used for dynamically loading classes from a source
@@ -20,6 +22,8 @@ import org.mikado.imc.log.MessagePrinters;
  * @version $Revision: 1.7 $
  */
 public class NodeClassLoader extends ClassLoader {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeClassLoader.class);
+
     /** local cache of already loaded classes */
     private Hashtable<String, Class<?>> classes = new Hashtable<String, Class<?>>();
 
@@ -243,7 +247,7 @@ public class NodeClassLoader extends ClassLoader {
             PrintMessageLoadedClass(">>>>>> Fetching the bytes of " + className);
         } else {
             ClassNotFoundException e = new ClassNotFoundException(className);
-            e.printStackTrace();
+            LOGGER.error("class not found: {}", className, e);
             throw e;
         }
 

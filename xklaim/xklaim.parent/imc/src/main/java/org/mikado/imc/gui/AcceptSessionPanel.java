@@ -23,6 +23,8 @@ import org.mikado.imc.topology.AcceptOnceNodeCoordinator;
 import org.mikado.imc.topology.Node;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A panel for establishing a Session.
@@ -31,6 +33,8 @@ import java.awt.GridBagConstraints;
  * @version $Revision: 1.14 $
  */
 public class AcceptSessionPanel extends JPanel {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AcceptSessionPanel.class);
+
     protected Node node;
 
     private static final long serialVersionUID = 3978983275916374322L;
@@ -252,7 +256,7 @@ public class AcceptSessionPanel extends JPanel {
      * @throws HeadlessException
      */
     protected void showException(Exception e) throws HeadlessException {
-        e.printStackTrace();
+        LOGGER.error("exception in session panel", e);
         new ExceptionMessageBox(null, e).setVisible(true);
     }
 

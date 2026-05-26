@@ -3,10 +3,11 @@ package org.mikado.imc.ts;
 import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.Vector;
-
 import org.mikado.imc.common.TimeoutException;
 import org.mikado.imc.events.EventGeneratorAdapter;
 import org.mikado.imc.ts.TupleEvent.TupleEventType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements a TupleSpace through a Vector.
@@ -16,6 +17,7 @@ import org.mikado.imc.ts.TupleEvent.TupleEventType;
  */
 public class TupleSpaceVector extends EventGeneratorAdapter implements
         TupleItem, Serializable, TupleSpace {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TupleSpaceVector.class);
 
     /**
      * 
@@ -179,7 +181,7 @@ public class TupleSpaceVector extends EventGeneratorAdapter implements
                         waitTime = TimeOut - timeSoFar;
                         tuples.wait(waitTime);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        LOGGER.warn("interrupted while waiting for tuple", e);
                         return false;
                     }
                     timeSoFar = System.currentTimeMillis() - startTime;

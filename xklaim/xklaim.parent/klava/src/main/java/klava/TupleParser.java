@@ -1,8 +1,11 @@
 package klava;
 
 import java.util.StringTokenizer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TupleParser {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TupleParser.class);
 
     public TupleParser() {
     }
@@ -14,7 +17,7 @@ public class TupleParser {
         try {
             while (st.hasMoreElements()) {
                 elem = st.nextToken().trim();
-                System.out.println(elem);
+                LOGGER.debug("{}", elem);
                 if (!st.hasMoreTokens()) {
                     TupleParser.createTupleElem(tuple, elem, null);
                     break;
@@ -33,7 +36,7 @@ public class TupleParser {
                         }
                     }
                     TupleParser.createTupleElem(tuple, elem, type);
-                    System.out.println("ELEM: " + elem + " TYPE: " + type);
+                    LOGGER.debug("ELEM: {} TYPE: {}", elem, type);
                 } else { // assumes string type
                     TupleParser.createTupleElem(tuple, elem, null);
                 }
@@ -83,9 +86,9 @@ public class TupleParser {
         try {
             t = TupleParser
                     .parseString(args[0] + " " + args[1] + " " + args[2]);
-            System.out.println("TUPLE : " + t);
+            LOGGER.info("TUPLE : {}", t);
         } catch (KlavaTupleParsingException e) {
-            e.printStackTrace();
+            LOGGER.error("parsing error", e);
         }
     }
 

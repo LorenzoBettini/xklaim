@@ -2,10 +2,13 @@ package klava;
 
 import java.util.Vector;
 import java.util.Enumeration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // Customized Vector
 
 public class KVector implements TupleItem {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KVector.class);
 
     /**
      * 
@@ -87,7 +90,7 @@ public class KVector implements TupleItem {
             else
                 vector = null;
         } catch (ClassCastException e) {
-            System.err.println("KVector : " + e);
+            LOGGER.error("KVector type error: {}", e.toString());
         }
     }
 
