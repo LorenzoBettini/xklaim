@@ -642,6 +642,11 @@ public class KlavaNode extends Node {
      * @throws KlavaException
      */
     public void eval(KlavaProcess klavaProcess) throws KlavaException {
+        LOGGER.atDebug().setMessage(() -> "eval( " + klavaProcess.getName() + " )@self").log();
+        evalLocalImpl(klavaProcess);
+    }
+
+    private void evalLocalImpl(KlavaProcess klavaProcess) throws KlavaException {
         try {
             addNodeProcess(klavaProcess);
         } catch (IMCException e) {
@@ -676,9 +681,14 @@ public class KlavaNode extends Node {
         PhysicalLocality realDestination = new PhysicalLocality();
         if (checkLocalDestination(destination, realDestination)) {
             /* this is a local operation */
-            eval(klavaProcess);
+            String locStr = formatLocality(destination, realDestination);
+            LOGGER.atDebug().setMessage(() -> "eval( " + klavaProcess.getName() + " )@" + locStr).log();
+            evalLocalImpl(klavaProcess);
             return;
         }
+
+        String locStr = formatLocality(destination, realDestination);
+        LOGGER.atDebug().setMessage(() -> "eval( " + klavaProcess.getName() + " )@" + locStr).log();
 
         /* the response we will wait for */
         Response<String> response = new Response<String>();
