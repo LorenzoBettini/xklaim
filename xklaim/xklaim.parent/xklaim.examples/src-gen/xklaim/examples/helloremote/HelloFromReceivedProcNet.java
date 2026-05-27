@@ -54,7 +54,9 @@ public class HelloFromReceivedProcNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new HelloFromReceivedProcNet.Reader.ReaderProcess());
+      KlavaNodeCoordinator _coordinator = new HelloFromReceivedProcNet.Reader.ReaderProcess();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -80,7 +82,9 @@ public class HelloFromReceivedProcNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new HelloFromReceivedProcNet.Writer.WriterProcess());
+      KlavaNodeCoordinator _coordinator = new HelloFromReceivedProcNet.Writer.WriterProcess();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -91,6 +95,8 @@ public class HelloFromReceivedProcNet extends LogicalNet {
   public void addNodes() throws IMCException {
     HelloFromReceivedProcNet.Reader reader = new HelloFromReceivedProcNet.Reader();
     HelloFromReceivedProcNet.Writer writer = new HelloFromReceivedProcNet.Writer();
+    addManagedNode(reader);
+    addManagedNode(writer);
     reader.addMainProcess();
     writer.addMainProcess();
   }

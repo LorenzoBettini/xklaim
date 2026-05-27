@@ -6,5 +6,6 @@ public class CodeMobilitySender {
     Sender sender = new Sender();
     sender.setupEnvironment();
     sender.addMainProcess();
+    sender.waitForCompletion();
   }
 }

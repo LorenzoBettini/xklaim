@@ -56,7 +56,9 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new HelloRemoveEvalProcNet.Reader.ReaderProcess());
+      KlavaNodeCoordinator _coordinator = new HelloRemoveEvalProcNet.Reader.ReaderProcess();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -73,7 +75,9 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new HelloRemoveEvalProcNet.Writer.WriterProcess());
+      KlavaNodeCoordinator _coordinator = new HelloRemoveEvalProcNet.Writer.WriterProcess();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -84,6 +88,8 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
   public void addNodes() throws IMCException {
     HelloRemoveEvalProcNet.Reader reader = new HelloRemoveEvalProcNet.Reader();
     HelloRemoveEvalProcNet.Writer writer = new HelloRemoveEvalProcNet.Writer();
+    addManagedNode(reader);
+    addManagedNode(writer);
     reader.addMainProcess();
     writer.addMainProcess();
   }
