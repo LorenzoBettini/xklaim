@@ -3,7 +3,6 @@
  */
 package klava.proto;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,6 +18,7 @@ import org.mikado.imc.common.IMCException;
 import org.mikado.imc.mobility.MigratingCodeFactory;
 import org.mikado.imc.protocols.Marshaler;
 import org.mikado.imc.protocols.ProtocolException;
+import org.mikado.imc.protocols.ProtocolExceptionUtils;
 import org.mikado.imc.protocols.ProtocolStack;
 import org.mikado.imc.protocols.ProtocolStateSimple;
 import org.mikado.imc.protocols.ProtocolSwitchState;
@@ -226,7 +226,7 @@ public class MessageState extends ProtocolStateSimple {
                     .enter(null, new TransmissionChannel(unMarshaler));
         } catch (ProtocolException e) {
             printSession();
-            if (isCausedByConnectionClose(e)) {
+            if (ProtocolExceptionUtils.isCausedByConnectionClose(e)) {
                 LOGGER.debug("connection closed in message state");
             } else {
                 LOGGER.error("protocol error in message state", e);
@@ -235,22 +235,6 @@ public class MessageState extends ProtocolStateSimple {
             throw e;
             /* something bad happened so we end the protocol */
         }
-    }
-
-    private static boolean isCausedByConnectionClose(Throwable t) {
-        while (t != null) {
-            if (t instanceof EOFException)
-                return true;
-            if (t instanceof java.net.SocketException
-                    && "Socket closed".equals(t.getMessage()))
-                return true;
-            if (t instanceof ProtocolException) {
-                t = ((ProtocolException) t).represents();
-            } else {
-                t = t.getCause();
-            }
-        }
-        return false;
     }
 
     /**

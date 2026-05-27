@@ -3,7 +3,6 @@
  */
 package klava.topology;
 
-import java.net.SocketException;
 import java.util.List;
 
 import klava.KlavaException;
@@ -13,7 +12,7 @@ import klava.PhysicalLocality;
 import klava.Tuple;
 
 import org.mikado.imc.common.IMCException;
-import org.mikado.imc.protocols.ProtocolException;
+import org.mikado.imc.protocols.ProtocolExceptionUtils;
 import org.mikado.imc.protocols.ProtocolStack;
 import org.mikado.imc.topology.NodeCoordinator;
 import org.mikado.imc.topology.NodeCoordinatorProxy;
@@ -91,7 +90,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
                 Thread.currentThread().interrupt();
                 return;
             }
-            if (isCausedBySocketClosed(e)) {
+            if (ProtocolExceptionUtils.isCausedByConnectionClose(e)) {
                 LOGGER.debug("connection closed in coordinator {}", getName());
                 return;
             }
@@ -99,20 +98,6 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
             throw new IMCException("Uncaught exception", e);
         }
 
-    }
-
-    private static boolean isCausedBySocketClosed(Throwable t) {
-        while (t != null) {
-            if (t instanceof SocketException
-                    && "Socket closed".equals(t.getMessage()))
-                return true;
-            if (t instanceof ProtocolException) {
-                t = ((ProtocolException) t).represents();
-            } else {
-                t = t.getCause();
-            }
-        }
-        return false;
     }
 
     /**
