@@ -3,6 +3,7 @@
  */
 package klava.topology;
 
+import java.net.SocketException;
 import java.util.List;
 
 import klava.KlavaException;
@@ -89,11 +90,24 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
                 Thread.currentThread().interrupt();
                 return;
             }
-
+            if (isCausedBySocketClosed(e)) {
+                LOGGER.debug("connection closed in coordinator {}", getName());
+                return;
+            }
             LOGGER.error("uncaught exception in coordinator {}", getName(), e);
             throw new IMCException("Uncaught exception", e);
         }
 
+    }
+
+    private static boolean isCausedBySocketClosed(Throwable t) {
+        while (t != null) {
+            if (t instanceof SocketException
+                    && "Socket closed".equals(t.getMessage()))
+                return true;
+            t = t.getCause();
+        }
+        return false;
     }
 
     /**

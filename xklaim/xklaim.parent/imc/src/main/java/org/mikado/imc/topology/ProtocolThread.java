@@ -46,7 +46,11 @@ public class ProtocolThread extends NodeProcess {
         try {
             protocol.start();
         } catch (ProtocolException e) {
-            LOGGER.error("protocol error in thread {}", getName(), e);
+            if (isCausedByConnectionClose(e)) {
+                LOGGER.debug("connection closed in thread {}", getName());
+            } else {
+                LOGGER.error("protocol error in thread {}", getName(), e);
+            }
         } finally {
             try {
                 protocol.close();
@@ -61,6 +65,18 @@ public class ProtocolThread extends NodeProcess {
      * 
      * @see org.mikado.imc.topology.NodeProcess#close()
      */
+    private static boolean isCausedByConnectionClose(Throwable t) {
+        while (t != null) {
+            if (t instanceof java.io.EOFException)
+                return true;
+            if (t instanceof java.net.SocketException
+                    && "Socket closed".equals(t.getMessage()))
+                return true;
+            t = t.getCause();
+        }
+        return false;
+    }
+
     @Override
     public void close() throws IMCException {
         super.close();

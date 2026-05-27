@@ -226,7 +226,7 @@ public class MessageState extends ProtocolStateSimple {
                     .enter(null, new TransmissionChannel(unMarshaler));
         } catch (ProtocolException e) {
             printSession();
-            if (isCausedByEOF(e)) {
+            if (isCausedByConnectionClose(e)) {
                 LOGGER.debug("connection closed in message state");
             } else {
                 LOGGER.error("protocol error in message state", e);
@@ -237,9 +237,12 @@ public class MessageState extends ProtocolStateSimple {
         }
     }
 
-    private static boolean isCausedByEOF(Throwable t) {
+    private static boolean isCausedByConnectionClose(Throwable t) {
         while (t != null) {
             if (t instanceof EOFException)
+                return true;
+            if (t instanceof java.net.SocketException
+                    && "Socket closed".equals(t.getMessage()))
                 return true;
             t = t.getCause();
         }
