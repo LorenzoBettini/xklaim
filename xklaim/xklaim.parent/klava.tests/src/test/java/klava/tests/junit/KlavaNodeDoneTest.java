@@ -102,4 +102,68 @@ public class KlavaNodeDoneTest extends TestCase {
 		assertFalse("Child 2 coordinator must have run and exited via done()",
 				coord2.reached);
 	}
+
+	/**
+	 * {@link KlavaNode#waitForCompletion()} waits for both the main coordinator
+	 * and managed child nodes when both are present.
+	 */
+	public void testWaitForCompletionWithMainCoordinatorAndManagedNodes()
+			throws IMCException, InterruptedException {
+		TestNode parentNode = new TestNode();
+		DoneCoordinator mainCoord = new DoneCoordinator();
+		parentNode.startMainCoordinator(mainCoord);
+
+		TestNode child = new TestNode();
+		DoneCoordinator childCoord = new DoneCoordinator();
+		child.startMainCoordinator(childCoord);
+		parentNode.addManagedChildNode(child);
+
+		parentNode.waitForCompletion();
+		assertFalse("Main coordinator must have run and exited via done()",
+				mainCoord.reached);
+		assertFalse("Child coordinator must have run and exited via done()",
+				childCoord.reached);
+	}
+
+	/**
+	 * {@link KlavaNode#waitForCompletion(long)} returns within the timeout when
+	 * the coordinator finishes quickly.
+	 */
+	public void testWaitForCompletionWithTimeoutCompletes()
+			throws IMCException, InterruptedException {
+		TestNode node = new TestNode();
+		DoneCoordinator coordinator = new DoneCoordinator();
+		node.startMainCoordinator(coordinator);
+		node.waitForCompletion(5000);
+		assertFalse("Coordinator must have run and exited via done()",
+				coordinator.reached);
+	}
+
+	/**
+	 * {@link KlavaNode#waitForCompletion(long)} returns when the timeout
+	 * elapses even if the coordinator has not finished.
+	 */
+	public void testWaitForCompletionWithTimeoutExpires()
+			throws IMCException, InterruptedException {
+		TestNode node = new TestNode();
+		KlavaNodeCoordinator blockingCoordinator = new KlavaNodeCoordinator() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void executeProcess() throws KlavaException {
+				try {
+					Thread.sleep(60_000);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		};
+		node.startMainCoordinator(blockingCoordinator);
+		long start = System.currentTimeMillis();
+		node.waitForCompletion(200);
+		long elapsed = System.currentTimeMillis() - start;
+		assertTrue("waitForCompletion should have returned after the timeout",
+				elapsed < 5000);
+		blockingCoordinator.interrupt();
+	}
 }

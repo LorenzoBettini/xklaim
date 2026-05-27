@@ -1702,18 +1702,43 @@ public class KlavaNode extends Node {
     }
 
     /**
-     * Blocks until this node (or all its managed child nodes) has finished
-     * executing its main process, then closes the node.
+     * Blocks until this node's main coordinator (if any) and all managed child
+     * nodes (if any) have finished executing, then closes the node.
      *
      * @throws InterruptedException if the waiting thread is interrupted
      */
     public void waitForCompletion() throws InterruptedException {
-        if (!managedNodes.isEmpty()) {
-            for (KlavaNode node : managedNodes) {
-                node.waitForCompletion();
-            }
-        } else if (mainCoordinator != null) {
+        if (mainCoordinator != null) {
             mainCoordinator.join();
+        }
+        for (KlavaNode node : managedNodes) {
+            node.waitForCompletion();
+        }
+        try {
+            close();
+        } catch (IMCException e) {
+            LOGGER.error("error closing node in waitForCompletion", e);
+        }
+    }
+
+    /**
+     * Blocks until this node's main coordinator (if any) and all managed child
+     * nodes (if any) have finished executing, or until the timeout elapses,
+     * then closes the node.
+     *
+     * @param timeout maximum time to wait in milliseconds
+     * @throws InterruptedException if the waiting thread is interrupted
+     */
+    public void waitForCompletion(long timeout) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + timeout;
+        if (mainCoordinator != null) {
+            mainCoordinator.join(timeout);
+        }
+        for (KlavaNode node : managedNodes) {
+            long remaining = deadline - System.currentTimeMillis();
+            if (remaining <= 0)
+                break;
+            node.waitForCompletion(remaining);
         }
         try {
             close();
