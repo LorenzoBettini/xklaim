@@ -2,6 +2,7 @@ package xklaim.compiler;
 
 import static org.eclipse.xtext.xbase.lib.IterableExtensions.forEach;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -361,7 +362,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		val mappedThis = appendable.getObject("this") as JvmDeclaredType
 		appendable.declareVariable(mappedThis, mappedThis.simpleName + ".this")
 		*/
-		internalToJavaStatement(body, appendable, false);
+		compile(body, appendable, newTypeReferenceOwner(body).newReferenceTo(void.class), Collections.emptySet());
 		// appendable.closeScope
 		appendable.decreaseIndentation().newLine();
 		appendable.append("}");
