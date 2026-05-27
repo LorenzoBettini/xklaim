@@ -121,6 +121,12 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 						«FOR netClass : netClasses»
 							«netClass.simpleName.toFirstLower».addNodes();
 						«ENDFOR»
+						«FOR nodeClass : nodeClasses»
+							«nodeClass.simpleName.toFirstLower».waitForCompletion();
+						«ENDFOR»
+						«FOR netClass : netClasses»
+							«netClass.simpleName.toFirstLower».waitForCompletion();
+						«ENDFOR»
 					'''
 				]
 			]
@@ -168,7 +174,9 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 			members += node.toMethod("addMainProcess", typeRef(Void.TYPE)) [
 				exceptions += IMCException.typeRef()
 				body = '''
-					addNodeCoordinator(new «nodeProcessClass»());
+					«KlavaNodeCoordinator» _coordinator = new «nodeProcessClass»();
+					setMainCoordinator(_coordinator);
+					addNodeCoordinator(_coordinator);
 				'''
 			]
 		]
@@ -222,6 +230,9 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 					«ENDFOR»
 					«FOR nodeClass : nodeWithEnvClasses»
 						«nodeClass.simpleName.toFirstLower».setupEnvironment();
+					«ENDFOR»
+					«FOR nodeClass : nodeClasses»
+						addManagedNode(«nodeClass.simpleName.toFirstLower»);
 					«ENDFOR»
 					«FOR nodeClass : nodeClasses»
 						«nodeClass.simpleName.toFirstLower».addMainProcess();

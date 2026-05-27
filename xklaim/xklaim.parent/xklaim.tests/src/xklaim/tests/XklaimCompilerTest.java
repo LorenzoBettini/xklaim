@@ -67,7 +67,9 @@ public class XklaimCompilerTest {
 						  }
 						
 						  public void addMainProcess() throws IMCException {
-						    addNodeCoordinator(new TestNode.TestNodeProcess());
+						    KlavaNodeCoordinator _coordinator = new TestNode.TestNodeProcess();
+						    setMainCoordinator(_coordinator);
+						    addNodeCoordinator(_coordinator);
 						  }
 						}
 						"""),
@@ -94,7 +96,9 @@ public class XklaimCompilerTest {
 						  }
 						
 						  public void addMainProcess() throws IMCException {
-						    addNodeCoordinator(new TestNodeWithPhysicalLocality.TestNodeWithPhysicalLocalityProcess());
+						    KlavaNodeCoordinator _coordinator = new TestNodeWithPhysicalLocality.TestNodeWithPhysicalLocalityProcess();
+						    setMainCoordinator(_coordinator);
+						    addNodeCoordinator(_coordinator);
 						  }
 						}
 						"""),
@@ -109,6 +113,8 @@ public class XklaimCompilerTest {
 						    testNode.setupEnvironment();
 						    testNode.addMainProcess();
 						    testNodeWithPhysicalLocality.addMainProcess();
+						    testNode.waitForCompletion();
+						    testNodeWithPhysicalLocality.waitForCompletion();
 						  }
 						}
 						"""));
@@ -168,7 +174,9 @@ public class XklaimCompilerTest {
 						    }
 						
 						    public void addMainProcess() throws IMCException {
-						      addNodeCoordinator(new TestNet.TestNode.TestNodeProcess());
+						      KlavaNodeCoordinator _coordinator = new TestNet.TestNode.TestNodeProcess();
+						      setMainCoordinator(_coordinator);
+						      addNodeCoordinator(_coordinator);
 						    }
 						  }
 						
@@ -185,7 +193,9 @@ public class XklaimCompilerTest {
 						    }
 						
 						    public void addMainProcess() throws IMCException {
-						      addNodeCoordinator(new TestNet.TestNodeWithLogLoc.TestNodeWithLogLocProcess());
+						      KlavaNodeCoordinator _coordinator = new TestNet.TestNodeWithLogLoc.TestNodeWithLogLocProcess();
+						      setMainCoordinator(_coordinator);
+						      addNodeCoordinator(_coordinator);
 						    }
 						  }
 						
@@ -201,7 +211,9 @@ public class XklaimCompilerTest {
 						    }
 						
 						    public void addMainProcess() throws IMCException {
-						      addNodeCoordinator(new TestNet.TestNodeWithEmptyEnvironment.TestNodeWithEmptyEnvironmentProcess());
+						      KlavaNodeCoordinator _coordinator = new TestNet.TestNodeWithEmptyEnvironment.TestNodeWithEmptyEnvironmentProcess();
+						      setMainCoordinator(_coordinator);
+						      addNodeCoordinator(_coordinator);
 						    }
 						  }
 						
@@ -226,7 +238,9 @@ public class XklaimCompilerTest {
 						    }
 						
 						    public void addMainProcess() throws IMCException {
-						      addNodeCoordinator(new TestNet.TestNodeWithEnvironment.TestNodeWithEnvironmentProcess());
+						      KlavaNodeCoordinator _coordinator = new TestNet.TestNodeWithEnvironment.TestNodeWithEnvironmentProcess();
+						      setMainCoordinator(_coordinator);
+						      addNodeCoordinator(_coordinator);
 						    }
 						  }
 						
@@ -240,6 +254,10 @@ public class XklaimCompilerTest {
 						    TestNet.TestNodeWithEmptyEnvironment testNodeWithEmptyEnvironment = new TestNet.TestNodeWithEmptyEnvironment();
 						    TestNet.TestNodeWithEnvironment testNodeWithEnvironment = new TestNet.TestNodeWithEnvironment();
 						    testNodeWithEnvironment.setupEnvironment();
+						    addManagedNode(testNode);
+						    addManagedNode(testNodeWithLogLoc);
+						    addManagedNode(testNodeWithEmptyEnvironment);
+						    addManagedNode(testNodeWithEnvironment);
 						    testNode.addMainProcess();
 						    testNodeWithLogLoc.addMainProcess();
 						    testNodeWithEmptyEnvironment.addMainProcess();
@@ -255,6 +273,7 @@ public class XklaimCompilerTest {
 						  public static void main(final String[] args) throws Exception {
 						    TestNet testNet = new TestNet();
 						    testNet.addNodes();
+						    testNet.waitForCompletion();
 						  }
 						}
 						"""));
@@ -901,7 +920,9 @@ public class XklaimCompilerTest {
 						    }
 						
 						    public void addMainProcess() throws IMCException {
-						      addNodeCoordinator(new TestNet.TestNode.TestNodeProcess());
+						      KlavaNodeCoordinator _coordinator = new TestNet.TestNode.TestNodeProcess();
+						      setMainCoordinator(_coordinator);
+						      addNodeCoordinator(_coordinator);
 						    }
 						  }
 						
@@ -911,6 +932,7 @@ public class XklaimCompilerTest {
 						
 						  public void addNodes() throws IMCException {
 						    TestNet.TestNode testNode = new TestNet.TestNode();
+						    addManagedNode(testNode);
 						    testNode.addMainProcess();
 						  }
 						}
@@ -1157,7 +1179,9 @@ public class XklaimCompilerTest {
 						    }
 						
 						    public void addMainProcess() throws IMCException {
-						      addNodeCoordinator(new TestNet.TestNode.TestNodeProcess());
+						      KlavaNodeCoordinator _coordinator = new TestNet.TestNode.TestNodeProcess();
+						      setMainCoordinator(_coordinator);
+						      addNodeCoordinator(_coordinator);
 						    }
 						  }
 						
@@ -1167,6 +1191,7 @@ public class XklaimCompilerTest {
 						
 						  public void addNodes() throws IMCException {
 						    TestNet.TestNode testNode = new TestNet.TestNode();
+						    addManagedNode(testNode);
 						    testNode.addMainProcess();
 						  }
 						}
