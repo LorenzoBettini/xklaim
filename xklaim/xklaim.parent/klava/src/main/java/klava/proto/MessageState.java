@@ -3,6 +3,7 @@
  */
 package klava.proto;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -225,11 +226,24 @@ public class MessageState extends ProtocolStateSimple {
                     .enter(null, new TransmissionChannel(unMarshaler));
         } catch (ProtocolException e) {
             printSession();
-            LOGGER.error("protocol error in message state", e);
+            if (isCausedByEOF(e)) {
+                LOGGER.debug("connection closed in message state");
+            } else {
+                LOGGER.error("protocol error in message state", e);
+            }
             lostConnection();
             throw e;
             /* something bad happened so we end the protocol */
         }
+    }
+
+    private static boolean isCausedByEOF(Throwable t) {
+        while (t != null) {
+            if (t instanceof EOFException)
+                return true;
+            t = t.getCause();
+        }
+        return false;
     }
 
     /**
