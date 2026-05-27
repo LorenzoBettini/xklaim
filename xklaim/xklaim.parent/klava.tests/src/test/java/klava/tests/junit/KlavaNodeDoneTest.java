@@ -46,15 +46,7 @@ public class KlavaNodeDoneTest extends TestCase {
 	/**
 	 * {@link KlavaNodeCoordinator#done()} causes
 	 * {@link KlavaNodeCoordinator#execute()} to return without throwing an
-	 * exception.
-	 */
-	public void testDoneStopsExecution() throws IMCException {
-		DoneCoordinator coordinator = new DoneCoordinator();
-		// Must not throw any exception
-		coordinator.execute();
-	}
-
-	/**
+     * 
 	 * Code placed after the {@link KlavaNodeCoordinator#done()} call is never
 	 * executed.
 	 */
