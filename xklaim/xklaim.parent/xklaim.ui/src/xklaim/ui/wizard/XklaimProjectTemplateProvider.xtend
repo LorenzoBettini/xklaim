@@ -78,7 +78,7 @@ final class HelloWorldProject {
 						out("Hello World")@self
 						in(var String message)@self
 						println(message)
-						System.exit(0)
+						done()
 					}
 				}
 			''')

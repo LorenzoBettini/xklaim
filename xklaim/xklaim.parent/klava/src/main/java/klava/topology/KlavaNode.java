@@ -4,8 +4,10 @@
 package klava.topology;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Vector;
 
 import klava.Environment;
@@ -150,6 +152,17 @@ public class KlavaNode extends Node {
      * together with this node.
      */
     protected Vector<KlavaNode> newNodes = new Vector<KlavaNode>();
+
+    /**
+     * The main coordinator of this node.
+     */
+    protected KlavaNodeCoordinator mainCoordinator;
+
+    /**
+     * Nodes managed by this node (e.g., ClientNodes in a net), used by
+     * {@link #waitForCompletion()}.
+     */
+    private final List<KlavaNode> managedNodes = new ArrayList<>();
 
     /**
      * The logical locality self representing this very node.
@@ -1668,6 +1681,45 @@ public class KlavaNode extends Node {
     @Override
     protected NodeCoordinatorProxy createNodeCoordinatorProxy() {
         return new KlavaNodeCoordinatorProxy(this);
+    }
+
+    /**
+     * Sets the main coordinator of this node.
+     *
+     * @param coordinator the main coordinator
+     */
+    protected void setMainCoordinator(KlavaNodeCoordinator coordinator) {
+        this.mainCoordinator = coordinator;
+    }
+
+    /**
+     * Registers a managed child node, so that {@link #waitForCompletion()} can wait for all child nodes.
+     *
+     * @param node the child node to register
+     */
+    protected void addManagedNode(KlavaNode node) {
+        managedNodes.add(node);
+    }
+
+    /**
+     * Blocks until this node (or all its managed child nodes) has finished
+     * executing its main process, then closes the node.
+     *
+     * @throws InterruptedException if the waiting thread is interrupted
+     */
+    public void waitForCompletion() throws InterruptedException {
+        if (!managedNodes.isEmpty()) {
+            for (KlavaNode node : managedNodes) {
+                node.waitForCompletion();
+            }
+        } else if (mainCoordinator != null) {
+            mainCoordinator.join();
+        }
+        try {
+            close();
+        } catch (IMCException e) {
+            LOGGER.error("error closing node in waitForCompletion", e);
+        }
     }
 
     /**

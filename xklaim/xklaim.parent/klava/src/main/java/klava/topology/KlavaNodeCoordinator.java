@@ -69,10 +69,21 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      * 
      * @see org.mikado.imc.topology.NodeProcess#execute()
      */
+    /**
+     * Signals that the coordinator's process has completed normally.
+     * Throws {@link KlavaNodeDoneException} to cause {@code executeProcess()} to exit
+     * immediately; this is caught as normal completion by {@link #execute()}.
+     */
+    public void done() {
+        throw new KlavaNodeDoneException();
+    }
+
     @Override
     public final void execute() throws IMCException {
         try {
             executeProcess();
+        } catch (KlavaNodeDoneException e) {
+            // normal completion via done()
         } catch (KlavaException e) {
             if (e.wasCausedByInterruptedException()) {
                 Thread.currentThread().interrupt();
