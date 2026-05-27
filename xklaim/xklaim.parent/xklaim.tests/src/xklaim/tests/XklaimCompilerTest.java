@@ -1239,6 +1239,51 @@ public class XklaimCompilerTest {
 				""");
 	}
 
+	@Test
+	public void testXklaimInlineProcessWithSneakyThrow() throws Exception {
+		checkCompilation("""
+				package foo
+
+				proc Foo() {
+					eval(proc { Thread.sleep(1000) })@self
+				}
+				""",
+				"""
+				package foo;
+
+				import klava.topology.KlavaProcess;
+				import org.eclipse.xtext.xbase.lib.Exceptions;
+
+				@SuppressWarnings("all")
+				public class Foo extends KlavaProcess {
+				  public Foo() {
+				   \s
+				  }
+
+				  @Override
+				  public void executeProcess() {
+				    try {
+				      KlavaProcess _Proc = new KlavaProcess() {
+				        private KlavaProcess _initFields() {
+				          return this;
+				        }
+				        @Override public void executeProcess() {
+				          try {
+				            Thread.sleep(1000);
+				          } catch (Throwable _e) {
+				            throw Exceptions.sneakyThrow(_e);
+				          }
+				        }
+				      }._initFields();
+				      eval(_Proc, this.self);
+				    } catch (Throwable _e_1) {
+				      throw Exceptions.sneakyThrow(_e_1);
+				    }
+				  }
+				}
+				""");
+	}
+
 	private void checkCompilation(CharSequence input, CharSequence expectedGeneratedJava) throws Exception {
 		checkCompilation(input, expectedGeneratedJava, true);
 	}
