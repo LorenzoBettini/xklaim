@@ -362,14 +362,7 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		val mappedThis = appendable.getObject("this") as JvmDeclaredType
 		appendable.declareVariable(mappedThis, mappedThis.simpleName + ".this")
 		*/
-		boolean needsSneakyThrow = needsSneakyThrow(body, Collections.emptySet());
-		if (needsSneakyThrow) {
-			appendable.newLine().append("try {").increaseIndentation();
-		}
-		internalToJavaStatement(body, appendable, false);
-		if (needsSneakyThrow) {
-			generateCheckedExceptionHandling(appendable);
-		}
+		compile(body, appendable, newTypeReferenceOwner(body).newReferenceTo(void.class), Collections.emptySet());
 		// appendable.closeScope
 		appendable.decreaseIndentation().newLine();
 		appendable.append("}");
