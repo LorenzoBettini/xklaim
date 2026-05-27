@@ -13,6 +13,7 @@ import klava.PhysicalLocality;
 import klava.Tuple;
 
 import org.mikado.imc.common.IMCException;
+import org.mikado.imc.protocols.ProtocolException;
 import org.mikado.imc.protocols.ProtocolStack;
 import org.mikado.imc.topology.NodeCoordinator;
 import org.mikado.imc.topology.NodeCoordinatorProxy;
@@ -105,7 +106,11 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
             if (t instanceof SocketException
                     && "Socket closed".equals(t.getMessage()))
                 return true;
-            t = t.getCause();
+            if (t instanceof ProtocolException) {
+                t = ((ProtocolException) t).represents();
+            } else {
+                t = t.getCause();
+            }
         }
         return false;
     }

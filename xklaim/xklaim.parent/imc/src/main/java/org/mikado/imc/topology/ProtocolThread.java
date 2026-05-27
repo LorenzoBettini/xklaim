@@ -72,7 +72,11 @@ public class ProtocolThread extends NodeProcess {
             if (t instanceof java.net.SocketException
                     && "Socket closed".equals(t.getMessage()))
                 return true;
-            t = t.getCause();
+            if (t instanceof ProtocolException) {
+                t = ((ProtocolException) t).represents();
+            } else {
+                t = t.getCause();
+            }
         }
         return false;
     }
