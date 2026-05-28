@@ -34,9 +34,7 @@ public abstract class XklaimAbstractSwtbotTest {
 	protected static SWTWorkbenchBot bot;
 
 	@BeforeClass
-	public static void beforeClass() throws Exception {
-//		PDETargetPlatformUtils.setTargetPlatform();
-		
+	public static void beforeClass() {
 		bot = new SWTWorkbenchBot();
 
 		closeWelcomePage();
@@ -56,7 +54,7 @@ public abstract class XklaimAbstractSwtbotTest {
 		waitForBuild();
 	}
 
-	protected static void closeWelcomePage() throws InterruptedException {
+	protected static void closeWelcomePage() {
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -109,13 +107,11 @@ public abstract class XklaimAbstractSwtbotTest {
 
 	protected static SWTBotTree getProjectTree() {
 		SWTBotView packageExplorer = getProjectExplorer();
-		SWTBotTree tree = packageExplorer.bot().tree();
-		return tree;
+		return packageExplorer.bot().tree();
 	}
 
 	protected static SWTBotView getProjectExplorer() {
-		SWTBotView view = bot.viewByTitle(PROJECT_EXPLORER);
-		return view;
+		return bot.viewByTitle(PROJECT_EXPLORER);
 	}
 
 	protected SWTBotTreeItem getProjectTreeItem(String myTestProject) {
@@ -145,15 +141,10 @@ public abstract class XklaimAbstractSwtbotTest {
 				buffer.append(iMarker.getAttribute(IMarker.MESSAGE) + "\n");
 				buffer.append(iMarker.getAttribute(IMarker.SEVERITY) + "\n");
 			} catch (CoreException e) {
+				// nothing to do
 			}
 		}
 		return buffer.toString();
-	}
-
-	protected void createProjectAndAssertNoErrorMarker()
-			throws CoreException {
-		createProject();
-		assertErrorsInProject(0);
 	}
 
 	protected void createProject() {

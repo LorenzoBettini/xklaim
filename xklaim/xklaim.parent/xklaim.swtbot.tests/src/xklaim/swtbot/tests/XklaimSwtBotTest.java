@@ -33,6 +33,17 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 
 	@Test
 	public void canRunAnXklaimFileAsJavaApplication() throws OperationCanceledException {
+		assertNoErrorsAfterBuild();
+		SWTBotTreeItem tree = getProjectTreeItem(TEST_PROJECT)
+				.expand()
+				.expandNode("src")
+				.expandNode("mydsl")
+				.getNode(HELLO_WORLD_XKLAIM);
+		checkLaunchContextMenu(tree.contextMenu("Run As"));
+		checkLaunchContextMenu(tree.contextMenu("Debug As"));
+	}
+
+	private void assertNoErrorsAfterBuild() {
 		bot.waitUntil(new ICondition() {
 			@Override
 			public boolean test() throws Exception {
@@ -72,13 +83,6 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 				return "build failed";
 			}
 		});
-		SWTBotTreeItem tree = getProjectTreeItem(TEST_PROJECT)
-				.expand()
-				.expandNode("src")
-				.expandNode("mydsl")
-				.getNode(HELLO_WORLD_XKLAIM);
-		checkLaunchContextMenu(tree.contextMenu("Run As"));
-		checkLaunchContextMenu(tree.contextMenu("Debug As"));
 	}
 
 	private void checkLaunchContextMenu(SWTBotMenu contextMenu) {
