@@ -1,5 +1,8 @@
 package klava.tests.junit;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import junit.framework.TestCase;
 import klava.KlavaException;
 import klava.topology.KlavaNode;
@@ -156,6 +159,71 @@ public class KlavaNodeDoneTest extends TestCase {
 		long elapsed = System.currentTimeMillis() - start;
 		assertTrue("waitForCompletion should have returned after the timeout",
 				elapsed < 5000);
+		blockingCoordinator.interrupt();
+	}
+
+	/**
+	 * {@link KlavaNode#isCompleted()} returns {@code true} after
+	 * {@link KlavaNode#waitForCompletion()} when the main coordinator finishes
+	 * normally via {@link KlavaNodeCoordinator#done()}.
+	 */
+	public void testIsCompletedAfterWaitForCompletion()
+			throws IMCException, InterruptedException {
+		TestNode node = new TestNode();
+		DoneCoordinator coordinator = new DoneCoordinator();
+		node.startMainCoordinator(coordinator);
+		node.waitForCompletion(5000);
+		assertTrue("isCompleted() should be true after the coordinator finished",
+				node.isCompleted());
+	}
+
+	/**
+	 * {@link KlavaNode#isCompleted()} returns {@code true} after
+	 * {@link KlavaNode#waitForCompletion()} when all managed child nodes have
+	 * finished normally.
+	 */
+	public void testIsCompletedWithManagedNodesAfterWaitForCompletion()
+			throws IMCException, InterruptedException {
+		TestNode parentNode = new TestNode();
+
+		TestNode child1 = new TestNode();
+		child1.startMainCoordinator(new DoneCoordinator());
+		parentNode.addManagedChildNode(child1);
+
+		TestNode child2 = new TestNode();
+		child2.startMainCoordinator(new DoneCoordinator());
+		parentNode.addManagedChildNode(child2);
+
+		parentNode.waitForCompletion(5000);
+		assertTrue("isCompleted() should be true when all managed nodes finished",
+				parentNode.isCompleted());
+	}
+
+	/**
+	 * {@link KlavaNode#isCompleted()} returns {@code false} while the main
+	 * coordinator is still running.
+	 */
+	public void testIsCompletedReturnsFalseWhileRunning()
+			throws IMCException, InterruptedException {
+		TestNode node = new TestNode();
+		CountDownLatch started = new CountDownLatch(1);
+		KlavaNodeCoordinator blockingCoordinator = new KlavaNodeCoordinator() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void executeProcess() throws KlavaException {
+				started.countDown();
+				try {
+					Thread.sleep(60_000);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		};
+		node.startMainCoordinator(blockingCoordinator);
+		started.await(5, TimeUnit.SECONDS);
+		assertFalse("isCompleted() should be false while coordinator is still running",
+				node.isCompleted());
 		blockingCoordinator.interrupt();
 	}
 }

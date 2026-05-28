@@ -1748,6 +1748,31 @@ public class KlavaNode extends Node {
     }
 
     /**
+     * Returns {@code true} if this node has fully completed execution: its
+     * main coordinator (if any) has finished, and all managed child nodes
+     * (if any) have also completed.
+     *
+     * <p>Typical usage is to call this after
+     * {@link #waitForCompletion(long)} to verify that the node actually
+     * finished within the timeout rather than having been cut short:
+     *
+     * {@snippet :
+     * helloNet.waitForCompletion(5_000);
+     * assertTrue(helloNet.isCompleted());
+     * }
+     *
+     * @return {@code true} if completed, {@code false} if still running
+     */
+    public boolean isCompleted() {
+        if (mainCoordinator != null && mainCoordinator.isAlive())
+            return false;
+        for (KlavaNode node : managedNodes)
+            if (!node.isCompleted())
+                return false;
+        return true;
+    }
+
+    /**
      * This extends close of the parent class by closing also the nodes that
      * this node had created.
      * 

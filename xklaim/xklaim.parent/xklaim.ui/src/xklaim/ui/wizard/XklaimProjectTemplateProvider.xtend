@@ -29,17 +29,20 @@ class XklaimProjectTemplateProvider implements IProjectTemplateProvider {
 <p>This is a parameterized hello world for Xklaim. You can set a parameter to modify the content in the generated file
 and a parameter to set the package the file is created in.</p>")
 final class HelloWorldProject {
-	val advanced = check("Advanced:", false)
+	val advanced = check("Advanced", false)
 	val advancedGroup = group("Properties")
 	val name = combo("Name:", #["Xtext", "World", "Foo", "Bar"], "The name to say 'Hello' to", advancedGroup)
 	val path = text("Package:", "mydsl", "The package path to place the files in", advancedGroup)
+	val generateTest = check("Generate test", false, "Generate a JUnit 4 test class", advancedGroup)
 
 	override protected updateVariables() {
 		name.enabled = advanced.value
 		path.enabled = advanced.value
+		generateTest.enabled = advanced.value
 		if (!advanced.value) {
 			name.value = "Xtext"
 			path.value = "xklaim"
+			generateTest.value = false
 		}
 	}
 
@@ -60,6 +63,10 @@ final class HelloWorldProject {
 			folders += "src"
 			folders += "src-gen"
 			requiredBundles += "xklaim.runtime"
+			if (generateTest.value) {
+				addSourceFolder("tests", "test-bin", true)
+				requiredBundles += "org.junit"
+			}
 			addFile(".settings/org.eclipse.core.resources.prefs", '''
 				eclipse.preferences.version=1
 				encoding/<project>=UTF-8
@@ -75,7 +82,7 @@ final class HelloWorldProject {
 				 */
 				net HelloNet physical "localhost:9999" {
 					node Hello {
-						out("Hello World")@self
+						out("Hello «name»")@self
 						in(var String message)@self
 						println(message)
 						done()
@@ -94,6 +101,49 @@ final class HelloWorldProject {
 				# org.slf4j.simpleLogger.showDateTime=true
 				# org.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS
 			''')
+			if (generateTest.value) {
+				addFile('''tests/«path»/HelloTest.java''', '''
+					package «path.value.replace("/", ".")»;
+					
+					import java.io.ByteArrayOutputStream;
+					import java.io.PrintStream;
+					
+					import org.junit.After;
+					import org.junit.Assert;
+					import org.junit.Before;
+					import org.junit.Test;
+					
+					public class HelloTest {
+					
+						private ByteArrayOutputStream captureOutput;
+						private PrintStream savedOut;
+					
+						@Before
+						public void setUp() {
+							captureOutput = new ByteArrayOutputStream();
+							savedOut = System.out;
+						}
+					
+						@After
+						public void tearDown() {
+							System.setOut(savedOut);
+						}
+					
+						@Test
+						public void testHello() throws Exception {
+							System.setOut(new PrintStream(captureOutput));
+							HelloNet helloNet = new HelloNet();
+							helloNet.addNodes();
+							helloNet.waitForCompletion(5000);
+							Assert.assertTrue("HelloNet did not complete within timeout",
+									helloNet.isCompleted());
+							Assert.assertTrue(
+									"Expected 'Hello «name»' in output but got: " + captureOutput,
+									captureOutput.toString().contains("Hello «name»"));
+						}
+					}
+				''')
+			}
 		])
 	}
 }
