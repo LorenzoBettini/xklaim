@@ -1,9 +1,8 @@
 package xklaim.swtbot.tests;
 
-import static org.eclipse.xtext.ui.testing.util.IResourcesSetupUtil.*;
+import static org.eclipse.xtext.ui.testing.util.IResourcesSetupUtil.waitForBuild;
 
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.pde.internal.core.PDECore;
@@ -28,12 +27,12 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 	private static final String HELLO_WORLD_XKLAIM = "Hello.xklaim";
 
 	@Before
-	public void createANewXklaimProject() throws CoreException {
+	public void createANewXklaimProject() {
 		createProject();
 	}
 
 	@Test
-	public void canRunAnXklaimFileAsJavaApplication() throws CoreException, OperationCanceledException, InterruptedException {
+	public void canRunAnXklaimFileAsJavaApplication() throws OperationCanceledException {
 		bot.waitUntil(new ICondition() {
 			@Override
 			public boolean test() throws Exception {
@@ -43,6 +42,7 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 
 			@Override
 			public void init(SWTBot bot) {
+				// not needed
 			}
 
 			@Override
@@ -64,6 +64,7 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 
 			@Override
 			public void init(SWTBot bot) {
+				// not needed
 			}
 
 			@Override
