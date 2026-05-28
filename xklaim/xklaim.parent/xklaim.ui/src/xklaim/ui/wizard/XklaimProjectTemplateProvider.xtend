@@ -33,13 +33,16 @@ final class HelloWorldProject {
 	val advancedGroup = group("Properties")
 	val name = combo("Name:", #["Xtext", "World", "Foo", "Bar"], "The name to say 'Hello' to", advancedGroup)
 	val path = text("Package:", "mydsl", "The package path to place the files in", advancedGroup)
+	val generateTest = check("Generate test", false, "Generate a JUnit 4 test class", advancedGroup)
 
 	override protected updateVariables() {
 		name.enabled = advanced.value
 		path.enabled = advanced.value
+		generateTest.enabled = advanced.value
 		if (!advanced.value) {
 			name.value = "Xtext"
 			path.value = "xklaim"
+			generateTest.value = false
 		}
 	}
 
@@ -60,6 +63,10 @@ final class HelloWorldProject {
 			folders += "src"
 			folders += "src-gen"
 			requiredBundles += "xklaim.runtime"
+			if (generateTest.value) {
+				addSourceFolder("tests", "test-bin", true)
+				requiredBundles += "org.junit"
+			}
 			addFile(".settings/org.eclipse.core.resources.prefs", '''
 				eclipse.preferences.version=1
 				encoding/<project>=UTF-8
@@ -75,7 +82,7 @@ final class HelloWorldProject {
 				 */
 				net HelloNet physical "localhost:9999" {
 					node Hello {
-						out("Hello World")@self
+						out("Hello «name»")@self
 						in(var String message)@self
 						println(message)
 						done()
@@ -94,6 +101,40 @@ final class HelloWorldProject {
 				# org.slf4j.simpleLogger.showDateTime=true
 				# org.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS
 			''')
+			if (generateTest.value) {
+				addFile('''tests/«path»/HelloTest.java''', '''
+					package «path.value.replace("/", ".")»;
+					
+					import java.io.ByteArrayOutputStream;
+					import java.io.PrintStream;
+					
+					import org.junit.Assert;
+					import org.junit.Test;
+					import org.mikado.imc.common.IMCException;
+					
+					public class HelloTest {
+					
+						@Test
+						public void testHello() throws IMCException, InterruptedException {
+							var baos = new ByteArrayOutputStream();
+							var savedOut = System.out;
+							System.setOut(new PrintStream(baos));
+							HelloNet helloNet = new HelloNet();
+							try {
+								helloNet.addNodes();
+								helloNet.waitForCompletion(5000);
+							} finally {
+								System.setOut(savedOut);
+							}
+							Assert.assertTrue("HelloNet did not complete within timeout",
+									helloNet.isCompleted());
+							Assert.assertTrue(
+									"Expected 'Hello «name»' in output but got: " + baos,
+									baos.toString().contains("Hello «name»"));
+						}
+					}
+				''')
+			}
 		])
 	}
 }
