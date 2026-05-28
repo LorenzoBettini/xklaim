@@ -108,29 +108,38 @@ final class HelloWorldProject {
 					import java.io.ByteArrayOutputStream;
 					import java.io.PrintStream;
 					
+					import org.junit.After;
 					import org.junit.Assert;
+					import org.junit.Before;
 					import org.junit.Test;
-					import org.mikado.imc.common.IMCException;
 					
 					public class HelloTest {
 					
+						private ByteArrayOutputStream captureOutput;
+						private PrintStream savedOut;
+					
+						@Before
+						public void setUp() {
+							captureOutput = new ByteArrayOutputStream();
+							savedOut = System.out;
+						}
+					
+						@After
+						public void tearDown() {
+							System.setOut(savedOut);
+						}
+					
 						@Test
-						public void testHello() throws IMCException, InterruptedException {
-							var baos = new ByteArrayOutputStream();
-							var savedOut = System.out;
-							System.setOut(new PrintStream(baos));
+						public void testHello() throws Exception {
+							System.setOut(new PrintStream(captureOutput));
 							HelloNet helloNet = new HelloNet();
-							try {
-								helloNet.addNodes();
-								helloNet.waitForCompletion(5000);
-							} finally {
-								System.setOut(savedOut);
-							}
+							helloNet.addNodes();
+							helloNet.waitForCompletion(5000);
 							Assert.assertTrue("HelloNet did not complete within timeout",
 									helloNet.isCompleted());
 							Assert.assertTrue(
-									"Expected 'Hello «name»' in output but got: " + baos,
-									baos.toString().contains("Hello «name»"));
+									"Expected 'Hello «name»' in output but got: " + captureOutput,
+									captureOutput.toString().contains("Hello «name»"));
 						}
 					}
 				''')
