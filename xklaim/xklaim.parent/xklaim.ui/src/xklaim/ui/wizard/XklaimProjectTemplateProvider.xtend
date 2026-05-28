@@ -29,7 +29,7 @@ class XklaimProjectTemplateProvider implements IProjectTemplateProvider {
 <p>This is a parameterized hello world for Xklaim. You can set a parameter to modify the content in the generated file
 and a parameter to set the package the file is created in.</p>")
 final class HelloWorldProject {
-	val advanced = check("Advanced:", false)
+	val advanced = check("Advanced", false)
 	val advancedGroup = group("Properties")
 	val name = combo("Name:", #["Xtext", "World", "Foo", "Bar"], "The name to say 'Hello' to", advancedGroup)
 	val path = text("Package:", "mydsl", "The package path to place the files in", advancedGroup)

@@ -13,7 +13,6 @@ import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -26,13 +25,20 @@ public class XklaimSwtBotTest extends XklaimAbstractSwtbotTest {
 
 	private static final String HELLO_WORLD_XKLAIM = "Hello.xklaim";
 
-	@Before
-	public void createANewXklaimProject() {
-		createProject();
+	@Test
+	public void canCreateAnXklaimProjectWithTest() {
+		createProjectAndAssertCreated(TEST_PROJECT, true);
+		assertNoErrorsAfterBuild();
+		getProjectTreeItem(TEST_PROJECT)
+				.expand()
+				.expandNode("tests")
+				.expandNode("xklaim")
+				.getNode("HelloTest.java");
 	}
 
 	@Test
 	public void canRunAnXklaimFileAsJavaApplication() throws OperationCanceledException {
+		createProjectAndAssertCreated(TEST_PROJECT, false);
 		assertNoErrorsAfterBuild();
 		SWTBotTreeItem tree = getProjectTreeItem(TEST_PROJECT)
 				.expand()

@@ -147,17 +147,20 @@ public abstract class XklaimAbstractSwtbotTest {
 		return buffer.toString();
 	}
 
-	protected void createProject() {
-		createProjectAndAssertCreated(TEST_PROJECT);
-	}
-
-	protected void createProjectAndAssertCreated(String projectName) {
+	protected void createProjectAndAssertCreated(String projectName, boolean withTest) {
 		bot.menu("File").menu("New").menu("Xklaim Project").click();
 
 		SWTBotShell shell = bot.shell("New Template Project");
 		shell.activate();
 
 		bot.textWithLabel("Project name:").setText(TEST_PROJECT);
+
+		if (withTest) {
+			bot.button("Next >").click();
+			bot.button("Next >").click();
+			bot.checkBox("Advanced").click();
+			bot.checkBox("Generate test").click();
+		}
 
 		bot.button("Finish").click();
 
