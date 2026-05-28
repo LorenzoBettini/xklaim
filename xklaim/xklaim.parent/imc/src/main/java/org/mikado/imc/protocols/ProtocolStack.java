@@ -145,7 +145,7 @@ public class ProtocolStack {
             throws ProtocolException {
         UnMarshaler unMarshaler = null;
 
-        if (layers.size() == 0) {
+        if (layers.isEmpty()) {
             throw new ProtocolException("protocol stack is empty");
         }
 

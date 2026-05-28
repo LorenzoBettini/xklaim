@@ -32,6 +32,8 @@ public class Receiver extends KlavaNode {
   }
 
   public void addMainProcess() throws IMCException {
-    addNodeCoordinator(new Receiver.ReceiverProcess());
+    KlavaNodeCoordinator _coordinator = new Receiver.ReceiverProcess();
+    setMainCoordinator(_coordinator);
+    addNodeCoordinator(_coordinator);
   }
 }

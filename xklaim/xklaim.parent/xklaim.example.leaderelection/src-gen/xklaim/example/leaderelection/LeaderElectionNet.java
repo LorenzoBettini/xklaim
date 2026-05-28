@@ -43,7 +43,9 @@ public class LeaderElectionNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new LeaderElectionNet.L1.L1Process());
+      KlavaNodeCoordinator _coordinator = new LeaderElectionNet.L1.L1Process();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -67,7 +69,9 @@ public class LeaderElectionNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new LeaderElectionNet.L2.L2Process());
+      KlavaNodeCoordinator _coordinator = new LeaderElectionNet.L2.L2Process();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -91,7 +95,9 @@ public class LeaderElectionNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new LeaderElectionNet.L3.L3Process());
+      KlavaNodeCoordinator _coordinator = new LeaderElectionNet.L3.L3Process();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -110,7 +116,9 @@ public class LeaderElectionNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new LeaderElectionNet.RG.RGProcess());
+      KlavaNodeCoordinator _coordinator = new LeaderElectionNet.RG.RGProcess();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -126,6 +134,10 @@ public class LeaderElectionNet extends LogicalNet {
     l1.setupEnvironment();
     l2.setupEnvironment();
     l3.setupEnvironment();
+    addManagedNode(l1);
+    addManagedNode(l2);
+    addManagedNode(l3);
+    addManagedNode(rG);
     l1.addMainProcess();
     l2.addMainProcess();
     l3.addMainProcess();

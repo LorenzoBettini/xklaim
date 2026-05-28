@@ -12,6 +12,7 @@ import klava.PhysicalLocality;
 import klava.Tuple;
 
 import org.mikado.imc.common.IMCException;
+import org.mikado.imc.protocols.ProtocolExceptionUtils;
 import org.mikado.imc.protocols.ProtocolStack;
 import org.mikado.imc.topology.NodeCoordinator;
 import org.mikado.imc.topology.NodeCoordinatorProxy;
@@ -89,7 +90,10 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
                 Thread.currentThread().interrupt();
                 return;
             }
-
+            if (ProtocolExceptionUtils.isCausedByConnectionClose(e)) {
+                LOGGER.debug("connection closed in coordinator {}", getName());
+                return;
+            }
             LOGGER.error("uncaught exception in coordinator {}", getName(), e);
             throw new IMCException("Uncaught exception", e);
         }

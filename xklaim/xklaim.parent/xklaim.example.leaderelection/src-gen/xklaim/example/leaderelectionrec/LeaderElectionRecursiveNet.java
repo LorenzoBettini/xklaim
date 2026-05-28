@@ -46,7 +46,9 @@ public class LeaderElectionRecursiveNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new LeaderElectionRecursiveNet.L1.L1Process());
+      KlavaNodeCoordinator _coordinator = new LeaderElectionRecursiveNet.L1.L1Process();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -70,7 +72,9 @@ public class LeaderElectionRecursiveNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new LeaderElectionRecursiveNet.L2.L2Process());
+      KlavaNodeCoordinator _coordinator = new LeaderElectionRecursiveNet.L2.L2Process();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -94,7 +98,9 @@ public class LeaderElectionRecursiveNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new LeaderElectionRecursiveNet.L3.L3Process());
+      KlavaNodeCoordinator _coordinator = new LeaderElectionRecursiveNet.L3.L3Process();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -113,7 +119,9 @@ public class LeaderElectionRecursiveNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new LeaderElectionRecursiveNet.RG.RGProcess());
+      KlavaNodeCoordinator _coordinator = new LeaderElectionRecursiveNet.RG.RGProcess();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -129,6 +137,10 @@ public class LeaderElectionRecursiveNet extends LogicalNet {
     l1.setupEnvironment();
     l2.setupEnvironment();
     l3.setupEnvironment();
+    addManagedNode(l1);
+    addManagedNode(l2);
+    addManagedNode(l3);
+    addManagedNode(rG);
     l1.addMainProcess();
     l2.addMainProcess();
     l3.addMainProcess();

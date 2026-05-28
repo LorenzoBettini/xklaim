@@ -18,6 +18,7 @@ import org.mikado.imc.common.IMCException;
 import org.mikado.imc.mobility.MigratingCodeFactory;
 import org.mikado.imc.protocols.Marshaler;
 import org.mikado.imc.protocols.ProtocolException;
+import org.mikado.imc.protocols.ProtocolExceptionUtils;
 import org.mikado.imc.protocols.ProtocolStack;
 import org.mikado.imc.protocols.ProtocolStateSimple;
 import org.mikado.imc.protocols.ProtocolSwitchState;
@@ -225,7 +226,11 @@ public class MessageState extends ProtocolStateSimple {
                     .enter(null, new TransmissionChannel(unMarshaler));
         } catch (ProtocolException e) {
             printSession();
-            LOGGER.error("protocol error in message state", e);
+            if (ProtocolExceptionUtils.isCausedByConnectionClose(e)) {
+                LOGGER.debug("connection closed in message state");
+            } else {
+                LOGGER.error("protocol error in message state", e);
+            }
             lostConnection();
             throw e;
             /* something bad happened so we end the protocol */

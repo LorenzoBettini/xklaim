@@ -7,6 +7,7 @@ package org.mikado.imc.topology;
 import org.mikado.imc.common.IMCException;
 import org.mikado.imc.protocols.Protocol;
 import org.mikado.imc.protocols.ProtocolException;
+import org.mikado.imc.protocols.ProtocolExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,11 @@ public class ProtocolThread extends NodeProcess {
         try {
             protocol.start();
         } catch (ProtocolException e) {
-            LOGGER.error("protocol error in thread {}", getName(), e);
+            if (ProtocolExceptionUtils.isCausedByConnectionClose(e)) {
+                LOGGER.debug("connection closed in thread {}", getName());
+            } else {
+                LOGGER.error("protocol error in thread {}", getName(), e);
+            }
         } finally {
             try {
                 protocol.close();

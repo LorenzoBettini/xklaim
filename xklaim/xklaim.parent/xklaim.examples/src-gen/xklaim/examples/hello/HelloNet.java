@@ -48,7 +48,9 @@ public class HelloNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new HelloNet.Reader.ReaderProcess());
+      KlavaNodeCoordinator _coordinator = new HelloNet.Reader.ReaderProcess();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -65,7 +67,9 @@ public class HelloNet extends LogicalNet {
     }
 
     public void addMainProcess() throws IMCException {
-      addNodeCoordinator(new HelloNet.Writer.WriterProcess());
+      KlavaNodeCoordinator _coordinator = new HelloNet.Writer.WriterProcess();
+      setMainCoordinator(_coordinator);
+      addNodeCoordinator(_coordinator);
     }
   }
 
@@ -77,6 +81,8 @@ public class HelloNet extends LogicalNet {
     HelloNet.Reader reader = new HelloNet.Reader();
     HelloNet.Writer writer = new HelloNet.Writer();
     reader.setupEnvironment();
+    addManagedNode(reader);
+    addManagedNode(writer);
     reader.addMainProcess();
     writer.addMainProcess();
   }
