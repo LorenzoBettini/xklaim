@@ -226,9 +226,21 @@ the `Environment(String filename)` constructor.
 ### The `self` Special Locality
 
 `KlavaNode.self` is a `static final LogicalLocality("self")`. Every process has a
-`self` field (default `KlavaNode.self`) representing "this node". Before a tuple
-or process is sent to a remote site, `ClosureMaker.makeClosure()` replaces every
-occurrence of `self` with the concrete `PhysicalLocality` of the destination.
+`self` field (default `KlavaNode.self`) representing "this node".
+
+`ClosureMaker.makeClosure()` can resolve `self` to the **current** node's concrete
+`PhysicalLocality` (not the destination). However, closure is **not automatic** for
+all operations:
+
+- For tuple operations (`out`, `in`, `read`, and their variants), closure runs
+  automatically only when `doAutomaticClosure = true` on the sending process (default
+  is `false`). The call is `makeAutomaticClosure(tuple)`, which delegates to
+  `makeClosure(tuple, translateSelf())` (resolves `self` to the current node's
+  physical locality).
+- **`eval` never triggers any closure**, regardless of `doAutomaticClosure`. The
+  process is sent as-is. When it arrives at the destination and runs, the remote
+  node's `KlavaNodeProcessProxy` is injected, so `self` lazily resolves to the
+  remote node's physical locality.
 
 ---
 
@@ -330,7 +342,7 @@ KlavaProcess
 
 ```java
 static final int NOT_MIGRATED = 0   // initial
-static final int MIGRATING    = 4   // migrate() called, closure in progress
+static final int MIGRATING    = 4   // migrate() called eval(this, dest) in progress
 static final int MIGRATED     = 1   // left this node
 static final int ARRIVED      = 3   // just deserialised on remote node
 static final int CONTINUED    = 2   // migrate() to self (no actual move)
@@ -378,8 +390,9 @@ void    eval(KlavaProcess p, Locality dest)
 ```
 
 If `doAutomaticClosure` is `true`, `makeAutomaticClosure(tuple)` is called before
-each operation. This resolves logical localities inside the tuple using the
-process-local environment, falling back to the node's `ClosureMaker` on failure.
+each **tuple** operation (`in`, `in_nb`, `in_t`, `out`, `read`, `read_nb`, `read_t`),
+but **not** before `eval`. This resolves logical localities inside the tuple using
+the process-local environment, falling back to the node's `ClosureMaker` on failure.
 
 ---
 
@@ -394,7 +407,7 @@ process-local environment, falling back to the node's `ClosureMaker` on failure.
 | `read(t, dest)` | `tupleSpace.read(t)` | `TuplePacket(READ_S, blocking=true)` |
 | `read_nb(t, dest)` | `tupleSpace.read_nb(t)` | `TuplePacket(READ_S, blocking=false)` |
 | `read_t(t, dest, ms)` | `tupleSpace.read_t(t, ms)` | `TuplePacket(READ_S, timeout=ms)` |
-| `eval(p, dest)` | `addNodeProcess(p)` (spawns locally) | `ClosureMaker.makeClosure(p)` → `TuplePacket(EVAL_S)` → remote deserialises + spawns |
+| `eval(p, dest)` | `addNodeProcess(p)` (spawns locally) | `TuplePacket(EVAL_S)` → remote deserialises + spawns (no closure) |
 | `newloc()` | Generate unique `SessionId`; create `ClientNode`; return `PhysicalLocality` | N/A |
 
 For remote operations the key is `processName` (from `NodeProcess.getName()`),
@@ -571,8 +584,13 @@ On disconnect: removes routes and environment entries; fires disconnect events.
 
 ### ClosureMaker — `klava.topology.ClosureMaker`
 
-Resolves all symbolic references inside a tuple before it is sent over the
-network, replacing them with concrete physical addresses.
+Resolves symbolic references inside a tuple before it is sent over the network,
+replacing `self` with a concrete physical address and merging environments into
+embedded processes.
+
+`ClosureMaker` is invoked via `KlavaProcess.makeAutomaticClosure(tuple)` (only when
+`doAutomaticClosure = true`) or via an explicit call to `KlavaProcess.makeProcessClosure()`.
+**It is never invoked for `eval`.**
 
 ```
 ClosureMaker implements Serializable
@@ -589,22 +607,34 @@ ClosureMaker implements Serializable
      `logicalLocalityResolver.resolve(item)`.
    - Otherwise: return unchanged.
 2. Nested `Tuple`: recurse.
-3. `KlavaProcess`: call `process.makeProcessClosure(forSelf, environment)`.
+3. `KlavaProcess`: call `process.makeProcessClosure(forSelf, environment)` (see below).
 
 If `stopOnException = true` (default), the first unresolvable locality throws
 `KlavaException`. Otherwise, `makeClosure` returns `false` and continues.
+
+**`makeProcessClosure(PhysicalLocality forSelf, Environment env)`** on `KlavaProcess`:
+- If `self` is still a `LogicalLocality`, replace it with a copy of `forSelf`
+  (the *current* node's physical locality, **not** the destination).
+- Merge `env` into the process's own environment.
+- Other logical localities inside the process body are **not** eagerly resolved;
+  they travel with the process as environment entries and are resolved lazily when
+  the process executes at its destination.
+
+**Contrast with `eval`**: `KlavaProcess.eval()` sends the process without any closure.
+`self` in the migrated process remains a `LogicalLocality` until the remote node
+injects its own `KlavaNodeProcessProxy`, at which point locality resolution goes
+through the remote node's environment.
 
 ---
 
 ### Process Migration — End-to-End Sequence
 
 ```
-KlavaProcess.eval(p, remoteDest)
+KlavaProcess.eval(p, remoteDest)       // NO closure is performed
   │
-  ├─ [closure] ClosureMaker.makeClosure(p, remoteDest)
-  │    replaces self → remoteDest, resolves LogicalLocalities
-  │
-  ├─ [serialise] MigratingCodeFactory marshals p:
+  ├─ [serialise] KlavaNode wraps p in new Tuple(p) and calls
+  │    tupleOperation(EVAL_S, tuple, remoteDest, ...)
+  │    MigratingCodeFactory marshals p:
   │    - Java serialization of object fields
   │    - JavaByteCodeMigratingCodeFactory bundles class bytecodes
   │      (excludes "klava.*" and "momi.*" packages)
@@ -614,10 +644,25 @@ KlavaProcess.eval(p, remoteDest)
   │
   └─ [remote] TupleOpManager.handle(packet, ourSessionId)
        ├─ deserialise KlavaProcess via MigratingCodeFactory
+       ├─ inject remote KlavaNodeProcessProxy into p
+       │    (self now resolves lazily through the remote node)
        ├─ set migrationStatus = ARRIVED
        └─ executionEngine.runProcess(p)
             └─ p.executeProcess()  // runs with ARRIVED status
 ```
+
+**No closure on `eval`**: the process is sent exactly as it is. Inside `p`, any
+`LogicalLocality` (including the default `self`) remains unresolved until the
+process runs at the remote site. Once there, `self` resolves to the remote node's
+physical locality because the remote proxy handles the translation.
+
+**Contrast with `out(Tuple(p))` when `doAutomaticClosure = true`**: the sending
+process calls `makeAutomaticClosure(tuple)` → `ClosureMaker.makeClosure(tuple,
+translateSelf())` → `p.makeProcessClosure(currentNodePhysLoc, environment)`. This
+pre-binds `p.self` to the *current* (sending) node's physical locality and merges
+the current node's environment into `p`. Other logical localities are still not
+eagerly resolved; they are carried as environment entries for lazy resolution at
+the destination.
 
 **In-process migration** (`migrate(self)`): `migrationStatus` is set to
 `CONTINUED`; the process is re-added to the local execution engine rather than
