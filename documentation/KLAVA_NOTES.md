@@ -616,9 +616,22 @@ If `stopOnException = true` (default), the first unresolvable locality throws
 - If `self` is still a `LogicalLocality`, replace it with a copy of `forSelf`
   (the *current* node's physical locality, **not** the destination).
 - Merge `env` into the process's own environment.
-- Other logical localities inside the process body are **not** eagerly resolved;
-  they travel with the process as environment entries and are resolved lazily when
-  the process executes at its destination.
+- Other logical localities are **not** eagerly rewritten inside the process object
+  graph.
+- Instead, the copied environment becomes part of the process's own state. If the
+  process is later migrated, that field is serialized together with the process
+  object. `eval` does **not** send a separate environment payload and does not add
+  the sender node's environment on its own.
+- When the migrated process later resolves a locality through `toPhysical()` or
+  `getPhysical()` (for example, a `destination` field passed to `out`, `in`,
+  `read`, or `eval`), it consults its own environment first and only then falls
+  back to the remote node.
+- For these operation-level locality lookups, carrying the original environment is
+  effectively equivalent to eager closure: the process keeps using the sender-side
+  binding even after migration.
+- The equivalence is not literal for every possible reference in the object graph:
+  names that are never looked up remain symbolic, and names missing from the
+  copied environment may still resolve through the destination node.
 
 **Contrast with `eval`**: `KlavaProcess.eval()` sends the process without any closure.
 `self` in the migrated process remains a `LogicalLocality` until the remote node
@@ -651,18 +664,23 @@ KlavaProcess.eval(p, remoteDest)       // NO closure is performed
             └─ p.executeProcess()  // runs with ARRIVED status
 ```
 
-**No closure on `eval`**: the process is sent exactly as it is. Inside `p`, any
-`LogicalLocality` (including the default `self`) remains unresolved until the
-process runs at the remote site. Once there, `self` resolves to the remote node's
-physical locality because the remote proxy handles the translation.
+**No closure on `eval`**: the process is sent exactly as it is, with no eager
+rewriting of logical localities and no extra environment capture by `eval`
+itself. The only environment that arrives remotely is whatever was already stored
+inside `p` as part of its normal object state. When `p` later uses a locality in a
+KLAVA operation, `toPhysical()` / `getPhysical()` consult that saved process
+environment first, so previously captured logical-locality bindings behave like
+eager closure. `self` is the main exception: unless it was already closed
+beforehand, it remains a logical locality and resolves at the remote site through
+the injected remote proxy.
 
 **Contrast with `out(Tuple(p))` when `doAutomaticClosure = true`**: the sending
 process calls `makeAutomaticClosure(tuple)` → `ClosureMaker.makeClosure(tuple,
 translateSelf())` → `p.makeProcessClosure(currentNodePhysLoc, environment)`. This
 pre-binds `p.self` to the *current* (sending) node's physical locality and merges
 the current node's environment into `p`. Other logical localities are still not
-eagerly resolved; they are carried as environment entries for lazy resolution at
-the destination.
+eagerly rewritten, but the copied environment preserves the sender-side bindings
+that `p` will use later during lazy resolution.
 
 **In-process migration** (`migrate(self)`): `migrationStatus` is set to
 `CONTINUED`; the process is re-added to the local execution engine rather than
