@@ -6,6 +6,7 @@ import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.topology.ClientNode;
 import klava.topology.KlavaNodeCoordinator;
+import klava.topology.KlavaProcess;
 import klava.topology.LogicalNet;
 import org.eclipse.xtext.xbase.lib.InputOutput;
 import org.mikado.imc.common.IMCException;
@@ -23,15 +24,28 @@ public class HelloLocalitiesNet extends LogicalNet {
     private static class ReaderProcess extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
-        Locality loc1 = null;
-        Locality loc2 = null;
-        Locality loc3 = null;
-        Tuple _Tuple = new Tuple(new Object[] {Locality.class, Locality.class, Locality.class});
-        in(_Tuple, this.self);
-        loc1 = (Locality) _Tuple.getItem(0);
-        loc2 = (Locality) _Tuple.getItem(1);
-        loc3 = (Locality) _Tuple.getItem(2);
-        InputOutput.<String>println(((((("Read localities: " + loc1) + ", ") + loc2) + ", ") + loc3));
+        {
+          Locality loc1 = null;
+          Locality loc2 = null;
+          Locality loc3 = null;
+          Tuple _Tuple = new Tuple(new Object[] {Locality.class, Locality.class, Locality.class});
+          in(_Tuple, this.self);
+          loc1 = (Locality) _Tuple.getItem(0);
+          loc2 = (Locality) _Tuple.getItem(1);
+          loc3 = (Locality) _Tuple.getItem(2);
+          InputOutput.<String>println(((((("Read localities: " + loc1) + ", ") + loc2) + ", ") + loc3));
+        }
+        {
+          Locality loc1 = null;
+          Locality loc2 = null;
+          Locality loc3 = null;
+          Tuple _Tuple = new Tuple(new Object[] {Locality.class, Locality.class, Locality.class});
+          in(_Tuple, this.self);
+          loc1 = (Locality) _Tuple.getItem(0);
+          loc2 = (Locality) _Tuple.getItem(1);
+          loc3 = (Locality) _Tuple.getItem(2);
+          InputOutput.<String>println(((((("Read localities: " + loc1) + ", ") + loc2) + ", ") + loc3));
+        }
         this.done();
       }
     }
@@ -58,6 +72,15 @@ public class HelloLocalitiesNet extends LogicalNet {
       @Override
       public void executeProcess() {
         out(new Tuple(new Object[] {this.self, HelloLocalitiesNet.reader, HelloLocalitiesNet.writer}), HelloLocalitiesNet.reader);
+        KlavaProcess _Proc = new KlavaProcess() {
+          private KlavaProcess _initFields() {
+            return this;
+          }
+          @Override public void executeProcess() {
+            out(new Tuple(new Object[] {this.self, HelloLocalitiesNet.reader, HelloLocalitiesNet.writer}), HelloLocalitiesNet.reader);
+          }
+        }._initFields();
+        eval(_Proc, HelloLocalitiesNet.reader);
       }
     }
 
