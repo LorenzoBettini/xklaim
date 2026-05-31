@@ -123,6 +123,9 @@ public class ClosureMaker implements Serializable {
      */
     public TupleItem makeClosure(TupleItem tupleItem, PhysicalLocality forSelf)
             throws KlavaException {
+        if (tupleItem.isFormal())
+            return tupleItem;
+
         if (tupleItem instanceof LogicalLocality) {
             if (tupleItem.toString().equals("self")) {
                 if (forSelf == null)

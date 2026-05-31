@@ -6,6 +6,7 @@ package klava.topology;
 import java.util.List;
 
 import klava.KlavaException;
+import klava.KlavaLogicalLocalityException;
 import klava.Locality;
 import klava.LogicalLocality;
 import klava.PhysicalLocality;
@@ -51,6 +52,11 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
     protected Locality self = KlavaNode.self;
 
     /**
+     * Whether tuples are closed automatically.
+     */
+    protected boolean doAutomaticClosure = true;
+
+    /**
      * 
      */
     protected KlavaNodeCoordinator() {
@@ -65,12 +71,6 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
     }
 
     /**
-     * The entry point of a process in IMC. It simply calls executeProcess,
-     * which must be defined in subclasses of this class.
-     * 
-     * @see org.mikado.imc.topology.NodeProcess#execute()
-     */
-    /**
      * Signals that the coordinator's process has completed normally.
      * Throws {@link KlavaNodeDoneException} to cause {@code executeProcess()} to exit
      * immediately; this is caught as normal completion by {@link #execute()}.
@@ -79,6 +79,12 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
         throw new KlavaNodeDoneException();
     }
 
+    /**
+     * The entry point of a process in IMC. It simply calls executeProcess,
+     * which must be defined in subclasses of this class.
+     * 
+     * @see org.mikado.imc.topology.NodeProcess#execute()
+     */
     @Override
     public final void execute() throws IMCException {
         try {
@@ -271,10 +277,44 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
     }
 
     /**
+     * If it is the case, makes the closure of the passed tuple.
+     * 
+     * @param tuple
+     * @throws KlavaException
+     */
+    protected void makeAutomaticClosure(Tuple tuple) throws KlavaException {
+        if (!doAutomaticClosure)
+            return;
+
+        processProxy.makeClosure(tuple, translateSelf());
+    }
+
+    /**
+     * Tries to translate self.
+     * 
+     * @return the translated self or null if it cannot be translated
+     * @throws KlavaException
+     */
+    protected PhysicalLocality translateSelf() throws KlavaException {
+        try {
+            return processProxy.getPhysical(self);
+        } catch (KlavaLogicalLocalityException e) {
+            /*
+             * OK we cannot resolve self, but this might not be necessary for
+             * closure, so we just go on; in case, an exception will be raised
+             * during the closure.
+             */
+        }
+
+        return null;
+    }
+
+    /**
      * @see klava.topology.KlavaNodeProcessProxy#in_nb(klava.Tuple, klava.Locality)
      */
     public boolean in_nb(Tuple tuple, Locality destination) // NOSONAR: we want this name
             throws KlavaException {
+        makeAutomaticClosure(tuple);
         return processProxy.in_nb(tuple, destination);
     }
 
@@ -282,6 +322,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      * @see klava.topology.KlavaNodeProcessProxy#in_nb(klava.Tuple)
      */
     public boolean in_nb(Tuple tuple) { // NOSONAR: we want this name
+        makeAutomaticClosure(tuple);
         return processProxy.in_nb(tuple);
     }
 
@@ -290,6 +331,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      */
     public boolean in_t(Tuple tuple, Locality destination, long timeout) // NOSONAR: we want this name
             throws KlavaException {
+        makeAutomaticClosure(tuple);
         return processProxy.in_t(tuple, destination, timeout);
     }
 
@@ -298,6 +340,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      */
     public boolean in_t(Tuple tuple, long timeout) // NOSONAR: we want this name
             throws KlavaException {
+        makeAutomaticClosure(tuple);
         return processProxy.in_t(tuple, timeout);
     }
 
@@ -305,6 +348,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      * @see klava.topology.KlavaNodeProcessProxy#in(klava.Tuple, klava.Locality)
      */
     public void in(Tuple tuple, Locality destination) throws KlavaException {
+        makeAutomaticClosure(tuple);
         processProxy.in(tuple, destination);
     }
 
@@ -312,6 +356,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      * @see klava.topology.KlavaNodeProcessProxy#in(klava.Tuple)
      */
     public void in(Tuple tuple) throws KlavaException {
+        makeAutomaticClosure(tuple);
         processProxy.in(tuple);
     }
 
@@ -326,6 +371,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      * @see klava.topology.KlavaNodeProcessProxy#out(klava.Tuple, klava.Locality)
      */
     public void out(Tuple tuple, Locality destination) throws KlavaException {
+        makeAutomaticClosure(tuple);
         processProxy.out(tuple, destination);
     }
 
@@ -333,6 +379,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      * @see klava.topology.KlavaNodeProcessProxy#out(klava.Tuple)
      */
     public void out(Tuple tuple) {
+        makeAutomaticClosure(tuple);
         processProxy.out(tuple);
     }
 
@@ -341,6 +388,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      */
     public boolean read_nb(Tuple tuple, Locality destination) // NOSONAR: we want this name
             throws KlavaException {
+        makeAutomaticClosure(tuple);
         return processProxy.read_nb(tuple, destination);
     }
 
@@ -348,6 +396,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      * @see klava.topology.KlavaNodeProcessProxy#read_nb(klava.Tuple)
      */
     public boolean read_nb(Tuple tuple) { // NOSONAR: we want this name
+        makeAutomaticClosure(tuple);
         return processProxy.read_nb(tuple);
     }
 
@@ -356,6 +405,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      */
     public boolean read_t(Tuple tuple, Locality destination, long timeout) // NOSONAR: we want this name
             throws KlavaException {
+        makeAutomaticClosure(tuple);
         return processProxy.read_t(tuple, destination, timeout);
     }
 
@@ -364,6 +414,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      */
     public boolean read_t(Tuple tuple, long timeout) // NOSONAR: we want this name
             throws KlavaException {
+        makeAutomaticClosure(tuple);
         return processProxy.read_t(tuple, timeout);
     }
 
@@ -371,6 +422,7 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      * @see klava.topology.KlavaNodeProcessProxy#read(klava.Tuple, klava.Locality)
      */
     public void read(Tuple tuple, Locality destination) throws KlavaException {
+        makeAutomaticClosure(tuple);
         processProxy.read(tuple, destination);
     }
 
@@ -378,7 +430,23 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      * @see klava.topology.KlavaNodeProcessProxy#read(klava.Tuple)
      */
     public void read(Tuple tuple) throws KlavaException {
+        makeAutomaticClosure(tuple);
         processProxy.read(tuple);
+    }
+
+    /**
+     * @return Returns the doAutomaticClosure.
+     */
+    public boolean isDoAutomaticClosure() {
+        return doAutomaticClosure;
+    }
+
+    /**
+     * @param doAutomaticClosure
+     *            The doAutomaticClosure to set.
+     */
+    public void setDoAutomaticClosure(boolean doAutomaticClosure) {
+        this.doAutomaticClosure = doAutomaticClosure;
     }
 
     /**

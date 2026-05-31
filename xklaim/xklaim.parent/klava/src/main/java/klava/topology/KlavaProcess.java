@@ -59,7 +59,7 @@ public abstract class KlavaProcess extends NodeProcess {
     /**
      * Whether tuples are closed automatically.
      */
-    protected boolean doAutomaticClosure = false;
+    protected boolean doAutomaticClosure = true;
 
     /**
      * Depth of critical sections where a Java interrupt would damage the
@@ -544,8 +544,8 @@ public abstract class KlavaProcess extends NodeProcess {
                 forSelf = klavaNodeProcessProxy.getPhysical(self);
             } catch (KlavaLogicalLocalityException e) {
                 /*
-                 * OK we cannot resolve self, but this might not be necessary in
-                 * the for a closure, so we just go on; in case, an exception
+                 * OK we cannot resolve self, but this might not be necessary
+                 * for closure, so we just go on; in case, an exception
                  * will be raised during the closure
                  */
             }

@@ -1,0 +1,24 @@
+package xklaim.examples.hellolocalities
+
+/**
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
+net HelloLocalitiesNet physical "tcp-127.0.0.1:9999" {
+	node Reader logical "reader" [writerLoc -> writer] {
+		{
+			in(var Locality loc1, var Locality loc2, var Locality loc3)@self
+			println("Read localities: " + loc1 + ", " + loc2 + ", " + loc3)
+		}
+		{
+			in(var Locality loc1, var Locality loc2, var Locality loc3)@self
+			println("Read localities: " + loc1 + ", " + loc2 + ", " + loc3)
+		}
+		done()
+	}
+	node Writer logical "writer" {
+		// self will be translated to writer's physical locality
+		out(self, reader, writer)@reader
+		// self will be translated to reader's physical locality (destination)
+		eval(out(self, reader, writer)@reader)@reader
+	}
+}
