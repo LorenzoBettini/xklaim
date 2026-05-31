@@ -150,6 +150,17 @@ public class ClosureMakerTest extends ClientServerBase {
         assertEquals(internal.getItem(2), serverLoc);
     }
 
+    public void testFormalLogicalLocalityIsNotClosed() throws KlavaException {
+        ClosureMaker closureMaker = clientNode.getClosureMaker();
+        LogicalLocality formalLogicalLocality = new LogicalLocality();
+        Tuple tuple = new Tuple(formalLogicalLocality);
+
+        closureMaker.makeClosure(tuple, serverLoc);
+
+        assertSame(formalLogicalLocality, tuple.getItem(0));
+        assertTrue(formalLogicalLocality.isFormal());
+    }
+
     /**
      * @param simpleProcess
      * @param simpleProcess1

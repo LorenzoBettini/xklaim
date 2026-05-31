@@ -3,15 +3,21 @@
  */
 package klava.tests.junit;
 
+import klava.KString;
 import klava.KlavaException;
+import klava.Locality;
 import klava.LogicalLocality;
 import klava.PhysicalLocality;
 import klava.Tuple;
 import klava.topology.AcceptNodeCoordinator;
+import klava.topology.KlavaNodeCoordinator;
 import klava.topology.KlavaNode;
+import klava.topology.KlavaProcess;
+import klava.topology.KlavaProcessVar;
 import klava.topology.RegisterNodeCoordinator;
 
 import org.mikado.imc.common.IMCException;
+import org.mikado.imc.protocols.ProtocolException;
 
 
 /**
@@ -57,6 +63,14 @@ public class NodeCoordinatorTest extends ClientServerBase {
 
         LogicalLocality remoteLogical = new LogicalLocality();
 
+        {
+            /*
+             * These tests store the subscribed logical locality as tuple data,
+             * not its resolved physical locality.
+             */
+            setDoAutomaticClosure(false);
+        }
+
         public RegisterCoordinator(PhysicalLocality physicalLocality) {
             super(physicalLocality);
         }
@@ -81,6 +95,36 @@ public class NodeCoordinatorTest extends ClientServerBase {
             out(new Tuple(remote, logicalLocality));
         }
 
+    }
+
+    public class TupleClosureCoordinator extends KlavaNodeCoordinator {
+        private static final long serialVersionUID = 1L;
+
+        Tuple tuple;
+
+        Locality destination = self;
+
+        public TupleClosureCoordinator(Tuple tuple, Locality destination) {
+            this.tuple = tuple;
+            this.destination = destination;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            out(tuple, destination);
+        }
+    }
+
+    public class ReceiveProcess extends KlavaProcess {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            KlavaProcessVar klavaProcessVar = new KlavaProcessVar();
+            Tuple template = new Tuple(klavaProcessVar);
+            in(template, self);
+            eval(klavaProcessVar.klavaProcess, self);
+        }
     }
 
     protected void setUp() throws Exception {
@@ -204,6 +248,44 @@ public class NodeCoordinatorTest extends ClientServerBase {
         serverNode.addNodeCoordinator(registerCoordinator);
 
         clientsSubscribe(5, serverLoc);
+    }
+
+    public void testCoordinatorOutMakesAutomaticClosure()
+            throws IMCException, InterruptedException, KlavaException {
+        serverNode.setMainPhysicalLocality(serverLoc);
+        LogicalLocality peer = new LogicalLocality("peer");
+        PhysicalLocality peerLoc = new PhysicalLocality("127.0.0.1", 21001);
+        serverNode.addToEnvironment(peer, peerLoc);
+        Tuple tuple = new Tuple(new LogicalLocality("self"), peer);
+        TupleClosureCoordinator coordinator =
+                new TupleClosureCoordinator(tuple, self);
+
+        serverNode.addNodeCoordinator(coordinator);
+        coordinator.join();
+
+        Tuple template = new Tuple(new PhysicalLocality(),
+                new PhysicalLocality());
+        assertTrue(serverNode.in_nb(template));
+        assertEquals(serverLoc, template.getItem(0));
+        assertEquals(peerLoc, template.getItem(1));
+    }
+
+    public void testCoordinatorOutMakesClosureOfProcessInTuple()
+            throws ProtocolException, InterruptedException, KlavaException,
+            IMCException {
+        clientLoginsToServer();
+        ReceiveProcess receiveProcess = new ReceiveProcess();
+        serverNode.eval(receiveProcess);
+        TupleClosureCoordinator coordinator =
+                new TupleClosureCoordinator(new Tuple(new SimpleProcess()),
+                        serverLoc);
+
+        clientNode.addNodeCoordinator(coordinator);
+        coordinator.join();
+
+        assertTrue(clientNode.in_t(new Tuple(new KString()), 5000));
+        assertFalse(serverNode.in_nb(new Tuple(new KString())));
+        receiveProcess.join();
     }
 
 }

@@ -65,7 +65,6 @@ public class NodeProcessTest extends ClientServerBase {
          */
         @Override
         public void executeProcess() throws KlavaException {
-            setDoAutomaticClosure(true);
             System.out.println(getClass().getName() + ": communicating with "
                     + destination);
             out(tuple, destination);

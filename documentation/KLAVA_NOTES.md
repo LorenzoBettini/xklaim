@@ -229,14 +229,14 @@ the `Environment(String filename)` constructor.
 `self` field (default `KlavaNode.self`) representing "this node".
 
 `ClosureMaker.makeClosure()` can resolve `self` to the **current** node's concrete
-`PhysicalLocality` (not the destination). However, closure is **not automatic** for
-all operations:
+`PhysicalLocality` (not the destination). Closure is automatic for tuple operations
+and opt-out:
 
 - For tuple operations (`out`, `in`, `read`, and their variants), closure runs
-  automatically only when `doAutomaticClosure = true` on the sending process (default
-  is `false`). The call is `makeAutomaticClosure(tuple)`, which delegates to
-  `makeClosure(tuple, translateSelf())` (resolves `self` to the current node's
-  physical locality).
+  automatically when `doAutomaticClosure = true` on the sending process or node
+  coordinator (default is `true`). The call is `makeAutomaticClosure(tuple)`,
+  which delegates to `makeClosure(tuple, translateSelf())` (resolves `self` to
+  the current node's physical locality). Formal tuple items are left untouched.
 - **`eval` never triggers any closure**, regardless of `doAutomaticClosure`. The
   process is sent as-is. When it arrives at the destination and runs, the remote
   node's `KlavaNodeProcessProxy` is injected, so `self` lazily resolves to the
@@ -331,7 +331,7 @@ KlavaProcess
   self                            : Locality               // default = KlavaNode.self
   environment                     : Environment            // process-local mappings
   closureMaker                    : ClosureMaker
-  doAutomaticClosure              : boolean
+  doAutomaticClosure              : boolean                 // default = true
   migrationStatus                 : int
   caller                          : KlavaProcess           // set on migration
 ```
@@ -588,7 +588,8 @@ Resolves symbolic references inside a tuple before it is sent over the network,
 replacing `self` with a concrete physical address and merging environments into
 embedded processes.
 
-`ClosureMaker` is invoked via `KlavaProcess.makeAutomaticClosure(tuple)` (only when
+`ClosureMaker` is invoked via `KlavaProcess.makeAutomaticClosure(tuple)` or
+`KlavaNodeCoordinator.makeAutomaticClosure(tuple)` (only when
 `doAutomaticClosure = true`) or via an explicit call to `KlavaProcess.makeProcessClosure()`.
 **It is never invoked for `eval`.**
 
