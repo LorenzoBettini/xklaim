@@ -38,12 +38,15 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
               PhysicalLocality _physical = this.getPhysical(HelloRemoveEvalProcNet.writer);
               String _plus = ("executing at " + _physical);
               InputOutput.<String>println(_plus);
+              PhysicalLocality _physical_1 = this.getPhysical(this.self);
+              String _plus_1 = ("self is " + _physical_1);
+              InputOutput.<String>println(_plus_1);
               String s = null;
               Tuple _Tuple = new Tuple(new Object[] {String.class});
               in(_Tuple, this.self);
               s = (String) _Tuple.getItem(0);
               InputOutput.<String>println(s);
-              System.exit(0);
+              out(new Tuple(new Object[] {"Done"}), this.self);
             }
           }
         }._initFields();
@@ -67,6 +70,8 @@ public class HelloRemoveEvalProcNet extends LogicalNet {
       @Override
       public void executeProcess() {
         out(new Tuple(new Object[] {"Hello World"}), this.self);
+        in(new Tuple(new Object[] {"Done"}), this.self);
+        this.done();
       }
     }
 
