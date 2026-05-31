@@ -65,12 +65,6 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
     }
 
     /**
-     * The entry point of a process in IMC. It simply calls executeProcess,
-     * which must be defined in subclasses of this class.
-     * 
-     * @see org.mikado.imc.topology.NodeProcess#execute()
-     */
-    /**
      * Signals that the coordinator's process has completed normally.
      * Throws {@link KlavaNodeDoneException} to cause {@code executeProcess()} to exit
      * immediately; this is caught as normal completion by {@link #execute()}.
@@ -79,6 +73,12 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
         throw new KlavaNodeDoneException();
     }
 
+    /**
+     * The entry point of a process in IMC. It simply calls executeProcess,
+     * which must be defined in subclasses of this class.
+     * 
+     * @see org.mikado.imc.topology.NodeProcess#execute()
+     */
     @Override
     public final void execute() throws IMCException {
         try {
