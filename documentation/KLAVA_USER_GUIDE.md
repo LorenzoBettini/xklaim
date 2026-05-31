@@ -105,6 +105,23 @@ clientNode.read_t(template, self, 1000);
 
 Matching is positional. All tuple items must line up for the operation to succeed.
 
+After a successful match, the template tuple itself contains the bound values:
+
+```java
+Tuple template = new Tuple(new KString(), new KInteger(), new KBoolean());
+if (clientNode.read_nb(template, serverLoc)) {
+    KString name = (KString) template.getItem(0);
+    KInteger age = (KInteger) template.getItem(1);
+    KBoolean active = (KBoolean) template.getItem(2);
+
+    System.out.println(name.toString());
+    System.out.println(age.intValue());
+    System.out.println(active.booleanValue());
+}
+```
+
+If you prefer, you can also reuse the wrapper objects directly and call their typed accessors such as `toString()`, `intValue()`, and `booleanValue()`.
+
 ## Blocking, Non-Blocking, And Timeout Operations
 
 KLAVA exposes three families of retrieval operations:
