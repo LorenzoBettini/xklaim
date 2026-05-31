@@ -1,0 +1,21 @@
+package xklaim.examples.hellolocalities
+
+/**
+ * The Writer node adds a tuple to its tuple space, the Reader node tries
+ * to retrieve it from Writer.
+ * 
+ * Right click on the file and select "Run As" -> "Xklaim Application".
+ */
+net HelloLocalitiesNet physical "tcp-127.0.0.1:9999" {
+	/**
+	 * Tries to retrieve a matching tuple from the Writer node.
+	 */
+	node Reader logical "reader" [writerLoc -> writer] {
+		in(var Locality loc1, var Locality loc2, var Locality loc3)@self
+		println("Read localities: " + loc1 + ", " + loc2 + ", " + loc3)
+		done()
+	}
+	node Writer logical "writer" {
+		out(self, reader, writer)@reader
+	}
+}
