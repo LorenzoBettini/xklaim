@@ -1,6 +1,6 @@
 # KLAVA User Guide
 
-KLAVA is the KLAIM runtime built on top of IMC. It gives you tuple spaces, logical and physical localities, and mobile processes.
+KLAVA is the KLAIM runtime built on top of IMC. In plain Java, it gives you tuple spaces, logical and physical localities, and mobile processes.
 
 If you want the implementation details, see [KLAVA_NOTES.md](KLAVA_NOTES.md). This guide focuses on how to use KLAVA from the point of view of an application developer.
 
@@ -66,28 +66,41 @@ Processes run on nodes and use tuple-space operations to communicate.
 The smallest KLAVA-style interaction is to put a tuple in one node and retrieve it from another.
 
 ```java
-node Writer {
-    out("Hello World")@self
-}
+PhysicalLocality serverLoc = new PhysicalLocality("tcp-127.0.0.1:9999");
+KlavaNode serverNode = new Net(serverLoc);
+KlavaNode clientNode = new ClientNode(serverLoc);
 
-node Reader [writerLoc -> writer] {
-    in(var String s)@writerLoc
-    println(s)
-}
+serverNode.addNodeProcess(new KlavaProcess() {
+    @Override
+    public void executeProcess() throws KlavaException {
+        in(new Tuple(new KString()), self);
+    }
+});
+
+clientNode.addNodeProcess(new KlavaProcess() {
+    @Override
+    public void executeProcess() throws KlavaException {
+        out(new Tuple(new KString("Hello World!")), serverLoc);
+    }
+});
 ```
 
-The same idea appears in the XKlaim example [Hello.xklaim](../xklaim/xklaim.parent/xklaim.examples/src/xklaim/examples/hello/Hello.xklaim).
+This is the same pattern used in [KlavaHelloWorld.java](../xklaim/xklaim.parent/klava.tests/src/examples/java/klava/examples/hello/KlavaHelloWorld.java).
 
 ## Matching Tuples
 
-Tuple matching is pattern-based. Formal values are marked with `var` in X-Klaim or by using the formal KLAIM types directly in Java code.
+Tuple matching is pattern-based. You build a template tuple and pass it to the retrieval operation.
 
 Examples of useful matches:
 
 ```java
-in("ID", var Integer myId)@rg
-read(var String name)@self
-in_nb(var Locality loc1, var Locality loc2)@self
+Tuple template = new Tuple(new KString());
+clientNode.read_nb(template);
+
+Tuple typedTemplate = new Tuple(new Object[] { String.class });
+clientNode.in(typedTemplate, serverLoc);
+
+clientNode.read_t(template, self, 1000);
 ```
 
 Matching is positional. All tuple items must line up for the operation to succeed.
@@ -103,9 +116,10 @@ KLAVA exposes three families of retrieval operations:
 Example patterns:
 
 ```java
-in(var String s)@self
-read_nb(var Integer i, s)@self
-in(var Integer i, s)@self within 1000
+Tuple template = new Tuple(new KString());
+clientNode.in(template, self);
+clientNode.read_nb(template, serverLoc);
+clientNode.in_t(template, serverLoc, 1000);
 ```
 
 Timeout variants are especially useful when you want a protocol to keep making progress even if a tuple never shows up.
@@ -115,11 +129,12 @@ Timeout variants are especially useful when you want a protocol to keep making p
 Logical localities are how you write portable code. KLAVA resolves them to physical addresses at runtime through the environment.
 
 ```java
-val rg = getPhysical(logloc("rg"))
-in("ID", var Integer myId)@rg
+LogicalLocality destination = new LogicalLocality("destination");
+clientNode.addToEnvironment(destination, serverLoc);
+clientNode.read_nb(new Tuple(new KString()), destination);
 ```
 
-You can also register logical mappings explicitly in a node or net definition.
+You can also register logical mappings explicitly inside a `KlavaProcess` or on the node itself before starting execution.
 
 ## `self`
 
@@ -127,8 +142,8 @@ You can also register logical mappings explicitly in a node or net definition.
 
 Typical uses:
 
-- Sending a tuple to the local tuple space: `out("Hello")@self`
-- Receiving a tuple from the current node: `in(var String s)@self`
+- Sending a tuple to the local tuple space: `out(new Tuple(new KString("Hello")), self)`
+- Receiving a tuple from the current node: `in(new Tuple(new KString()), self)`
 - Inspecting the current execution location with `getPhysical(self)`
 
 When a process is migrated with `eval`, `self` resolves on the destination node.
@@ -138,10 +153,8 @@ When a process is migrated with `eval`, `self` resolves on the destination node.
 KLAVA can ship a process to another node with `eval`.
 
 ```java
-eval({
-    println("Hello from " + getPhysical(self))
-    out("DONE")@myLoc
-})@server
+MigratingProcess migratingProcess = new MigratingProcess(serverLoc);
+clientNode.eval(migratingProcess);
 ```
 
 That process is serialized, transmitted, and executed on the remote node. This is the main building block for code mobility.
@@ -150,47 +163,55 @@ That process is serialized, transmitted, and executed on the remote node. This i
 
 Some examples use an explicit login/logout flow before remote evaluation:
 
+Login usually happens during setup:
+
 ```java
-login(server)
-eval(proc {
-    println("running remotely")
-})@server
-logout(server)
+public DatabaseNode(String screenTitle, Locality serverNodeLoc) throws KlavaException {
+    super(screenTitle);
+    if (serverNodeLoc != null) {
+        login(serverNodeLoc);
+    }
+}
+```
+
+Logout is explicit when the client is done:
+
+```java
+boolean logoutResult = clientNode.logout(serverLoc);
+assertTrue(logoutResult);
 ```
 
 See the mobility examples:
 
-- [CodeMobilitySender.xklaim](../xklaim/xklaim.parent/xklaim.example.mobility.sender/src/xklaim/example/mobility/sender/CodeMobilitySender.xklaim)
-- [CodeMobilityReceiver.xklaim](../xklaim/xklaim.parent/xklaim.example.mobility.receiver/src/xklaim/example/mobility/receiver/CodeMobilityReceiver.xklaim)
+- [DatabaseNode.java](../xklaim/xklaim.parent/klava.tests/src/examples/java/klava/examples/newsgatherer/DatabaseNode.java)
+- [SimpleProcess.java](../xklaim/xklaim.parent/klava.tests/src/test/java/klava/tests/junit/SimpleProcess.java)
+- [MigratingProcess.java](../xklaim/xklaim.parent/klava.tests/src/test/java/klava/tests/junit/MigratingProcess.java)
 
 ## Example: Remote Process Sent Over A Tuple Space
 
-The `HelloFromReceivedProc` example shows a process being sent as a tuple, retrieved remotely, and then executed:
+The `NodeProcessTest` suite shows a process being received as a tuple and then executed locally:
 
 ```java
-node Reader logical "reader" {
-    out(proc {
-        in(var String s)@self
-        println(s)
-        System.exit(0)
-    })@writer
-}
-
-node Writer logical "writer" {
-    out("Hello World")@self
-    in(var KlavaProcess P)@self
-    eval(P)@self
+public class ReceiveProcess extends KlavaProcess {
+    @Override
+    public void executeProcess() throws KlavaException {
+        KlavaProcessVar klavaProcessVar = new KlavaProcessVar();
+        Tuple template = new Tuple(klavaProcessVar);
+        in(template, self);
+        System.out.println("received a process");
+        eval(klavaProcessVar.klavaProcess, self);
+    }
 }
 ```
 
-This example is a good introduction to combining tuple-space communication with mobility.
+This is a good introduction to combining tuple-space communication with mobility in plain Java.
 
 ## Practical Tips
 
 - Use logical localities in your source code and keep physical addresses in the environment.
 - Prefer `read` when you want to observe a tuple without consuming it.
 - Prefer `in` when you want a tuple to be consumed exactly once.
-- Use `out(proc { ... })` and `eval(P)` for mobile code workflows.
+- Use `out(new Tuple(...), destination)` and `eval(process)` for mobile code workflows.
 - Keep an eye on the `self` locality when debugging mobility, because it resolves differently before and after migration.
 
 ## Good Starting Points
