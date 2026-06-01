@@ -11,7 +11,10 @@ import org.eclipse.xtext.testing.InjectWith;
 import org.eclipse.xtext.testing.XtextRunner;
 import org.eclipse.xtext.testing.util.ParseHelper;
 import org.eclipse.xtext.testing.validation.ValidationTestHelper;
+import org.eclipse.xtext.validation.ConfigurableIssueCodesProvider;
 import org.eclipse.xtext.validation.Issue;
+import org.eclipse.xtext.validation.IssueCodes;
+import org.eclipse.xtext.validation.SeverityConverter;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +31,16 @@ public class XklaimValidatorTest {
 	ParseHelper<XklaimModel> parseHelper;
 	@Inject
 	ValidationTestHelper validationTestHelper;
+	@Inject
+	ConfigurableIssueCodesProvider configurableIssueCodesProvider;
+
+	@Test
+	public void testJavaProblemsAreCopiedAsErrors() {
+		Assert.assertEquals(SeverityConverter.SEVERITY_ERROR,
+				configurableIssueCodesProvider.getConfigurableIssueCodes()
+						.get(IssueCodes.COPY_JAVA_PROBLEMS)
+						.getDefaultValue());
+	}
 
 	@Test
 	public void testValidSelfLocality() throws Exception {
