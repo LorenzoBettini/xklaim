@@ -85,25 +85,26 @@ The generated Java code resolves those mappings into the runtime environment.
 The main operations are:
 
 ```xklaim
-out("status", "ready")@self
+out("ready")@self
 in("message", var String s)@writerLoc
-read("result", var Integer i)@self
-in_nb("message", var String s)@self
-read_nb("message", var String s)@self
+read(var Integer i)@self
+in_nb(var String s)@self
+read_nb(var String s)@self
 eval(proc { println("remote") })@server
 ```
 
 Timeout-based forms are also supported:
 
 ```xklaim
-in("result", var Integer i)@self within 1000
+in(var Integer i)@self within 1000
 read("message", var String s)@self within timeout
 ```
 
-Prefer tuples with at least two fields in examples and protocols, even when one
-payload value would be enough. A first tag field such as `"message"`, `"result"`,
-or `"done"` makes the protocol clearer and avoids accidental matches between
-unrelated one-value tuples.
+Single-field tuples are valid and useful for small examples. In larger
+protocols, it is often clearer to use more than one field, for example a first
+tag field such as `"message"`, `"result"`, or `"done"` followed by the payload.
+Tags make the protocol easier to read and help avoid accidental matches between
+unrelated tuples.
 
 ## Inline Processes
 
@@ -111,9 +112,9 @@ An inline process is written with `proc { ... }`.
 
 ```xklaim
 out(proc {
-    in("message", var String s)@self
+    in(var String s)@self
     println(s)
-}, "print-message")@writer
+})@writer
 ```
 
 Inline processes are especially useful with `out` and `eval`.
