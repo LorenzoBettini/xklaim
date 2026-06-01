@@ -22,13 +22,8 @@ import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
 import com.google.inject.Inject;
 
 import klava.Locality;
-import xklaim.xklaim.XklaimEvalOperation;
-import xklaim.xklaim.XklaimInOperation;
-import xklaim.xklaim.XklaimNonBlockingInOperation;
-import xklaim.xklaim.XklaimNonBlockingReadOperation;
-import xklaim.xklaim.XklaimOutOperation;
+import xklaim.xklaim.XklaimAbstractOperation;
 import xklaim.xklaim.XklaimPackage;
-import xklaim.xklaim.XklaimReadOperation;
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#content-assist
@@ -70,28 +65,24 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 				getProposalFactory(getFeatureCallRuleName(), context));
 	}
 
-	protected boolean isLocalitySlot(EObject model) {
-		EObject current = model;
-		while (current != null) {
-			if (current instanceof XklaimOutOperation
-					|| current instanceof XklaimInOperation
-					|| current instanceof XklaimNonBlockingInOperation
-					|| current instanceof XklaimReadOperation
-					|| current instanceof XklaimNonBlockingReadOperation
-					|| current instanceof XklaimEvalOperation) {
-				return
-					model == current // case when after @ there's not yet anything
-					||
-					// case when after @ there's already something
-					model.eContainingFeature()
-						.equals(XklaimPackage.Literals.XKLAIM_ABSTRACT_OPERATION__LOCALITY);
-			}
-			current = current.eContainer();
-		}
-		return false;
+	/**
+	 * This also includes the case of empty locality after the '@' in an operation,
+	 * which is not a cross reference but should still be completed with locality
+	 * candidates. There's no need to walk the containment hierarchy because the
+	 * locality is a direct child of the operation, so we can just check if the
+	 * current model is either an operation or the locality slot of an operation.
+	 * 
+	 * @param model
+	 * @return
+	 */
+	private boolean isLocalitySlot(EObject model) {
+		return model instanceof XklaimAbstractOperation
+			||
+			XklaimPackage.Literals.XKLAIM_ABSTRACT_OPERATION__LOCALITY
+				.equals(model.eContainingFeature());
 	}
 
-	protected boolean isLocalityCandidate(IEObjectDescription candidate, IResolvedTypes resolvedTypes, JvmType localityType) {
+	private boolean isLocalityCandidate(IEObjectDescription candidate, IResolvedTypes resolvedTypes, JvmType localityType) {
 		if (!(candidate instanceof IIdentifiableElementDescription identifiableDescription)) {
 			return false;
 		}
