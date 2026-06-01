@@ -53,4 +53,29 @@ public class XklaimContentAssistTest extends AbstractContentAssistTest {
 				}
 				""").assertTextAtCursorPosition("<|>", "physicalLocality");
 	}
+
+	@Test
+	public void testLocalityCompletionIncludesSelfWithPrefix() throws Exception {
+		newBuilder().append("""
+				proc TestProc(String string) {
+					out("hello")@s<|>
+				}
+				""").assertTextAtCursorPosition("<|>", "self");
+	}
+
+	@Test
+	public void testLocalityCompletionIncludesSelfWithoutPrefix() throws Exception {
+		newBuilder().append("""
+				proc TestProc(String string) {
+					out("hello")@<|>
+				}
+				""").assertTextAtCursorPosition("<|>",
+				"getPhysical()",
+				"logloc()",
+				"phyloc()",
+				"self",
+				"toPhysical()",
+				"translateLocality()",
+				"translateSelf");
+	}
 }
