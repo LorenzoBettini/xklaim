@@ -30,8 +30,8 @@ Nodes are the simplest executable unit.
 
 ```xklaim
 node Hello {
-    out("Hello World")@self
-    in(var String message)@self
+    out("message", "Hello World")@self
+    in("message", var String message)@self
     println(message)
     done()
 }
@@ -50,13 +50,13 @@ A `net` groups several nodes under one physical network name.
 ```xklaim
 net HelloNet physical "tcp-127.0.0.1:9999" {
     node Reader logical "reader" [writerLoc -> writer] {
-        in(var String s)@writerLoc
+        in("message", var String s)@writerLoc
         println(s)
         done()
     }
 
     node Writer logical "writer" {
-        out("Hello World")@self
+        out("message", "Hello World")@self
     }
 }
 ```
@@ -74,7 +74,7 @@ You can also add environment entries to map logical names to other nodes:
 
 ```xklaim
 node Reader logical "reader" [writerLoc -> writer] {
-    in(var String s)@writerLoc
+    in("message", var String s)@writerLoc
 }
 ```
 
@@ -85,20 +85,25 @@ The generated Java code resolves those mappings into the runtime environment.
 The main operations are:
 
 ```xklaim
-out("value")@self
-in(var String s)@writerLoc
-read(var Integer i)@self
-in_nb(var String s)@self
-read_nb(var String s)@self
+out("status", "ready")@self
+in("message", var String s)@writerLoc
+read("result", var Integer i)@self
+in_nb("message", var String s)@self
+read_nb("message", var String s)@self
 eval(proc { println("remote") })@server
 ```
 
 Timeout-based forms are also supported:
 
 ```xklaim
-in(var Integer i)@self within 1000
-read(var String s)@self within timeout
+in("result", var Integer i)@self within 1000
+read("message", var String s)@self within timeout
 ```
+
+Prefer tuples with at least two fields in examples and protocols, even when one
+payload value would be enough. A first tag field such as `"message"`, `"result"`,
+or `"done"` makes the protocol clearer and avoids accidental matches between
+unrelated one-value tuples.
 
 ## Inline Processes
 
@@ -106,9 +111,9 @@ An inline process is written with `proc { ... }`.
 
 ```xklaim
 out(proc {
-    in(var String s)@self
+    in("message", var String s)@self
     println(s)
-})@writer
+}, "print-message")@writer
 ```
 
 Inline processes are especially useful with `out` and `eval`.
@@ -118,11 +123,11 @@ You can also combine them with `or(...)` to represent alternative behaviors:
 ```xklaim
 or(
     proc {
-        in(var Integer i)@self
+        in("result", var Integer i)@self
         println(i)
     },
     proc {
-        read(var String s2)@self
+        read("message", var String s2)@self
         println(s2)
     }
 )
@@ -133,8 +138,8 @@ or(
 Use `var` to declare formal tuple fields:
 
 ```xklaim
-in(var String message)@self
-read(var Locality loc1, var Locality loc2, var Locality loc3)@self
+in("message", var String message)@self
+read("route", var Locality loc1, var Locality loc2, var Locality loc3)@self
 ```
 
 Use `val` when you want to keep a value concrete in a local binding:
@@ -144,6 +149,55 @@ val myLoc = getPhysical(self)
 ```
 
 These bindings are useful both in ordinary expressions and inside processes.
+
+Tuple matching is positional. Concrete fields must be equal to the stored tuple
+field, while formal fields declared with `var` match any value of the requested
+type and are bound after a successful retrieval. For example:
+
+```xklaim
+out("person", "Ada", 37)@self
+in("person", var String name, var Integer age)@self
+println(name + " is " + age)
+```
+
+The template `("person", var String name, var Integer age)` only matches a
+three-field tuple whose first item is `"person"`, whose second item is a
+`String`, and whose third item is an `Integer`. After the match, `name` and
+`age` are available in the continuation.
+
+Formal fields also participate in Xbase scoping when the tuple operation is used
+as a condition. In an `if`, the variables declared in the condition are scoped
+so they can be referenced from the branch bodies:
+
+```xklaim
+if (in("person", var String name, var Integer age)@self within 1000) {
+    println("received " + name + " / " + age)
+} else {
+    println("no matching person tuple arrived")
+}
+```
+
+For blocking operations used as ordinary statements, the continuation is the code
+after the operation. For operations used as boolean conditions, especially
+timeout and non-blocking forms, the continuation is the branch whose condition
+actually succeeded.
+
+For non-blocking retrievals, bind and use the variables only on the branch where
+the operation succeeded:
+
+```xklaim
+if (in_nb("person", var String name, var Integer age)@self) {
+    println("received " + name + " / " + age)
+} else {
+    println("no matching person tuple was available")
+}
+```
+
+`in_nb` and `read_nb` try once and return immediately. If they return `false`,
+there was no matching tuple, so the formal fields should be treated as
+unbound for the failed branch. In compound boolean expressions, remember normal
+short-circuiting rules: a formal field is meaningful only if the operation that
+declared it was actually evaluated and succeeded.
 
 ## Built-In Helpers
 
@@ -162,13 +216,46 @@ node Sender [server -> phyloc("tcp-127.0.0.1:9999")] {
     val myLoc = getPhysical(self)
     eval({
         println("Hello " + server)
-        out("DONE")@myLoc
+        out("status", "DONE")@myLoc
     })@server
-    in("DONE")@self
+    in("status", "DONE")@self
     logout(server)
     done()
 }
 ```
+
+## Tuple And Process Closure
+
+X-Klaim follows the KLAVA closure rules when values move between nodes.
+
+Tuple operations such as `out`, `in`, `read`, `in_nb`, and `read_nb` perform
+automatic tuple closure before the tuple is sent. Logical localities inside the
+tuple are resolved through the sender's environment, and `self` is translated to
+the sender's physical locality. Formal fields remain formal because they are
+templates, not values to resolve.
+
+`eval` is different: it sends the process as it is. The process starts at the
+destination node, and unresolved `self` references are interpreted there. This
+is the key difference between sending a process as tuple data with `out` and
+executing a process remotely with `eval`:
+
+```xklaim
+node Reader logical "reader" [writerLoc -> writer] {
+    out(proc {
+        out("origin", self)@writerLoc
+    }, "stored-process")@writerLoc
+
+    eval(proc {
+        out("origin", self)@writerLoc
+    })@writerLoc
+}
+```
+
+In the `out` case, the process is placed inside a tuple, so tuple closure is
+applied to the tuple before it travels. In the `eval` case, process closure is
+not applied by `eval`; the process runs remotely and evaluates `self` at the
+remote site. This distinction matters most when mobile code contains logical
+localities or sends information about its current node.
 
 ## A Complete Example
 
@@ -179,12 +266,12 @@ package xklaim.examples.hello
 
 net HelloNet physical "tcp-127.0.0.1:9999" {
 	node Reader logical "reader" [writerLoc -> writer] {
-		in(var String s)@writerLoc
+		in("message", var String s)@writerLoc
 		println(s)
 		done()
 	}
 	node Writer logical "writer" {
-		out("Hello World")@self
+		out("message", "Hello World")@self
 	}
 }
 ```
@@ -200,6 +287,23 @@ In the IDE, the common workflow is:
 3. Choose `Run As` -> `Xklaim Application`.
 
 The generated launcher starts the net and waits for all main processes to complete.
+
+## Creating A Project With The Wizard
+
+The Eclipse UI includes an X-Klaim project wizard. Use it when starting a fresh
+example or application so the project gets the expected nature, source layout,
+runtime dependencies, and launch support.
+
+Typical workflow:
+
+1. Choose `File` -> `New` -> `Project...`.
+2. Select the X-Klaim project wizard.
+3. Enter the project name and finish the wizard.
+4. Create or open a `.xklaim` file in the generated source folder.
+5. Run it with `Run As` -> `Xklaim Application`.
+
+Wizard-created projects are also set up for the default SLF4J simple logging
+backend used by the runtime examples.
 
 ## Generated Java
 
@@ -218,6 +322,25 @@ The exact generated shape is illustrated in [CODEGEN_NOTES.md](CODEGEN_NOTES.md)
 - Use `logical` names to keep code portable across machines.
 - Use `physical` when the node must bind to a specific endpoint.
 - Use `self` for local tuple-space operations and for code that should travel with the process.
+
+## Logging
+
+X-Klaim, KLAVA, and IMC use SLF4J for runtime diagnostics. Wizard-created
+projects and examples can use the simple backend, which reads a
+`simplelogger.properties` file from the classpath.
+
+For quick debugging, add a file named `simplelogger.properties` to the project's
+resources or source folder:
+
+```properties
+org.slf4j.simpleLogger.log.klava=debug
+org.slf4j.simpleLogger.log.xklaim=debug
+org.slf4j.simpleLogger.showDateTime=true
+```
+
+You can also pass equivalent JVM system properties when launching the generated
+program. See [LOGGING_NOTES.md](LOGGING_NOTES.md) for backend choices and more
+detailed logging guidance.
 
 ## Example Gallery
 
