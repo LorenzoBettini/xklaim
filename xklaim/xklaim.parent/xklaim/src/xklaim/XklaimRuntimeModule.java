@@ -5,6 +5,7 @@ package xklaim;
 
 import org.eclipse.xtext.scoping.IScopeProvider;
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider;
+import org.eclipse.xtext.validation.ConfigurableIssueCodesProvider;
 import org.eclipse.xtext.xbase.compiler.XbaseCompiler;
 import org.eclipse.xtext.xbase.scoping.batch.ImplicitlyImportedFeatures;
 import org.eclipse.xtext.xbase.typesystem.computation.ITypeComputer;
@@ -16,6 +17,7 @@ import xklaim.compiler.XklaimXbaseCompiler;
 import xklaim.scoping.XklaimImplicitlyImportedFeatures;
 import xklaim.scoping.XklaimImportedNamespaceScopeProvider;
 import xklaim.typesystem.XklaimTypeComputer;
+import xklaim.validation.XklaimConfigurableIssueCodes;
 
 /**
  * Use this class to register components to be used at runtime / without the
@@ -33,6 +35,11 @@ public class XklaimRuntimeModule extends AbstractXklaimRuntimeModule {
 
 	public Class<? extends ImplicitlyImportedFeatures> bindImplicitlyImportedFeatures() {
 		return XklaimImplicitlyImportedFeatures.class;
+	}
+
+	@Override
+	public Class<? extends ConfigurableIssueCodesProvider> bindConfigurableIssueCodesProvider() {
+		return XklaimConfigurableIssueCodes.class;
 	}
 
 	@Override
