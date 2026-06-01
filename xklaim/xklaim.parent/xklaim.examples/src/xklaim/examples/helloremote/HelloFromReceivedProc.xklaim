@@ -12,17 +12,24 @@ net HelloFromReceivedProcNet physical "tcp-127.0.0.1:9999" {
 	 * Sends a process to the Writer node to retrieve the tuple
 	 */
 	node Reader logical "reader" {
+		/*
+		 * It's sent with an out, so its logical localities
+		 * are resolved before migration: self will refer to reader node
+		 * when the process will be executed at writer node
+		 */
 		out(proc {
 			in(var String s)@self
 			println(s)
-			System.exit(0)
+			out("Done")@self
 		})@writer
+		in("Done")@self
+		done()
 	}
 	/**
 	 * Retrieves the migrating process and executes it locally.
 	 */
 	node Writer logical "writer" {
-		out("Hello World")@self
+		out("Hello World")@reader
 		in(var KlavaProcess P)@self
 		println("Received proc: " + P)
 		eval(P)@self

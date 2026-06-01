@@ -13,7 +13,7 @@ net HelloNet physical "tcp-127.0.0.1:9999" {
 	node Reader logical "reader" [writerLoc -> writer] {
 		in(var String s)@writerLoc
 		println(s)
-		System.exit(0)
+		done()
 	}
 	node Writer logical "writer" {
 		out("Hello World")@self

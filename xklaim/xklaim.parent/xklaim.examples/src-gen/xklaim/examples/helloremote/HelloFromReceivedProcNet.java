@@ -41,11 +41,13 @@ public class HelloFromReceivedProcNet extends LogicalNet {
               in(_Tuple, this.self);
               s = (String) _Tuple.getItem(0);
               InputOutput.<String>println(s);
-              System.exit(0);
+              out(new Tuple(new Object[] {"Done"}), this.self);
             }
           }
         }._initFields();
         out(new Tuple(new Object[] {_Proc}), HelloFromReceivedProcNet.writer);
+        in(new Tuple(new Object[] {"Done"}), this.self);
+        this.done();
       }
     }
 
@@ -67,7 +69,7 @@ public class HelloFromReceivedProcNet extends LogicalNet {
     private static class WriterProcess extends KlavaNodeCoordinator {
       @Override
       public void executeProcess() {
-        out(new Tuple(new Object[] {"Hello World"}), this.self);
+        out(new Tuple(new Object[] {"Hello World"}), HelloFromReceivedProcNet.reader);
         KlavaProcess P = null;
         Tuple _Tuple = new Tuple(new Object[] {KlavaProcess.class});
         in(_Tuple, this.self);
