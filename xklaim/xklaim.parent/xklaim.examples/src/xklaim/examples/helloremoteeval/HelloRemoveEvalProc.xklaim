@@ -11,6 +11,10 @@ net HelloRemoveEvalProcNet physical "tcp-127.0.0.1:9999" {
 	 * Evaluates a process to the Writer node to retrieve the tuple
 	 */
 	node Reader logical "reader" {
+		/*
+		 * eval does not resolve the logical localities before migration
+		 * so "writer" and "self" will be resolved at destination (writer node)
+		 */
 		eval({
 			println("executing at " + getPhysical(writer))
 			println("self is " + getPhysical(self))

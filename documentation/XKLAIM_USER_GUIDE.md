@@ -172,20 +172,20 @@ node Sender [server -> phyloc("tcp-127.0.0.1:9999")] {
 
 ## A Complete Example
 
-This is the simplest end-to-end X-KLAIM program from the repository:
+This is an example of end-to-end X-KLAIM program from the repository:
 
 ```xklaim
 package xklaim.examples.hello
 
 net HelloNet physical "tcp-127.0.0.1:9999" {
-    node Reader logical "reader" [writerLoc -> writer] {
-        in(var String s)@writerLoc
-        println(s)
-        System.exit(0)
-    }
-    node Writer logical "writer" {
-        out("Hello World")@self
-    }
+	node Reader logical "reader" [writerLoc -> writer] {
+		in(var String s)@writerLoc
+		println(s)
+		done()
+	}
+	node Writer logical "writer" {
+		out("Hello World")@self
+	}
 }
 ```
 

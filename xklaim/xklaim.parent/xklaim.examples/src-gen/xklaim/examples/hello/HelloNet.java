@@ -33,7 +33,7 @@ public class HelloNet extends LogicalNet {
         in(_Tuple, HelloNet.Reader.writerLoc);
         s = (String) _Tuple.getItem(0);
         InputOutput.<String>println(s);
-        System.exit(0);
+        this.done();
       }
     }
 
