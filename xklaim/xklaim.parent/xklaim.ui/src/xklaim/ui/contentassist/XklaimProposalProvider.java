@@ -27,6 +27,7 @@ import xklaim.xklaim.XklaimInOperation;
 import xklaim.xklaim.XklaimNonBlockingInOperation;
 import xklaim.xklaim.XklaimNonBlockingReadOperation;
 import xklaim.xklaim.XklaimOutOperation;
+import xklaim.xklaim.XklaimPackage;
 import xklaim.xklaim.XklaimReadOperation;
 
 /**
@@ -78,7 +79,12 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 					|| current instanceof XklaimReadOperation
 					|| current instanceof XklaimNonBlockingReadOperation
 					|| current instanceof XklaimEvalOperation) {
-				return true;
+				return
+					model == current // case when after @ there's not yet anything
+					||
+					// case when after @ there's already something
+					model.eContainingFeature()
+						.equals(XklaimPackage.Literals.XKLAIM_ABSTRACT_OPERATION__LOCALITY);
 			}
 			current = current.eContainer();
 		}

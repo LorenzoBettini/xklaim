@@ -43,6 +43,20 @@ public class XklaimContentAssistTest extends AbstractContentAssistTest {
 	}
 
 	@Test
+	public void testCompletionInKlaimOperation() throws Exception {
+		newBuilder().append("""
+				import klava.Locality
+				import klava.PhysicalLocality
+
+				proc TestProc(Locality locality, PhysicalLocality physicalLocality, String physicalString) {
+					out(phys<|>)@self
+				}
+				""").assertTextAtCursorPosition("<|>",
+						"physicalLocality",
+						"physicalString");
+	}
+
+	@Test
 	public void testLocalityCompletion() throws Exception {
 		newBuilder().append("""
 				import klava.Locality
