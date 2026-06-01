@@ -3,10 +3,190 @@
  */
 package xklaim.ui.contentassist;
 
+import com.google.common.base.Predicate;
+import klava.Locality;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.xtext.Assignment;
+import org.eclipse.xtext.common.types.JvmConstructor;
+import org.eclipse.xtext.common.types.JvmDeclaredType;
+import org.eclipse.xtext.common.types.JvmField;
+import org.eclipse.xtext.common.types.JvmFormalParameter;
+import org.eclipse.xtext.common.types.JvmOperation;
+import org.eclipse.xtext.common.types.JvmTypeReference;
+import org.eclipse.xtext.resource.IEObjectDescription;
+import org.eclipse.xtext.scoping.IScope;
+import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext;
+import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor;
+import org.eclipse.xtext.util.Strings;
+import org.eclipse.xtext.xbase.XExpression;
+import org.eclipse.xtext.xbase.XVariableDeclaration;
+import org.eclipse.xtext.xbase.XbasePackage;
+import org.eclipse.xtext.xbase.typesystem.IBatchTypeResolver;
+import org.eclipse.xtext.xbase.typesystem.IExpressionScope;
+import org.eclipse.xtext.xbase.typesystem.IResolvedTypes;
+import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
+import org.eclipse.xtext.common.types.util.TypeReferences;
+
+import com.google.inject.Inject;
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#content-assist
  * on how to customize the content assistant.
  */
 public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
+	@Inject
+	private IBatchTypeResolver batchTypeResolver;
+
+	@Inject
+	private TypeReferences typeReferences;
+
+	@Override
+	public void completeXFeatureCall_Feature(EObject model, Assignment assignment, ContentAssistContext context,
+			ICompletionProposalAcceptor acceptor) {
+		if (model instanceof XExpression expression && isLocalityExpected(expression, context)) {
+			completeLocalityProposals(expression, context, acceptor);
+			return;
+		}
+		super.completeXFeatureCall_Feature(model, assignment, context, acceptor);
+	}
+
+	@Override
+	public void completeXklaimOutOperation_Locality(EObject model, Assignment assignment, ContentAssistContext context,
+			ICompletionProposalAcceptor acceptor) {
+		completeLocalityProposals(model, context, acceptor);
+	}
+
+	@Override
+	public void completeXklaimInOperation_Locality(EObject model, Assignment assignment, ContentAssistContext context,
+			ICompletionProposalAcceptor acceptor) {
+		completeLocalityProposals(model, context, acceptor);
+	}
+
+	@Override
+	public void completeXklaimNonBlockingInOperation_Locality(EObject model, Assignment assignment,
+			ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		completeLocalityProposals(model, context, acceptor);
+	}
+
+	@Override
+	public void completeXklaimReadOperation_Locality(EObject model, Assignment assignment, ContentAssistContext context,
+			ICompletionProposalAcceptor acceptor) {
+		completeLocalityProposals(model, context, acceptor);
+	}
+
+	@Override
+	public void completeXklaimNonBlockingReadOperation_Locality(EObject model, Assignment assignment,
+			ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		completeLocalityProposals(model, context, acceptor);
+	}
+
+	@Override
+	public void completeXklaimEvalOperation_Locality(EObject model, Assignment assignment, ContentAssistContext context,
+			ICompletionProposalAcceptor acceptor) {
+		completeLocalityProposals(model, context, acceptor);
+	}
+
+	@Override
+	public void completeKeyword(org.eclipse.xtext.Keyword keyword, ContentAssistContext contentAssistContext,
+			ICompletionProposalAcceptor acceptor) {
+		if (isLocalityContext(contentAssistContext)) {
+			return;
+		}
+		super.completeKeyword(keyword, contentAssistContext, acceptor);
+	}
+
+	protected void completeLocalityProposals(EObject model, ContentAssistContext context,
+			ICompletionProposalAcceptor acceptor) {
+		XExpression expression = findExpression(model, context);
+		if (expression == null) {
+			return;
+		}
+		String prefix = context.getPrefix();
+		if (!isValidPrefix(prefix)) {
+			return;
+		}
+		IResolvedTypes resolvedTypes = batchTypeResolver.resolveTypes(expression);
+		IExpressionScope expressionScope = resolvedTypes.getExpressionScope(expression, IExpressionScope.Anchor.AFTER);
+		LightweightTypeReference localityType = getLocalityType(context);
+		Predicate<IEObjectDescription> localityPredicate = input ->
+				getFeatureDescriptionPredicate(context).apply(input) && isLocalityCandidate(input, context, localityType);
+		getCrossReferenceProposalCreator().lookupCrossReference(expressionScope.getFeatureScope(), expression,
+				XbasePackage.Literals.XABSTRACT_FEATURE_CALL__FEATURE, acceptor, localityPredicate,
+				getProposalFactory(getFeatureCallRuleName(), context));
+	}
+
+	protected boolean isLocalityContext(ContentAssistContext context) {
+		XExpression expression = findExpression(context.getCurrentModel(), context);
+		if (expression != null && isLocalityExpected(expression, context)) {
+			return true;
+		}
+		expression = findExpression(context.getPreviousModel(), context);
+		return expression != null && isLocalityExpected(expression, context);
+	}
+
+	protected XExpression findExpression(EObject model, ContentAssistContext context) {
+		if (model instanceof XExpression expression) {
+			return expression;
+		}
+		EObject currentModel = context.getCurrentModel();
+		if (currentModel instanceof XExpression expression) {
+			return expression;
+		}
+		EObject previousModel = context.getPreviousModel();
+		if (previousModel instanceof XExpression expression) {
+			return expression;
+		}
+		return null;
+	}
+
+	protected boolean isLocalityExpected(XExpression expression, ContentAssistContext context) {
+		LightweightTypeReference expectedType = batchTypeResolver.resolveTypes(expression).getExpectedType(expression);
+		return expectedType != null && expectedType.isAssignableFrom(Locality.class);
+	}
+
+	protected LightweightTypeReference getLocalityType(ContentAssistContext context) {
+		JvmTypeReference localityReference = typeReferences.getTypeForName(Locality.class, context.getResource());
+		return getTypeConverter(context.getResource()).toLightweightReference(localityReference);
+	}
+
+	protected boolean isLocalityCandidate(IEObjectDescription candidate, ContentAssistContext context,
+			LightweightTypeReference localityType) {
+		LightweightTypeReference candidateType = getCandidateType(candidate, context);
+		return candidateType != null && localityType.isAssignableFrom(candidateType);
+	}
+
+	protected LightweightTypeReference getCandidateType(IEObjectDescription candidate, ContentAssistContext context) {
+		EObject element = candidate.getEObjectOrProxy();
+		JvmTypeReference typeReference = null;
+		if (element instanceof JvmFormalParameter parameter) {
+			typeReference = parameter.getParameterType();
+		} else if (element instanceof JvmField field) {
+			typeReference = field.getType();
+		} else if (element instanceof JvmOperation operation) {
+			typeReference = operation.getReturnType();
+		} else if (element instanceof JvmConstructor constructor) {
+			typeReference = typeReferences.createTypeRef(constructor.getDeclaringType());
+		} else if (element instanceof JvmDeclaredType declaredType) {
+			typeReference = typeReferences.createTypeRef(declaredType);
+		} else if (element instanceof XVariableDeclaration variableDeclaration) {
+			typeReference = variableDeclaration.getType();
+		}
+		if (typeReference == null) {
+			return null;
+		}
+		return getTypeConverter(context.getResource()).toLightweightReference(typeReference);
+	}
+
+	protected boolean isValidPrefix(String prefix) {
+		if (Strings.isEmpty(prefix)) {
+			return true;
+		}
+		if (Character.isJavaIdentifierStart(prefix.charAt(0))) {
+			return true;
+		}
+		if (prefix.length() > 1 && prefix.charAt(0) == '^' && Character.isJavaIdentifierStart(prefix.charAt(1))) {
+			return true;
+		}
+		return false;
+	}
 }
