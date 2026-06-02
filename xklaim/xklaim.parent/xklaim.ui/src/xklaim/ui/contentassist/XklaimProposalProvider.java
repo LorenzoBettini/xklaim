@@ -5,8 +5,12 @@ package xklaim.ui.contentassist;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.Assignment;
+import org.eclipse.xtext.common.types.JvmField;
+import org.eclipse.xtext.common.types.JvmFormalParameter;
 import org.eclipse.xtext.common.types.JvmIdentifiableElement;
+import org.eclipse.xtext.common.types.JvmOperation;
 import org.eclipse.xtext.common.types.JvmType;
+import org.eclipse.xtext.common.types.JvmTypeReference;
 import org.eclipse.xtext.common.types.util.TypeReferences;
 import org.eclipse.xtext.resource.IEObjectDescription;
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext;
@@ -18,6 +22,8 @@ import org.eclipse.xtext.xbase.typesystem.IBatchTypeResolver;
 import org.eclipse.xtext.xbase.typesystem.IExpressionScope;
 import org.eclipse.xtext.xbase.typesystem.IResolvedTypes;
 import org.eclipse.xtext.xbase.typesystem.references.LightweightTypeReference;
+import org.eclipse.xtext.xbase.typesystem.references.StandardTypeReferenceOwner;
+import org.eclipse.xtext.xbase.typesystem.util.CommonTypeComputationServices;
 
 import com.google.inject.Inject;
 
@@ -35,6 +41,9 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 
 	@Inject
 	private TypeReferences typeReferences;
+
+	@Inject
+	private CommonTypeComputationServices typeComputationServices;
 
 	@Override
 	public void completeXFeatureCall_Feature(EObject model, Assignment assignment, ContentAssistContext context,
@@ -58,10 +67,13 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 
 		IResolvedTypes resolvedTypes = batchTypeResolver.resolveTypes(expression);
 		IExpressionScope expressionScope = resolvedTypes.getExpressionScope(expression, IExpressionScope.Anchor.AFTER);
-		getCrossReferenceProposalCreator().lookupCrossReference(expressionScope.getFeatureScope(), expression,
-				XbasePackage.Literals.XABSTRACT_FEATURE_CALL__FEATURE, acceptor,
-				input -> getFeatureDescriptionPredicate(context).apply(input) &&
-					isLocalityCandidate(input, resolvedTypes, localityType),
+		getCrossReferenceProposalCreator().lookupCrossReference(
+				expressionScope.getFeatureScope(),
+				expression,
+				XbasePackage.Literals.XABSTRACT_FEATURE_CALL__FEATURE,
+				acceptor,
+				input -> getFeatureDescriptionPredicate(context).apply(input)
+						&& isLocalityCandidate(input, resolvedTypes, localityType, expression),
 				getProposalFactory(getFeatureCallRuleName(), context));
 	}
 
@@ -82,15 +94,63 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 				.equals(model.eContainingFeature());
 	}
 
-	private boolean isLocalityCandidate(IEObjectDescription candidate, IResolvedTypes resolvedTypes, JvmType localityType) {
+	private boolean isLocalityCandidate(
+			IEObjectDescription candidate,
+			IResolvedTypes resolvedTypes,
+			JvmType localityType,
+			EObject context) {
+
 		if (!(candidate instanceof IIdentifiableElementDescription identifiableDescription)) {
 			return false;
 		}
+
 		JvmIdentifiableElement element = identifiableDescription.getElementOrProxy();
 		if (element == null) {
 			return false;
 		}
-		LightweightTypeReference candidateType = resolvedTypes.getActualType(element);
-		return candidateType != null && !candidateType.isPrimitiveVoid() && candidateType.isSubtypeOf(localityType);
+
+		LightweightTypeReference candidateType =
+				getCandidateType(element, resolvedTypes, context);
+
+		return candidateType != null
+				&& !candidateType.isPrimitiveVoid()
+				&& candidateType.isSubtypeOf(localityType);
+	}
+
+	private LightweightTypeReference getCandidateType(
+			JvmIdentifiableElement element,
+			IResolvedTypes resolvedTypes,
+			EObject context) {
+
+		LightweightTypeReference type = resolvedTypes.getActualType(element);
+		if (type != null) {
+			return type;
+		}
+
+		if (element instanceof JvmField field) {
+			return toLightweightTypeReference(field.getType(), context);
+		}
+
+		if (element instanceof JvmOperation operation) {
+			return toLightweightTypeReference(operation.getReturnType(), context);
+		}
+
+		if (element instanceof JvmFormalParameter parameter) {
+			return toLightweightTypeReference(parameter.getParameterType(), context);
+		}
+
+		return null;
+	}
+
+	private LightweightTypeReference toLightweightTypeReference(
+			JvmTypeReference typeReference,
+			EObject context) {
+
+		if (typeReference == null) {
+			return null;
+		}
+
+		return new StandardTypeReferenceOwner(typeComputationServices, context)
+				.toLightweightTypeReference(typeReference);
 	}
 }

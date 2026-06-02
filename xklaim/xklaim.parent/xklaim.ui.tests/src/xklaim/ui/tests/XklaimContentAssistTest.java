@@ -92,4 +92,23 @@ public class XklaimContentAssistTest extends AbstractContentAssistTest {
 				"translateLocality()",
 				"translateSelf");
 	}
+
+	@Test
+	public void testLocalityCompletionInNode() throws Exception {
+		newBuilder().append("""
+				net HelloNet physical "localhost:9999" {
+					node Hello {
+						out("Hello World")@<|>
+					}
+				}
+				""").assertTextAtCursorPosition("<|>",
+				"Hello",
+				"getPhysical()",
+				"logloc()",
+				"newloc",
+				"phyloc()",
+				"self",
+				"translateSelf");
+	}
+
 }
