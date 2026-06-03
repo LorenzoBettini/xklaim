@@ -94,7 +94,7 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 				netClasses += toNetClass(net, acceptor)
 			}
 			val modelFQN = program.fullyQualifiedName
-			val javaClassName = program.eResource().getURI().trimFileExtension().lastSegment()
+			val javaClassName = program.eResource().getURI().trimFileExtension().lastSegment().toFirstUpper + "Main"
 			val javaClassFQN = if (modelFQN !== null) {
 					modelFQN.toString + "." + javaClassName
 				} else {

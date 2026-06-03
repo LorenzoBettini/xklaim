@@ -312,7 +312,7 @@ Every X-KLAIM source file generates Java code. In broad terms, the compiler crea
 
 - A Java class for each node or net.
 - An `addMainProcess()` method for the root process.
-- A `main(String[])` launcher that starts the generated node or net and waits for completion.
+- A `main(String[])` launcher named `<SourceFileName>Main` (with first letter upper case), e.g., `my.xklaim` -> `MyMain`, that starts the generated node or net and waits for completion.
 
 The exact generated shape is illustrated in [CODEGEN_NOTES.md](CODEGEN_NOTES.md).
 
