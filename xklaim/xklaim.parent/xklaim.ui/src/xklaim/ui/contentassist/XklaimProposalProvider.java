@@ -266,20 +266,11 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 		/*
 		 * Most Xbase feature-scope descriptions implement
 		 * IIdentifiableElementDescription. This path covers fields, operations,
-		 * parameters, and sometimes local variables.
+		 * parameters, and inherited JVM members.
 		 */
 		if (candidate instanceof IIdentifiableElementDescription identifiableDescription) {
 			JvmIdentifiableElement element =
 					identifiableDescription.getElementOrProxy();
-
-			if (element instanceof XVariableDeclaration variable) {
-				LightweightTypeReference variableType =
-						getVariableDeclarationType(variable, resolvedTypes);
-
-				if (variableType != null) {
-					return variableType;
-				}
-			}
 
 			if (element != null) {
 				return getJvmIdentifiableElementType(
