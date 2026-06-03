@@ -102,11 +102,11 @@ public class XklaimCompilerTest {
 						  }
 						}
 						"""),
-				Pair.of("foo.MyFile", """
+				Pair.of("foo.MyFileMain", """
 						package foo;
 						
 						@SuppressWarnings("all")
-						public class MyFile {
+						public class MyFileMain {
 						  public static void main(final String[] args) throws Exception {
 						    TestNode testNode = new TestNode();
 						    TestNodeWithPhysicalLocality testNodeWithPhysicalLocality = new TestNodeWithPhysicalLocality();
@@ -265,15 +265,132 @@ public class XklaimCompilerTest {
 						  }
 						}
 						"""),
-				Pair.of("foo.MyFile", """
+				Pair.of("foo.MyFileMain", """
 						package foo;
 						
 						@SuppressWarnings("all")
-						public class MyFile {
+						public class MyFileMain {
 						  public static void main(final String[] args) throws Exception {
 						    TestNet testNet = new TestNet();
 						    testNet.addNodes();
 						    testNet.waitForCompletion();
+						  }
+						}
+						"""));
+	}
+
+	@Test
+	public void testProgramWithNodeNamedAsFile() throws Exception {
+		var input = """
+				package foo
+				node MyFile {
+					println("Hello")
+				}
+				""";
+		checkCompilation(input,
+				Pair.of("foo.MyFile", """
+						package foo;
+						
+						import klava.topology.KlavaNode;
+						import klava.topology.KlavaNodeCoordinator;
+						import org.eclipse.xtext.xbase.lib.InputOutput;
+						import org.mikado.imc.common.IMCException;
+						
+						@SuppressWarnings("all")
+						public class MyFile extends KlavaNode {
+						  private static class MyFileProcess extends KlavaNodeCoordinator {
+						    @Override
+						    public void executeProcess() {
+						      InputOutput.<String>println("Hello");
+						    }
+						  }
+						
+						  public void addMainProcess() throws IMCException {
+						    KlavaNodeCoordinator _coordinator = new MyFile.MyFileProcess();
+						    setMainCoordinator(_coordinator);
+						    addNodeCoordinator(_coordinator);
+						  }
+						}
+						"""),
+				Pair.of("foo.MyFileMain", """
+						package foo;
+						
+						@SuppressWarnings("all")
+						public class MyFileMain {
+						  public static void main(final String[] args) throws Exception {
+						    MyFile myFile = new MyFile();
+						    myFile.addMainProcess();
+						    myFile.waitForCompletion();
+						  }
+						}
+						"""));
+	}
+
+	@Test
+	public void testProgramWithNetNamedAsFile() throws Exception {
+		var input = """
+				package foo
+				net MyFile physical "tcp-127.0.0.1:9999" {
+					node TestNode {
+						println("Hello")
+					}
+				}
+				""";
+		checkCompilation(input,
+				Pair.of("foo.MyFile", """
+						package foo;
+						
+						import klava.LogicalLocality;
+						import klava.PhysicalLocality;
+						import klava.topology.ClientNode;
+						import klava.topology.KlavaNodeCoordinator;
+						import klava.topology.LogicalNet;
+						import org.eclipse.xtext.xbase.lib.InputOutput;
+						import org.mikado.imc.common.IMCException;
+						
+						@SuppressWarnings("all")
+						public class MyFile extends LogicalNet {
+						  private static final LogicalLocality TestNode = new LogicalLocality("TestNode");
+						
+						  public static class TestNode extends ClientNode {
+						    private static class TestNodeProcess extends KlavaNodeCoordinator {
+						      @Override
+						      public void executeProcess() {
+						        InputOutput.<String>println("Hello");
+						      }
+						    }
+						
+						    public TestNode() {
+						      super(new PhysicalLocality("tcp-127.0.0.1:9999"), new LogicalLocality("TestNode"));
+						    }
+						
+						    public void addMainProcess() throws IMCException {
+						      KlavaNodeCoordinator _coordinator = new MyFile.TestNode.TestNodeProcess();
+						      setMainCoordinator(_coordinator);
+						      addNodeCoordinator(_coordinator);
+						    }
+						  }
+						
+						  public MyFile() throws IMCException {
+						    super(new PhysicalLocality("tcp-127.0.0.1:9999"));
+						  }
+						
+						  public void addNodes() throws IMCException {
+						    MyFile.TestNode testNode = new MyFile.TestNode();
+						    addManagedNode(testNode);
+						    testNode.addMainProcess();
+						  }
+						}
+						"""),
+				Pair.of("foo.MyFileMain", """
+						package foo;
+						
+						@SuppressWarnings("all")
+						public class MyFileMain {
+						  public static void main(final String[] args) throws Exception {
+						    MyFile myFile = new MyFile();
+						    myFile.addNodes();
+						    myFile.waitForCompletion();
 						  }
 						}
 						"""));

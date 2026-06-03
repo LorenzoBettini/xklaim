@@ -94,7 +94,13 @@ public void addNodes() throws IMCException {
 
 ### The generated `main` class
 
-One main class per XKlaim source file (named after the file) with a `main(String[])` method that:
+One main class per XKlaim source file with a `main(String[])` method that:
+
+- Uses the source file name with first letter upper case.
+- Appends the suffix `Main`.
+- Example: `my.xklaim` generates the launcher class `MyMain`.
+
+The launcher class then:
 
 1. Instantiates all top-level nodes and nets.
 2. Calls `setupEnvironment()` on nodes that have an environment block.

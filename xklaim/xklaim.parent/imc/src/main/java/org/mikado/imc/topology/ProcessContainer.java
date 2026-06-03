@@ -6,6 +6,7 @@ package org.mikado.imc.topology;
 import java.util.Enumeration;
 
 import org.mikado.imc.common.IMCException;
+import org.mikado.imc.events.AddRemoveEvent;
 import org.mikado.imc.events.ProcessEvent;
 
 /**
@@ -15,13 +16,12 @@ import org.mikado.imc.events.ProcessEvent;
  * the collection when they finished the execution.
  * 
  * @author Lorenzo Bettini
- * @version $Revision: 1.10 $
  */
 public class ProcessContainer<T extends Thread> extends CloseableContainer<T> {
     /**
-     * Timeout waiting for a thread to terminate (default: 4 seconds)
+     * Timeout waiting for a thread to terminate (default: 6 seconds)
      */
-    int timeout = 4000; // 4 seconds should be enough?
+    int timeout = 6000; // 6 seconds should be enough?
 
     /**
      * @param element
@@ -30,7 +30,7 @@ public class ProcessContainer<T extends Thread> extends CloseableContainer<T> {
     protected void doAddElement(T element) {
         elements.put(element.getName(), element);
         generate(ProcessEvent.ProcessEventId, new ProcessEvent(this,
-                ProcessEvent.EventType.ADDED, element));
+                AddRemoveEvent.EventType.ADDED, element));
     }
 
     /**
@@ -51,7 +51,7 @@ public class ProcessContainer<T extends Thread> extends CloseableContainer<T> {
     protected void doRemoveElement(T element) {
         elements.remove(element.getName());
         generate(ProcessEvent.ProcessEventId, new ProcessEvent(this,
-                ProcessEvent.EventType.REMOVED, element));
+                AddRemoveEvent.EventType.REMOVED, element));
     }
 
     /**
@@ -66,10 +66,10 @@ public class ProcessContainer<T extends Thread> extends CloseableContainer<T> {
         /*
          * we also call the method close, if it's an IMC related thread
          */
-        if (thread instanceof NodeProcess) {
-            ((NodeProcess) thread).close();
-        } else if (thread instanceof NodeCoordinator) {
-            ((NodeCoordinator) thread).close();
+        if (thread instanceof NodeProcess nodeProcess) {
+            nodeProcess.close();
+        } else if (thread instanceof NodeCoordinator nodeCoordinator) {
+            nodeCoordinator.close();
         }
 
         try {
@@ -79,9 +79,10 @@ public class ProcessContainer<T extends Thread> extends CloseableContainer<T> {
                         + thread.getName());
             } else {
                 generate(ProcessEvent.ProcessEventId, new ProcessEvent(this,
-                        ProcessEvent.EventType.REMOVED, thread));
+                        AddRemoveEvent.EventType.REMOVED, thread));
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new IMCException("while terminating process"
                     + thread.getName(), e);
         }
