@@ -24,6 +24,8 @@ Eclipse distributions with Xklaim installed: https://sourceforge.net/projects/xk
 
 **Publications:**
 
+Here is a list of publications related to X-KLAIM, Klava, and IMC and underlying concepts, in reverse chronological order:
+
 - 2025: [Translating BPMN models into X-Klaim programs for developing multi-robot missions](https://link.springer.com/article/10.1007/s10009-025-00832-y). Bourr K., Tiezzi F., Bettini L., Seriani S. International Journal on Software Tools for Technology Transfer, 27(6), 557-575.
 - 2024: [Model-Driven Development of Multi-Robot Systems: From BPMN Models to X-Klaim Code](https://doi.org/10.1007/978-3-031-75107-3_14). Bourr K., Tiezzi F., Bettini L. In: Leveraging Applications of Formal Methods, Verification and Validation. Rigorous Engineering of Collective Adaptive Systems. Lecture Notes in Computer Science, vol. 15220. Springer.
 - 2023: [Coordinating and programming multiple ROS-based robots with X-KLAIM](https://link.springer.com/article/10.1007/s10009-023-00727-w). Bettini L., Bourr K., Pugliese R., Tiezzi F. International Journal on Software Tools for Technology Transfer, 25(5-6), 747-764.
