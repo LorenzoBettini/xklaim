@@ -66,8 +66,9 @@ public class XklaimContentAssistTest extends AbstractContentAssistTest {
 					val physicalLocalLoc = phyloc("alocality")
 					out("hello")@phys<|>
 				}
-				""").assertTextAtCursorPosition("<|>", "physicalLocality");
-				// should also include the local variable, but that is currently not working
+				""").assertTextAtCursorPosition("<|>",
+					"physicalLocalLoc",
+					"physicalLocality");
 	}
 
 	@Test

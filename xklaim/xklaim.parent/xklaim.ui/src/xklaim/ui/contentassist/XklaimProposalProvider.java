@@ -5,6 +5,7 @@ package xklaim.ui.contentassist;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.Assignment;
+import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.common.types.JvmField;
 import org.eclipse.xtext.common.types.JvmFormalParameter;
 import org.eclipse.xtext.common.types.JvmIdentifiableElement;
@@ -15,7 +16,9 @@ import org.eclipse.xtext.common.types.util.TypeReferences;
 import org.eclipse.xtext.resource.IEObjectDescription;
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext;
 import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor;
+import org.eclipse.xtext.xbase.XBlockExpression;
 import org.eclipse.xtext.xbase.XExpression;
+import org.eclipse.xtext.xbase.XVariableDeclaration;
 import org.eclipse.xtext.xbase.XbasePackage;
 import org.eclipse.xtext.xbase.scoping.batch.IIdentifiableElementDescription;
 import org.eclipse.xtext.xbase.typesystem.IBatchTypeResolver;
@@ -65,8 +68,11 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 			return;
 		}
 
-		IResolvedTypes resolvedTypes = batchTypeResolver.resolveTypes(expression);
-		IExpressionScope expressionScope = resolvedTypes.getExpressionScope(expression, IExpressionScope.Anchor.AFTER);
+		EObject typeResolutionContext = getTypeResolutionContext(expression);
+		IResolvedTypes resolvedTypes = batchTypeResolver.resolveTypes(typeResolutionContext);
+		IExpressionScope expressionScope =
+				resolvedTypes.getExpressionScope(expression, IExpressionScope.Anchor.AFTER);
+
 		getCrossReferenceProposalCreator().lookupCrossReference(
 				expressionScope.getFeatureScope(),
 				expression,
@@ -75,6 +81,11 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 				input -> getFeatureDescriptionPredicate(context).apply(input)
 						&& isLocalityCandidate(input, resolvedTypes, localityType, expression),
 				getProposalFactory(getFeatureCallRuleName(), context));
+	}
+
+	private EObject getTypeResolutionContext(XExpression expression) {
+		XBlockExpression block = EcoreUtil2.getContainerOfType(expression, XBlockExpression.class);
+		return block != null ? block : expression;
 	}
 
 	/**
@@ -88,10 +99,10 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	 * @return
 	 */
 	private boolean isLocalitySlot(EObject model) {
-		return model instanceof XklaimAbstractOperation
-			||
-			XklaimPackage.Literals.XKLAIM_ABSTRACT_OPERATION__LOCALITY
-				.equals(model.eContainingFeature());
+		return model != null &&
+			(model instanceof XklaimAbstractOperation
+				|| XklaimPackage.Literals.XKLAIM_ABSTRACT_OPERATION__LOCALITY
+					.equals(model.eContainingFeature()));
 	}
 
 	private boolean isLocalityCandidate(
@@ -100,17 +111,8 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 			JvmType localityType,
 			EObject context) {
 
-		if (!(candidate instanceof IIdentifiableElementDescription identifiableDescription)) {
-			return false;
-		}
-
-		JvmIdentifiableElement element = identifiableDescription.getElementOrProxy();
-		if (element == null) {
-			return false;
-		}
-
 		LightweightTypeReference candidateType =
-				getCandidateType(element, resolvedTypes, context);
+				getCandidateType(candidate, resolvedTypes, context);
 
 		return candidateType != null
 				&& !candidateType.isPrimitiveVoid()
@@ -118,6 +120,43 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	}
 
 	private LightweightTypeReference getCandidateType(
+			IEObjectDescription candidate,
+			IResolvedTypes resolvedTypes,
+			EObject context) {
+
+		EObject describedObject = candidate.getEObjectOrProxy();
+
+		if (describedObject instanceof XVariableDeclaration variable) {
+			LightweightTypeReference variableType =
+					getVariableDeclarationType(variable, resolvedTypes, context);
+			if (variableType != null) {
+				return variableType;
+			}
+		}
+
+		if (candidate instanceof IIdentifiableElementDescription identifiableDescription) {
+			JvmIdentifiableElement element = identifiableDescription.getElementOrProxy();
+
+			if (element instanceof XVariableDeclaration variable) {
+				LightweightTypeReference variableType =
+						getVariableDeclarationType(variable, resolvedTypes, context);
+				if (variableType != null) {
+					return variableType;
+				}
+			}
+
+			if (element != null) {
+				return getJvmIdentifiableElementType(element, resolvedTypes, context);
+			}
+		}
+
+		if (describedObject instanceof JvmIdentifiableElement element) {
+			return getJvmIdentifiableElementType(element, resolvedTypes, context);
+		}
+
+		return null;
+	}
+	private LightweightTypeReference getJvmIdentifiableElementType(
 			JvmIdentifiableElement element,
 			IResolvedTypes resolvedTypes,
 			EObject context) {
@@ -137,6 +176,32 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 
 		if (element instanceof JvmFormalParameter parameter) {
 			return toLightweightTypeReference(parameter.getParameterType(), context);
+		}
+
+		return null;
+	}
+
+	private LightweightTypeReference getVariableDeclarationType(
+			XVariableDeclaration variable,
+			IResolvedTypes resolvedTypes,
+			EObject context) {
+
+		LightweightTypeReference variableType =
+				resolvedTypes.getActualType((JvmIdentifiableElement) variable);
+		if (variableType != null && !variableType.isPrimitiveVoid()) {
+			return variableType;
+		}
+
+		if (variable.getType() != null) {
+			return toLightweightTypeReference(variable.getType(), context);
+		}
+
+		if (variable.getRight() != null) {
+			LightweightTypeReference rightType =
+					resolvedTypes.getActualType(variable.getRight());
+			if (rightType != null && !rightType.isPrimitiveVoid()) {
+				return rightType;
+			}
 		}
 
 		return null;
