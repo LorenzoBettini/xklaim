@@ -96,6 +96,8 @@ public class XklaimContentAssistTest extends AbstractContentAssistTest {
 				proc TestProc(Locality locality, PhysicalLocality physicalLocality, String physicalString) {
 					val filteredLocalityVar = logLoc("alocality")
 					val Locality filteredLocalityVar2 = logLoc("alocality")
+					var Locality filteredLocalityVarNull = null
+					var filteredLocalityVarNullWithoutType = null
 					{
 						val filteredLocalityVar3 = phyloc("alocality")
 						{
@@ -106,7 +108,22 @@ public class XklaimContentAssistTest extends AbstractContentAssistTest {
 				""").assertTextAtCursorPosition("<|>",
 					"filteredLocalityVar",
 					"filteredLocalityVar2",
-					"filteredLocalityVar3");
+					"filteredLocalityVar3",
+					"filteredLocalityVarNull",
+					"filteredLocalityVarNullWithoutType");
+	}
+
+	@Test
+	public void testLambdaParameterCompletion() throws Exception {
+		newBuilder().append("""
+				node TestNode [other -> phyloc("localhost:9999")] {
+					val localities = #[ self, phyloc("physicalLoc"), logloc("logicalLoc")]
+					localities.forEach[param1, param2|
+						out("Hello")@par<|>
+					]
+				}
+				""").assertTextAtCursorPosition("<|>",
+					"param1"); // param2 is not proposed because it is of type int
 	}
 
 	@Test
