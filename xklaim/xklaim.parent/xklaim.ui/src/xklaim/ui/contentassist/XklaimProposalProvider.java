@@ -35,8 +35,19 @@ import xklaim.xklaim.XklaimAbstractOperation;
 import xklaim.xklaim.XklaimPackage;
 
 /**
- * See https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#content-assist
- * on how to customize the content assistant.
+ * Custom content assist for XKlaim.
+ *
+ * The special case handled here is the locality part of an operation:
+ *
+ *     out(...)@<completion>
+ *
+ * In the grammar this is:
+ *
+ *     locality=XFeatureCall
+ *
+ * So we are not proposing arbitrary Xbase expressions here; we are filtering
+ * the normal Xbase feature-call proposals so that only features whose type is
+ * Locality, or a subtype of Locality, are proposed.
  */
 public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	@Inject
@@ -48,63 +59,159 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	@Inject
 	private CommonTypeComputationServices typeComputationServices;
 
+	/**
+	 * Xbase calls this method when completing the target of an XFeatureCall.
+	 *
+	 * For ordinary expressions, we delegate to the normal Xbase/XKlaim behavior.
+	 * For the special operation locality slot, we compute the same kind of
+	 * feature-scope proposals but filter them by type.
+	 */
 	@Override
-	public void completeXFeatureCall_Feature(EObject model, Assignment assignment, ContentAssistContext context,
+	public void completeXFeatureCall_Feature(
+			EObject model,
+			Assignment assignment,
+			ContentAssistContext context,
 			ICompletionProposalAcceptor acceptor) {
+
 		if (isLocalitySlot(model)) {
 			completeLocalityProposals(model, context, acceptor);
 			return;
 		}
+
 		super.completeXFeatureCall_Feature(model, assignment, context, acceptor);
 	}
 
-	protected void completeLocalityProposals(EObject model, ContentAssistContext context,
+	/**
+	 * Proposes only feature calls whose resulting type is Locality or a subtype.
+	 *
+	 * Examples that should survive the filter:
+	 *
+	 *     Locality locality
+	 *     PhysicalLocality physicalLocality
+	 *     val physicalLocalLoc = phyloc("foo")
+	 *     self
+	 *     phyloc(...)
+	 *
+	 * Examples that should be filtered out:
+	 *
+	 *     String physicalString
+	 *     methods returning String, int, void, etc.
+	 */
+	protected void completeLocalityProposals(
+			EObject model,
+			ContentAssistContext context,
 			ICompletionProposalAcceptor acceptor) {
+
 		if (!(model instanceof XExpression expression)) {
 			return;
 		}
-		JvmType localityType = typeReferences.findDeclaredType(Locality.class, context.getResource());
+
+		/*
+		 * Resolve the expected Java type once.
+		 *
+		 * We use TypeReferences instead of hard-coding the JvmType because this
+		 * keeps the lookup resource-aware and classpath-aware.
+		 */
+		JvmType localityType =
+				typeReferences.findDeclaredType(Locality.class, context.getResource());
+
 		if (localityType == null) {
 			return;
 		}
 
+		/*
+		 * Use a broader type-resolution context than just the incomplete feature
+		 * call itself.
+		 *
+		 * This is important for local variables declared earlier in the same block:
+		 *
+		 *     val physicalLocalLoc = phyloc("alocality")
+		 *     out("hello")@phys<|>
+		 *
+		 * Resolving only the incomplete feature call can miss or undercompute the
+		 * inferred type of preceding local declarations. Resolving the enclosing
+		 * block gives the type system enough context.
+		 */
 		EObject typeResolutionContext = getTypeResolutionContext(expression);
-		IResolvedTypes resolvedTypes = batchTypeResolver.resolveTypes(typeResolutionContext);
-		IExpressionScope expressionScope =
-				resolvedTypes.getExpressionScope(expression, IExpressionScope.Anchor.AFTER);
+		IResolvedTypes resolvedTypes =
+				batchTypeResolver.resolveTypes(typeResolutionContext);
 
+		/*
+		 * Ask Xbase for the expression scope at this feature-call position.
+		 *
+		 * The feature scope contains visible locals, parameters, fields, methods,
+		 * implicit receiver members, inherited members, etc.
+		 */
+		IExpressionScope expressionScope =
+				resolvedTypes.getExpressionScope(
+						expression,
+						IExpressionScope.Anchor.AFTER);
+
+		/*
+		 * This mirrors the normal Xbase feature-call proposal path, but adds our
+		 * own predicate:
+		 *
+		 *   1. Keep Xbase's own feature-description predicate.
+		 *   2. Additionally require the candidate's type to be assignable to Locality.
+		 */
 		getCrossReferenceProposalCreator().lookupCrossReference(
 				expressionScope.getFeatureScope(),
 				expression,
 				XbasePackage.Literals.XABSTRACT_FEATURE_CALL__FEATURE,
 				acceptor,
 				input -> getFeatureDescriptionPredicate(context).apply(input)
-						&& isLocalityCandidate(input, resolvedTypes, localityType, expression),
+						&& isLocalityCandidate(
+								input,
+								resolvedTypes,
+								localityType,
+								expression),
 				getProposalFactory(getFeatureCallRuleName(), context));
 	}
 
+	/**
+	 * Returns a type-resolution root that is large enough to include previous
+	 * local declarations in the same block.
+	 */
 	private EObject getTypeResolutionContext(XExpression expression) {
-		XBlockExpression block = EcoreUtil2.getContainerOfType(expression, XBlockExpression.class);
+		XBlockExpression block =
+				EcoreUtil2.getContainerOfType(expression, XBlockExpression.class);
+
 		return block != null ? block : expression;
 	}
 
 	/**
-	 * This also includes the case of empty locality after the '@' in an operation,
-	 * which is not a cross reference but should still be completed with locality
-	 * candidates. There's no need to walk the containment hierarchy because the
-	 * locality is a direct child of the operation, so we can just check if the
-	 * current model is either an operation or the locality slot of an operation.
-	 * 
-	 * @param model
-	 * @return
+	 * Detects whether the current completion happens in the locality part of an
+	 * XKlaim operation.
+	 *
+	 * There are two relevant cases:
+	 *
+	 *   1. Empty locality:
+	 *
+	 *          out("hello")@<|>
+	 *
+	 *      Here the current model can still be the operation itself.
+	 *
+	 *   2. Partially typed locality:
+	 *
+	 *          out("hello")@phys<|>
+	 *
+	 *      Here the current model is usually the XFeatureCall contained in the
+	 *      operation's locality feature.
+	 *
+	 * Since locality is a direct child of XklaimAbstractOperation, no containment
+	 * walk is needed.
 	 */
 	private boolean isLocalitySlot(EObject model) {
-		return model != null &&
-			(model instanceof XklaimAbstractOperation
-				|| XklaimPackage.Literals.XKLAIM_ABSTRACT_OPERATION__LOCALITY
-					.equals(model.eContainingFeature()));
+		return model != null
+				&& (model instanceof XklaimAbstractOperation
+						|| XklaimPackage.Literals.XKLAIM_ABSTRACT_OPERATION__LOCALITY
+								.equals(model.eContainingFeature()));
 	}
 
+	/**
+	 * True iff the proposal candidate denotes something whose type is Locality or
+	 * a subtype of Locality.
+	 */
 	private boolean isLocalityCandidate(
 			IEObjectDescription candidate,
 			IResolvedTypes resolvedTypes,
@@ -119,6 +226,19 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 				&& candidateType.isSubtypeOf(localityType);
 	}
 
+	/**
+	 * Computes the type denoted by a proposal candidate.
+	 *
+	 * This method deliberately looks at both:
+	 *
+	 *   - candidate.getEObjectOrProxy()
+	 *   - ((IIdentifiableElementDescription) candidate).getElementOrProxy()
+	 *
+	 * In Xbase scopes, those are not always the same useful object. In particular,
+	 * local variables may be visible through an IEObjectDescription where the
+	 * XVariableDeclaration is not obtained through the same path as fields or
+	 * operations.
+	 */
 	private LightweightTypeReference getCandidateType(
 			IEObjectDescription candidate,
 			IResolvedTypes resolvedTypes,
@@ -126,42 +246,84 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 
 		EObject describedObject = candidate.getEObjectOrProxy();
 
+		/*
+		 * Local variables:
+		 *
+		 *     val physicalLocalLoc = phyloc("alocality")
+		 *
+		 * A local variable declaration is special because the declaration as an
+		 * XExpression has type void, while the declaration as a JvmIdentifiableElement
+		 * has the inferred variable type.
+		 */
 		if (describedObject instanceof XVariableDeclaration variable) {
 			LightweightTypeReference variableType =
 					getVariableDeclarationType(variable, resolvedTypes, context);
+
 			if (variableType != null) {
 				return variableType;
 			}
 		}
 
+		/*
+		 * Most Xbase feature-scope descriptions implement
+		 * IIdentifiableElementDescription. This path covers fields, operations,
+		 * parameters, and sometimes local variables.
+		 */
 		if (candidate instanceof IIdentifiableElementDescription identifiableDescription) {
-			JvmIdentifiableElement element = identifiableDescription.getElementOrProxy();
+			JvmIdentifiableElement element =
+					identifiableDescription.getElementOrProxy();
 
 			if (element instanceof XVariableDeclaration variable) {
 				LightweightTypeReference variableType =
 						getVariableDeclarationType(variable, resolvedTypes, context);
+
 				if (variableType != null) {
 					return variableType;
 				}
 			}
 
 			if (element != null) {
-				return getJvmIdentifiableElementType(element, resolvedTypes, context);
+				return getJvmIdentifiableElementType(
+						element,
+						resolvedTypes,
+						context);
 			}
 		}
 
+		/*
+		 * Fallback for descriptions whose described object itself is a JVM
+		 * identifiable element.
+		 */
 		if (describedObject instanceof JvmIdentifiableElement element) {
-			return getJvmIdentifiableElementType(element, resolvedTypes, context);
+			return getJvmIdentifiableElementType(
+					element,
+					resolvedTypes,
+					context);
 		}
 
 		return null;
 	}
+
+	/**
+	 * Computes the type of normal JVM-identifiable candidates:
+	 *
+	 *   - fields
+	 *   - methods / operations
+	 *   - formal parameters
+	 *
+	 * The first attempt uses IResolvedTypes because that can include inferred and
+	 * context-sensitive type information. The structural fallbacks are useful in
+	 * content assist, where the current expression may be incomplete and the type
+	 * resolver may not have a type for every candidate.
+	 */
 	private LightweightTypeReference getJvmIdentifiableElementType(
 			JvmIdentifiableElement element,
 			IResolvedTypes resolvedTypes,
 			EObject context) {
 
-		LightweightTypeReference type = resolvedTypes.getActualType(element);
+		LightweightTypeReference type =
+				resolvedTypes.getActualType(element);
+
 		if (type != null) {
 			return type;
 		}
@@ -181,24 +343,59 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 		return null;
 	}
 
+	/**
+	 * Computes the denoted type of a local Xbase val/var declaration.
+	 *
+	 * Important distinction:
+	 *
+	 *     resolvedTypes.getActualType((XExpression) variable)
+	 *
+	 * is usually void, because a variable declaration statement does not evaluate
+	 * to the variable value.
+	 *
+	 * But:
+	 *
+	 *     resolvedTypes.getActualType((JvmIdentifiableElement) variable)
+	 *
+	 * is the actual inferred or declared type of the variable itself.
+	 */
 	private LightweightTypeReference getVariableDeclarationType(
 			XVariableDeclaration variable,
 			IResolvedTypes resolvedTypes,
 			EObject context) {
 
+		/*
+		 * Best case: Xbase already knows the type of the variable as an identifiable
+		 * element. This is what handles inferred locals like:
+		 *
+		 *     val physicalLocalLoc = phyloc("alocality")
+		 */
 		LightweightTypeReference variableType =
 				resolvedTypes.getActualType((JvmIdentifiableElement) variable);
+
 		if (variableType != null && !variableType.isPrimitiveVoid()) {
 			return variableType;
 		}
 
+		/*
+		 * Explicit local variable type:
+		 *
+		 *     val Locality l = ...
+		 */
 		if (variable.getType() != null) {
 			return toLightweightTypeReference(variable.getType(), context);
 		}
 
+		/*
+		 * Last fallback: infer from the right-hand side expression.
+		 *
+		 * This is less precise than the identifiable-element type above, but useful
+		 * when the declaration itself has no resolved identifiable type yet.
+		 */
 		if (variable.getRight() != null) {
 			LightweightTypeReference rightType =
 					resolvedTypes.getActualType(variable.getRight());
+
 			if (rightType != null && !rightType.isPrimitiveVoid()) {
 				return rightType;
 			}
@@ -207,6 +404,10 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 		return null;
 	}
 
+	/**
+	 * Converts a JvmTypeReference from the JVM model to a LightweightTypeReference
+	 * so it can be compared with isSubtypeOf(...).
+	 */
 	private LightweightTypeReference toLightweightTypeReference(
 			JvmTypeReference typeReference,
 			EObject context) {
