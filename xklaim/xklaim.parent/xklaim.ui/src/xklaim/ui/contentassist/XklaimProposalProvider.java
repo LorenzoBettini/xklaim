@@ -37,17 +37,21 @@ import xklaim.xklaim.XklaimPackage;
 /**
  * Custom content assist for XKlaim.
  *
- * The special case handled here is the locality part of an operation:
+ * <p>The special case handled here is the locality part of an operation:</p>
  *
- *     out(...)@<completion>
+ * <pre>{@code
+ * out(...)@<completion>
+ * }</pre>
  *
- * In the grammar this is:
+ * <p>In the grammar this is:</p>
  *
- *     locality=XFeatureCall
+ * <pre>{@code
+ * locality=XFeatureCall
+ * }</pre>
  *
- * So we are not proposing arbitrary Xbase expressions here; we are filtering
+ * <p>So we are not proposing arbitrary Xbase expressions here. We are filtering
  * the normal Xbase feature-call proposals so that only features whose type is
- * Locality, or a subtype of Locality, are proposed.
+ * {@code Locality}, or a subtype of {@code Locality}, are proposed.</p>
  */
 public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	@Inject
@@ -60,11 +64,11 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	private CommonTypeComputationServices typeComputationServices;
 
 	/**
-	 * Xbase calls this method when completing the target of an XFeatureCall.
+	 * Completes the target of an {@code XFeatureCall}.
 	 *
-	 * For ordinary expressions, we delegate to the normal Xbase/XKlaim behavior.
-	 * For the special operation locality slot, we compute the same kind of
-	 * feature-scope proposals but filter them by type.
+	 * <p>For ordinary expressions, this delegates to the normal Xbase/XKlaim
+	 * behavior. For the special operation locality slot, this computes the same
+	 * kind of feature-scope proposals but filters them by type.</p>
 	 */
 	@Override
 	public void completeXFeatureCall_Feature(
@@ -82,20 +86,25 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	}
 
 	/**
-	 * Proposes only feature calls whose resulting type is Locality or a subtype.
+	 * Proposes only feature calls whose resulting type is {@code Locality} or a
+	 * subtype of {@code Locality}.
 	 *
-	 * Examples that should survive the filter:
+	 * <p>Examples that should survive the filter:</p>
 	 *
-	 *     Locality locality
-	 *     PhysicalLocality physicalLocality
-	 *     val physicalLocalLoc = phyloc("foo")
-	 *     self
-	 *     phyloc(...)
+	 * <pre>{@code
+	 * Locality locality
+	 * PhysicalLocality physicalLocality
+	 * val physicalLocalLoc = phyloc("foo")
+	 * self
+	 * phyloc(...)
+	 * }</pre>
 	 *
-	 * Examples that should be filtered out:
+	 * <p>Examples that should be filtered out:</p>
 	 *
-	 *     String physicalString
-	 *     methods returning String, int, void, etc.
+	 * <pre>{@code
+	 * String physicalString
+	 * methods returning String, int, void, etc.
+	 * }</pre>
 	 */
 	protected void completeLocalityProposals(
 			EObject model,
@@ -183,23 +192,28 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	 * Detects whether the current completion happens in the locality part of an
 	 * XKlaim operation.
 	 *
-	 * There are two relevant cases:
+	 * <p>There are two relevant cases:</p>
 	 *
-	 *   1. Empty locality:
+	 * <ol>
+	 *   <li>
+	 *     Empty locality:
+	 *     <pre>{@code
+	 * out("hello")@<|>
+	 *     }</pre>
+	 *     Here the current model can still be the operation itself.
+	 *   </li>
+	 *   <li>
+	 *     Partially typed locality:
+	 *     <pre>{@code
+	 * out("hello")@phys<|>
+	 *     }</pre>
+	 *     Here the current model is usually the {@code XFeatureCall} contained in
+	 *     the operation's {@code locality} feature.
+	 *   </li>
+	 * </ol>
 	 *
-	 *          out("hello")@<|>
-	 *
-	 *      Here the current model can still be the operation itself.
-	 *
-	 *   2. Partially typed locality:
-	 *
-	 *          out("hello")@phys<|>
-	 *
-	 *      Here the current model is usually the XFeatureCall contained in the
-	 *      operation's locality feature.
-	 *
-	 * Since locality is a direct child of XklaimAbstractOperation, no containment
-	 * walk is needed.
+	 * <p>Since {@code locality} is a direct child of
+	 * {@code XklaimAbstractOperation}, no containment walk is needed.</p>
 	 */
 	private boolean isLocalitySlot(EObject model) {
 		return model != null
@@ -209,8 +223,8 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	}
 
 	/**
-	 * True iff the proposal candidate denotes something whose type is Locality or
-	 * a subtype of Locality.
+	 * Returns {@code true} if the proposal candidate denotes something whose type
+	 * is {@code Locality} or a subtype of {@code Locality}.
 	 */
 	private boolean isLocalityCandidate(
 			IEObjectDescription candidate,
@@ -229,15 +243,19 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	/**
 	 * Computes the type denoted by a proposal candidate.
 	 *
-	 * This method deliberately looks at both:
+	 * <p>This method deliberately looks at both:</p>
 	 *
-	 *   - candidate.getEObjectOrProxy()
-	 *   - ((IIdentifiableElementDescription) candidate).getElementOrProxy()
+	 * <ul>
+	 *   <li>{@code candidate.getEObjectOrProxy()}</li>
+	 *   <li>
+	 *     {@code ((IIdentifiableElementDescription) candidate).getElementOrProxy()}
+	 *   </li>
+	 * </ul>
 	 *
-	 * In Xbase scopes, those are not always the same useful object. In particular,
-	 * local variables may be visible through an IEObjectDescription where the
-	 * XVariableDeclaration is not obtained through the same path as fields or
-	 * operations.
+	 * <p>In Xbase scopes, those are not always the same useful object. In
+	 * particular, local variables may be visible through an
+	 * {@code IEObjectDescription} where the {@code XVariableDeclaration} is not
+	 * obtained through the same path as fields or operations.</p>
 	 */
 	private LightweightTypeReference getCandidateType(
 			IEObjectDescription candidate,
@@ -305,16 +323,20 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	}
 
 	/**
-	 * Computes the type of normal JVM-identifiable candidates:
+	 * Computes the type of normal JVM-identifiable candidates.
 	 *
-	 *   - fields
-	 *   - methods / operations
-	 *   - formal parameters
+	 * <p>This covers:</p>
 	 *
-	 * The first attempt uses IResolvedTypes because that can include inferred and
-	 * context-sensitive type information. The structural fallbacks are useful in
-	 * content assist, where the current expression may be incomplete and the type
-	 * resolver may not have a type for every candidate.
+	 * <ul>
+	 *   <li>fields</li>
+	 *   <li>methods / operations</li>
+	 *   <li>formal parameters</li>
+	 * </ul>
+	 *
+	 * <p>The first attempt uses {@code IResolvedTypes} because that can include
+	 * inferred and context-sensitive type information. The structural fallbacks
+	 * are useful in content assist, where the current expression may be
+	 * incomplete and the type resolver may not have a type for every candidate.</p>
 	 */
 	private LightweightTypeReference getJvmIdentifiableElementType(
 			JvmIdentifiableElement element,
@@ -344,20 +366,25 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	}
 
 	/**
-	 * Computes the denoted type of a local Xbase val/var declaration.
+	 * Computes the denoted type of a local Xbase {@code val} or {@code var}
+	 * declaration.
 	 *
-	 * Important distinction:
+	 * <p>Important distinction:</p>
 	 *
-	 *     resolvedTypes.getActualType((XExpression) variable)
+	 * <pre>{@code
+	 * resolvedTypes.getActualType((XExpression) variable)
+	 * }</pre>
 	 *
-	 * is usually void, because a variable declaration statement does not evaluate
-	 * to the variable value.
+	 * <p>is usually {@code void}, because a variable declaration statement does
+	 * not evaluate to the variable value.</p>
 	 *
-	 * But:
+	 * <p>But:</p>
 	 *
-	 *     resolvedTypes.getActualType((JvmIdentifiableElement) variable)
+	 * <pre>{@code
+	 * resolvedTypes.getActualType((JvmIdentifiableElement) variable)
+	 * }</pre>
 	 *
-	 * is the actual inferred or declared type of the variable itself.
+	 * <p>is the actual inferred or declared type of the variable itself.</p>
 	 */
 	private LightweightTypeReference getVariableDeclarationType(
 			XVariableDeclaration variable,
@@ -405,8 +432,9 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	}
 
 	/**
-	 * Converts a JvmTypeReference from the JVM model to a LightweightTypeReference
-	 * so it can be compared with isSubtypeOf(...).
+	 * Converts a {@code JvmTypeReference} from the JVM model to a
+	 * {@code LightweightTypeReference} so it can be compared with
+	 * {@code isSubtypeOf(...)}.
 	 */
 	private LightweightTypeReference toLightweightTypeReference(
 			JvmTypeReference typeReference,
