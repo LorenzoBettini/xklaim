@@ -72,6 +72,22 @@ public class XklaimContentAssistTest extends AbstractContentAssistTest {
 	}
 
 	@Test
+	public void testLocalityCompletionDoesNotIncludeNonLocalityLocalVariable() throws Exception {
+		newBuilder().append("""
+				import klava.Locality
+				import klava.PhysicalLocality
+
+				proc TestProc(Locality locality, PhysicalLocality physicalLocality) {
+					val physicalLocalLoc = phyloc("alocality")
+					val physicalString = "not a locality"
+					out("hello")@phys<|>
+				}
+				""").assertTextAtCursorPosition("<|>",
+					"physicalLocalLoc",
+					"physicalLocality");
+	}
+
+	@Test
 	public void testLocalityCompletionIncludesSelfWithPrefix() throws Exception {
 		newBuilder().append("""
 				proc TestProc(String string) {
