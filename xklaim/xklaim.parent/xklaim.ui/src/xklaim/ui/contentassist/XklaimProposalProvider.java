@@ -5,7 +5,6 @@ package xklaim.ui.contentassist;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.Assignment;
-import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.common.types.JvmField;
 import org.eclipse.xtext.common.types.JvmFormalParameter;
 import org.eclipse.xtext.common.types.JvmIdentifiableElement;
@@ -16,7 +15,6 @@ import org.eclipse.xtext.common.types.util.TypeReferences;
 import org.eclipse.xtext.resource.IEObjectDescription;
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext;
 import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor;
-import org.eclipse.xtext.xbase.XBlockExpression;
 import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.XVariableDeclaration;
 import org.eclipse.xtext.xbase.XbasePackage;
@@ -129,21 +127,14 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 		}
 
 		/*
-		 * Use a broader type-resolution context than just the incomplete feature
-		 * call itself.
+		 * Resolve types for the current feature-call context.
 		 *
-		 * This is important for local variables declared earlier in the same block:
-		 *
-		 *     val physicalLocalLoc = phyloc("alocality")
-		 *     out("hello")@phys<|>
-		 *
-		 * Resolving only the incomplete feature call can miss or undercompute the
-		 * inferred type of preceding local declarations. Resolving the enclosing
-		 * block gives the type system enough context.
+		 * Even though the current expression is incomplete, Xbase still provides enough
+		 * resolved type information for visible parameters, fields, methods, and local
+		 * variable declarations that are in scope at this position.
 		 */
-		EObject typeResolutionContext = getTypeResolutionContext(expression);
 		IResolvedTypes resolvedTypes =
-				batchTypeResolver.resolveTypes(typeResolutionContext);
+				batchTypeResolver.resolveTypes(expression);
 
 		/*
 		 * Ask Xbase for the expression scope at this feature-call position.
@@ -177,16 +168,6 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 				getProposalFactory(getFeatureCallRuleName(), context));
 	}
 
-	/**
-	 * Returns a type-resolution root that is large enough to include previous
-	 * local declarations in the same block.
-	 */
-	private EObject getTypeResolutionContext(XExpression expression) {
-		XBlockExpression block =
-				EcoreUtil2.getContainerOfType(expression, XBlockExpression.class);
-
-		return block != null ? block : expression;
-	}
 
 	/**
 	 * Detects whether the current completion happens in the locality part of an
