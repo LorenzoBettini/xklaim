@@ -1,7 +1,7 @@
 package xklaim.example.mobility.sender;
 
 @SuppressWarnings("all")
-public class CodeMobilitySender {
+public class CodeMobilitySenderMain {
   public static void main(final String[] args) throws Exception {
     Sender sender = new Sender();
     sender.setupEnvironment();
