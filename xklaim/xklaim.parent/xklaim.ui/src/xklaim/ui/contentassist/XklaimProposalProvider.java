@@ -256,7 +256,7 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 		 */
 		if (describedObject instanceof XVariableDeclaration variable) {
 			LightweightTypeReference variableType =
-					getVariableDeclarationType(variable, resolvedTypes, context);
+					getVariableDeclarationType(variable, resolvedTypes);
 
 			if (variableType != null) {
 				return variableType;
@@ -274,7 +274,7 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 
 			if (element instanceof XVariableDeclaration variable) {
 				LightweightTypeReference variableType =
-						getVariableDeclarationType(variable, resolvedTypes, context);
+						getVariableDeclarationType(variable, resolvedTypes);
 
 				if (variableType != null) {
 					return variableType;
@@ -349,67 +349,17 @@ public class XklaimProposalProvider extends AbstractXklaimProposalProvider {
 	/**
 	 * Computes the denoted type of a local Xbase {@code val} or {@code var}
 	 * declaration.
-	 *
-	 * <p>Important distinction:</p>
-	 *
-	 * <pre>{@code
-	 * resolvedTypes.getActualType((XExpression) variable)
-	 * }</pre>
-	 *
-	 * <p>is usually {@code void}, because a variable declaration statement does
-	 * not evaluate to the variable value.</p>
-	 *
-	 * <p>But:</p>
-	 *
-	 * <pre>{@code
-	 * resolvedTypes.getActualType((JvmIdentifiableElement) variable)
-	 * }</pre>
-	 *
-	 * <p>is the actual inferred or declared type of the variable itself.</p>
 	 */
 	private LightweightTypeReference getVariableDeclarationType(
 			XVariableDeclaration variable,
-			IResolvedTypes resolvedTypes,
-			EObject context) {
+			IResolvedTypes resolvedTypes) {
 
-		/*
-		 * Best case: Xbase already knows the type of the variable as an identifiable
-		 * element. This is what handles inferred locals like:
-		 *
-		 *     val physicalLocalLoc = phyloc("alocality")
-		 */
 		LightweightTypeReference variableType =
 				resolvedTypes.getActualType((JvmIdentifiableElement) variable);
 
-		if (variableType != null && !variableType.isPrimitiveVoid()) {
-			return variableType;
-		}
-
-		/*
-		 * Explicit local variable type:
-		 *
-		 *     val Locality l = ...
-		 */
-		if (variable.getType() != null) {
-			return toLightweightTypeReference(variable.getType(), context);
-		}
-
-		/*
-		 * Last fallback: infer from the right-hand side expression.
-		 *
-		 * This is less precise than the identifiable-element type above, but useful
-		 * when the declaration itself has no resolved identifiable type yet.
-		 */
-		if (variable.getRight() != null) {
-			LightweightTypeReference rightType =
-					resolvedTypes.getActualType(variable.getRight());
-
-			if (rightType != null && !rightType.isPrimitiveVoid()) {
-				return rightType;
-			}
-		}
-
-		return null;
+		return variableType != null && !variableType.isPrimitiveVoid()
+				? variableType
+				: null;
 	}
 
 	/**
