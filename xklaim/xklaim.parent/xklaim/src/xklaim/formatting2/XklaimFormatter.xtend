@@ -10,6 +10,7 @@ import xklaim.xklaim.XklaimInlineProcess
 import xklaim.xklaim.XklaimModel
 import xklaim.xklaim.XklaimNet
 import xklaim.xklaim.XklaimOrOperation
+import xklaim.xklaim.XklaimProcess
 
 class XklaimFormatter extends XbaseWithAnnotationsFormatter {
 	
@@ -23,6 +24,19 @@ class XklaimFormatter extends XbaseWithAnnotationsFormatter {
 		}
 		for (xklaimNet : xklaimModel.nets) {
 			xklaimNet.format
+		}
+	}
+
+	def dispatch void format(XklaimProcess p, extension IFormattableDocument document) {
+		val expr = p.processBody
+		if (expr !== null) {
+			val open = expr.regionFor.keyword("{")
+			val close = expr.regionFor.keyword("}")
+			if (expr.eContainer === null)
+				expr.surround[noSpace]
+			if (open !== null && close !== null) {
+				formatExpressionsMultiline(expr.body.expressions, open, close, document)
+			}
 		}
 	}
 

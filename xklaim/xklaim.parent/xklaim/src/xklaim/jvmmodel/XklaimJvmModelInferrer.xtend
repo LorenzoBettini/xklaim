@@ -270,7 +270,10 @@ class XklaimJvmModelInferrer extends AbstractModelInferrer {
 			]
 			members += process.toMethod("executeProcess", typeRef(Void.TYPE)) [
 				addOverrideAnnotation()
-				body = process.body
+				val processBody = process.processBody
+				if (processBody !== null) {
+					body = processBody.body
+				}
 			]
 		]
 	}

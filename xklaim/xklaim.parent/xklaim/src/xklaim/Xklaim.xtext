@@ -47,7 +47,19 @@ XklaimAbstractNode: XklaimNode | XklaimNetNode;
 XklaimProcess:
 	'proc' name=ValidID
 	'(' (params+=FullJvmFormalParameter (',' params+=FullJvmFormalParameter)*)? ')' (':' type=JvmTypeReference)? 
-	body=XBlockExpression
+	processBody=XklaimProcessBody
+;
+
+XklaimProcessBody:
+	{XklaimProcessBody}
+	"{"
+		body=XklaimProcessBodyBlock
+	"}"
+;
+
+XklaimProcessBodyBlock returns xbase::XBlockExpression:
+	{xbase::XBlockExpression}
+	(expressions+=XExpressionOrVarDeclaration ';'?)*
 ;
 
 // redefine Xbase primary expression with our special expressions
