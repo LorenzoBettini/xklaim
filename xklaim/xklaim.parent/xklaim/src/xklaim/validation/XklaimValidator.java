@@ -4,6 +4,7 @@
 package xklaim.validation;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.xtext.common.types.JvmPrimitiveType;
 import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.validation.ValidationMessageAcceptor;
 import org.eclipse.xtext.xbase.XBasicForLoopExpression;
@@ -34,6 +35,7 @@ public class XklaimValidator extends AbstractXklaimValidator {
 	public static final String PREFIX = "xklaim.";
 
 	public static final String WRONG_FORMAL_INITIALIZATION = XklaimValidator.PREFIX + "WrongFormalInitialization";
+	public static final String INVALID_PRIMITIVE_FORMAL_TYPE = XklaimValidator.PREFIX + "InvalidPrimitiveFormalType";
 	public static final String INVALID_FINAL_FORMAL = XklaimValidator.PREFIX + "InvalidFinalFormal";
 	public static final String OR_MUST_HAVE_AT_LEAST_TWO_PROCESSES = XklaimValidator.PREFIX + "OrMustHaveAtLeastTwoProcesses";
 	public static final String OR_PROCESS_FIRST_OPERATION_MUST_BE_RETRIEVAL = XklaimValidator.PREFIX + "OrProcessFirstOperationMustBeRetrieval";
@@ -73,6 +75,11 @@ public class XklaimValidator extends AbstractXklaimValidator {
 				error("Type must be specified", XbasePackage.Literals.XVARIABLE_DECLARATION__NAME,
 						ValidationMessageAcceptor.INSIGNIFICANT_INDEX,
 						IssueCodes.MISSING_TYPE);
+			} else if (declaration.getType().getType() instanceof JvmPrimitiveType) {
+				error("Formal field type must not be primitive",
+						XbasePackage.Literals.XVARIABLE_DECLARATION__TYPE,
+						ValidationMessageAcceptor.INSIGNIFICANT_INDEX,
+						XklaimValidator.INVALID_PRIMITIVE_FORMAL_TYPE);
 			}
 		} else {
 			super.checkVariableDeclaration(declaration);

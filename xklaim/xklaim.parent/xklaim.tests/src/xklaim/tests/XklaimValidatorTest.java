@@ -121,6 +121,17 @@ public class XklaimValidatorTest {
 	}
 
 	@Test
+	public void testFormalTupleFieldCannotUsePrimitiveType() throws Exception {
+		assertErrorsAsStrings(parseHelper.parse("""
+				package foo
+				proc TestProcess(String s) {
+					in(var int i, s)@self
+				}
+				"""),
+				"Formal field type must not be primitive");
+	}
+
+	@Test
 	public void testNonBlockingOperationAsStatement() throws Exception {
 		validationTestHelper.assertNoIssues(parseHelper.parse("""
 				package foo
