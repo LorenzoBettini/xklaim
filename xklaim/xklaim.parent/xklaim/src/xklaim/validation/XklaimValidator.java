@@ -5,6 +5,7 @@ package xklaim.validation;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.common.types.JvmPrimitiveType;
+import org.eclipse.xtext.common.types.JvmTypeReference;
 import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.validation.ValidationMessageAcceptor;
 import org.eclipse.xtext.xbase.XBasicForLoopExpression;
@@ -71,11 +72,12 @@ public class XklaimValidator extends AbstractXklaimValidator {
 						ValidationMessageAcceptor.INSIGNIFICANT_INDEX,
 						XklaimValidator.WRONG_FORMAL_INITIALIZATION);
 			}
-			if (declaration.getType() == null) {
+			JvmTypeReference declarationType = declaration.getType();
+			if (declarationType == null) {
 				error("Type must be specified", XbasePackage.Literals.XVARIABLE_DECLARATION__NAME,
 						ValidationMessageAcceptor.INSIGNIFICANT_INDEX,
 						IssueCodes.MISSING_TYPE);
-			} else if (declaration.getType().getType() instanceof JvmPrimitiveType) {
+			} else if (declarationType.getType() instanceof JvmPrimitiveType) {
 				error("Formal field type must not be primitive",
 						XbasePackage.Literals.XVARIABLE_DECLARATION__TYPE,
 						ValidationMessageAcceptor.INSIGNIFICANT_INDEX,
