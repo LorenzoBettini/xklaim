@@ -309,17 +309,15 @@ public class MessageState extends ProtocolStateSimple {
     }
 
     /**
-     * Prints the session into the standard error. This is useful for printing
+     * Logs the session as DEBUG level. This is useful for debugging
      * errors and to see who's printing an error.
      */
     protected void printSession() {
         try {
-            System.err.print(getProtocolStack().getSession().toString() + ": ");
-        } catch (NullPointerException e) {
+            LOGGER.debug("session: {}", getProtocolStack().getSession());
+        } catch (NullPointerException | ProtocolException e) {
             /* we print nothing in this case */
-        } catch (ProtocolException e) {
-            /* we print nothing in this case */
-        }
+        } 
     }
 
     /**
