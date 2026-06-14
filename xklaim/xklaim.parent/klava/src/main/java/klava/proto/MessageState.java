@@ -225,11 +225,10 @@ public class MessageState extends ProtocolStateSimple {
             messageStateSwitch
                     .enter(null, new TransmissionChannel(unMarshaler));
         } catch (ProtocolException e) {
-            printSession();
             if (ProtocolExceptionUtils.isCausedByConnectionClose(e)) {
-                LOGGER.debug("connection closed in message state");
+                LOGGER.debug("connection closed in message state, session: {}", getSessionString());
             } else {
-                LOGGER.error("protocol error in message state", e);
+                LOGGER.error("protocol error in message state, session: " + getSessionString(), e);
             }
             lostConnection();
             throw e;
@@ -312,11 +311,11 @@ public class MessageState extends ProtocolStateSimple {
      * Logs the session as DEBUG level. This is useful for debugging
      * errors and to see who's printing an error.
      */
-    protected void printSession() {
+    protected String getSessionString() {
         try {
-            LOGGER.debug("session: {}", getProtocolStack().getSession());
+            return getProtocolStack().getSession().toString();
         } catch (NullPointerException | ProtocolException e) {
-            /* we print nothing in this case */
+            return "no session";
         } 
     }
 
