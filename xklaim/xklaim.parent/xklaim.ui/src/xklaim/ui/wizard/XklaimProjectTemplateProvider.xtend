@@ -90,16 +90,22 @@ final class HelloWorldProject {
 				}
 			''')
 			addFile('''src/simplelogger.properties''', '''
+				# Recommended: disable logging for the topology package, which is very verbose
+				#org.slf4j.simpleLogger.log.org.mikado.imc.topology=off
+				
 				# Uncomment to enable DEBUG for all Klava/XKlaim loggers
-				# org.slf4j.simpleLogger.log.klava=debug
-				# org.slf4j.simpleLogger.log.xklaim=debug
+				#org.slf4j.simpleLogger.log.klava=debug
+				#org.slf4j.simpleLogger.log.xklaim=debug
 				
 				# Alternatively, enable DEBUG globally (more verbose):
-				# org.slf4j.simpleLogger.defaultLogLevel=debug
+				#org.slf4j.simpleLogger.defaultLogLevel=debug
+				
+				# Disable logging globally (not recommended):
+				#org.slf4j.simpleLogger.defaultLogLevel=off
 				
 				# Recommended: include the timestamp in log output
-				# org.slf4j.simpleLogger.showDateTime=true
-				# org.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS
+				#org.slf4j.simpleLogger.showDateTime=true
+				#org.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS
 			''')
 			if (generateTest.value) {
 				addFile('''tests/«path»/HelloTest.java''', '''

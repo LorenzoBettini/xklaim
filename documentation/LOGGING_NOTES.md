@@ -122,12 +122,18 @@ Place a file named `simplelogger.properties` in `src/main/resources/` (or in any
 source folder that ends up on the classpath):
 
 ```properties
+# Recommended: disable logging for the topology package, which is very verbose
+#org.slf4j.simpleLogger.log.org.mikado.imc.topology=off
+
 # Enable DEBUG for all Klava/XKlaim loggers
 org.slf4j.simpleLogger.log.klava=debug
 org.slf4j.simpleLogger.log.xklaim=debug
 
 # Alternatively, enable DEBUG globally (more verbose):
-# org.slf4j.simpleLogger.defaultLogLevel=debug
+# org.slf4j.simpleLogger.defaultLogLevel=
+
+# Disable logging globally (not recommended):
+#org.slf4j.simpleLogger.defaultLogLevel=off
 
 # Recommended: include the timestamp in log output
 org.slf4j.simpleLogger.showDateTime=true
