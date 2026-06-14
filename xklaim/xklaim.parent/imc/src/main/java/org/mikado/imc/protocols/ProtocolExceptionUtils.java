@@ -35,8 +35,8 @@ public class ProtocolExceptionUtils {
             if (t instanceof SocketException
                     && "Socket closed".equals(t.getMessage()))
                 return true;
-            if (t instanceof ProtocolException) {
-                t = ((ProtocolException) t).represents();
+            if (t instanceof ProtocolException protocolException) {
+                t = protocolException.represents();
             } else {
                 t = t.getCause();
             }
