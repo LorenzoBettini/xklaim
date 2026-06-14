@@ -308,8 +308,10 @@ public class MessageState extends ProtocolStateSimple {
     }
 
     /**
-     * Logs the session as DEBUG level. This is useful for debugging
-     * errors and to see who's printing an error.
+     * Returns a string representation of the session, or "no session" if there is
+     * no session or if an error occurs while trying to access it.
+     * 
+     * @return
      */
     protected String getSessionString() {
         try {
