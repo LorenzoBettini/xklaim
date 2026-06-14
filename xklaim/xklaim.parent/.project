@@ -25,5 +25,10 @@
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/README.md</locationURI>
 		</link>
+		<link>
+			<name>documentation</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/documentation</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>
