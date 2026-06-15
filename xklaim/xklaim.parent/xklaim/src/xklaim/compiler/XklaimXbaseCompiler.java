@@ -114,7 +114,12 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		if (hasFormalFields) {
 			appendable.append(tupleName);
 		} else {
-			compileNewTuple(appendable, arguments);
+			// Check if there's a single argument that is already a Tuple
+			if (arguments.size() == 1 && isArgumentAlreadyTuple(arguments.get(0))) {
+				internalToJavaExpression(arguments.get(0), appendable);
+			} else {
+				compileNewTuple(appendable, arguments);
+			}
 		}
 		appendable.append(", ");
 		internalToJavaExpression(e.getLocality(), appendable);
@@ -423,6 +428,23 @@ public class XklaimXbaseCompiler extends XbaseCompiler {
 		});
 		appendable.append("})");
 		return appendable;
+	}
+
+	/**
+	 * Checks if an expression's type is already a Tuple, so we can use it directly
+	 * without wrapping it in another Tuple.
+	 * 
+	 * @param expression the expression to check
+	 * @return true if the expression is of type Tuple or a subtype of Tuple
+	 */
+	private boolean isArgumentAlreadyTuple(final XExpression expression) {
+		try {
+			final var type = getLightweightType(expression);
+			return type.isSubtypeOf(Tuple.class);
+		} catch (final Exception e) {
+			// If we can't determine the type, assume it's not a Tuple
+			return false;
+		}
 	}
 
 	private ITreeAppendable precompileVariableDeclarationsForFormalFields(final XExpression e,

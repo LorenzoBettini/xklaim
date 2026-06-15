@@ -1426,6 +1426,40 @@ public class XklaimCompilerTest {
 				""");
 	}
 
+	@Test
+	public void testXklaimOperationWithTupleArgument() throws Exception {
+		checkCompilation("""
+				package foo
+				proc TestProcess() {
+					val t = new Tuple("test")
+					in(t)@self
+					out(t)@self
+					read(t)@self
+				}
+				""",
+				"""
+				package foo;
+
+				import klava.Tuple;
+				import klava.topology.KlavaProcess;
+
+				@SuppressWarnings("all")
+				public class TestProcess extends KlavaProcess {
+				  public TestProcess() {
+				   \s
+				  }
+
+				  @Override
+				  public void executeProcess() {
+				    final Tuple t = new Tuple("test");
+				    in(t, this.self);
+				    out(t, this.self);
+				    read(t, this.self);
+				  }
+				}
+				""");
+	}
+
 	private void checkCompilation(CharSequence input, CharSequence expectedGeneratedJava) throws Exception {
 		checkCompilation(input, expectedGeneratedJava, true);
 	}
