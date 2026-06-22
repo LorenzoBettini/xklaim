@@ -53,7 +53,6 @@
   </issueManagement>
 
   <properties>
-    <central-publishing-maven-plugin-version>0.11.0</central-publishing-maven-plugin-version>
     <eclipse-version>2026-03</eclipse-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>21</maven.compiler.source>
