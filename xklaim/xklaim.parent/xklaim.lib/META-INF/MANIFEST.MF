@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: xklaim.lib
 Bundle-SymbolicName: xklaim.lib
-Bundle-Version: 2.5.1.qualifier
+Bundle-Version: 2.5.2.qualifier
 Bundle-Vendor: Lorenzo Bettini
 Automatic-Module-Name: xklaim.lib
 Bundle-RequiredExecutionEnvironment: JavaSE-21
