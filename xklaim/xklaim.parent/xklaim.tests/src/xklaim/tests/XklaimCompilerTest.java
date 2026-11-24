@@ -1410,6 +1410,34 @@ public class XklaimCompilerTest {
 	}
 
 	@Test
+	public void testXklaimOrWithTimedFallbackOperations() throws Exception {
+		compilationTestHelper.compile("""
+				package foo
+				proc TestProcess() {
+					or(
+						proc {
+							if (in("first")@self within 1000) {
+								println("first won")
+							} else if (read("second")@self within 2000) {
+								println("second won")
+							} else {
+								out("fallback")@self
+								println("fallback won")
+							}
+						},
+						proc {
+							in("alternative")@self
+							println("alternative won")
+						}
+					)
+				}
+				""", result -> {
+			assertNoValidationErrors(result);
+			assertGeneratedJavaCodeCompiles(result);
+		});
+	}
+
+	@Test
 	public void testXklaimInlineProcessWithSneakyThrow() throws Exception {
 		checkCompilation("""
 				package foo
