@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import junit.framework.TestCase;
 import klava.KString;
 import klava.KlavaException;
+import klava.LogicalLocality;
 import klava.Tuple;
 import klava.topology.KlavaNode;
 import klava.topology.KlavaOrProcess;
@@ -22,9 +23,8 @@ import klava.topology.KlavaProcess;
  * the orchestrator terminates (detected via {@link Thread#join()}), the test
  * inspects the recorded state of each process.</p>
  *
- * <p>The mutual exclusion assumption for guard operations is honoured in all
- * tests: only the tuple required by the winning process is inserted into the
- * tuple space before the OR is started.</p>
+ * <p>Retrieval guard tests generally provide only the winner's tuple before
+ * starting the OR. The non-retrieval tests also exercise competing guards.</p>
  */
 public class KlavaOrProcessTest extends TestCase {
 
@@ -242,9 +242,240 @@ public class KlavaOrProcessTest extends TestCase {
         }
     }
 
+    private static class ChildProcess extends KlavaProcess {
+        private static final long serialVersionUID = 1L;
+        private volatile boolean executed;
+
+        @Override
+        public void executeProcess() {
+            executed = true;
+        }
+    }
+
+    private static class OperationGuardProcess extends KlavaOrProcess {
+        private static final long serialVersionUID = 1L;
+        private final String operation;
+        private final ChildProcess child = new ChildProcess();
+        private final CountDownLatch ready;
+        private volatile boolean completed;
+        private volatile boolean rejected;
+
+        OperationGuardProcess(String operation, CountDownLatch ready) {
+            this.operation = operation;
+            this.ready = ready;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            if (ready != null) {
+                ready.countDown();
+                try {
+                    new CountDownLatch(1).await();
+                } catch (InterruptedException e) {
+                    // The winning guard releases us; attempt the operation anyway.
+                }
+            }
+            try {
+                performOperation();
+                completed = true;
+            } catch (KlavaException e) {
+                rejected = e.wasCausedByInterruptedException();
+                throw e;
+            }
+        }
+
+        private void performOperation() throws KlavaException {
+            if ("out".equals(operation)) {
+                out(new Tuple(new KString("side-effect")), self);
+            } else if ("eval".equals(operation)) {
+                eval(child, self);
+            } else {
+                executeNodeProcess(child);
+            }
+        }
+    }
+
+    private static class FailingGuardProcess extends KlavaOrProcess {
+        private static final long serialVersionUID = 1L;
+        private final String operation;
+        private volatile boolean failed;
+        private volatile boolean retried;
+
+        FailingGuardProcess(String operation) {
+            this.operation = operation;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            try {
+                if ("out".equals(operation)) {
+                    out(new Tuple(new KString("failed")), new LogicalLocality("unmapped"));
+                } else {
+                    eval(new ChildProcess(), new LogicalLocality("unmapped"));
+                }
+            } catch (KlavaException e) {
+                failed = true;
+            }
+            in(new Tuple(new KString("retry-" + operation)), self);
+            retried = true;
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Tests
     // -----------------------------------------------------------------------
+
+    public void testOutEvalAndExecuteNodeProcessCanWin() throws Exception {
+        for (String operation : List.of("out", "eval", "executeNodeProcess")) {
+            OperationGuardProcess winner = new OperationGuardProcess(operation, null);
+            InGuardProcess competitor = new InGuardProcess("absent-" + operation);
+            OrOrchestrator orchestrator = new OrOrchestrator(List.of(winner, competitor));
+            node.eval(orchestrator);
+            orchestrator.join(5000);
+
+            assertFalse(operation + " should finish", orchestrator.isAlive());
+            assertTrue(operation + " should complete", winner.completed);
+            assertTrue(operation + " should interrupt the competitor", competitor.isInterrupted());
+            if ("out".equals(operation)) {
+                assertTrue(node.in_nb(new Tuple(new KString("side-effect"))));
+            } else {
+                winner.child.join(5000);
+                assertTrue(operation + " child should execute", winner.child.executed);
+            }
+        }
+    }
+
+    public void testOutEvalAndExecuteNodeProcessLoseBeforeExecution() throws Exception {
+        for (String operation : List.of("out", "eval", "executeNodeProcess")) {
+            CountDownLatch ready = new CountDownLatch(1);
+            OperationGuardProcess loser = new OperationGuardProcess(operation, ready);
+            KlavaOrProcess winner = new KlavaOrProcess() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void executeProcess() throws KlavaException {
+                    try {
+                        ready.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new KlavaException(e);
+                    }
+                    read(new Tuple(new KString("ready-" + operation)), self);
+                }
+            };
+            node.out(new Tuple(new KString("ready-" + operation)));
+            OrOrchestrator orchestrator = new OrOrchestrator(List.of(loser, winner));
+            node.eval(orchestrator);
+            orchestrator.join(5000);
+
+            assertFalse(operation + " should finish", orchestrator.isAlive());
+            assertTrue(operation + " should be rejected", loser.rejected);
+            assertTrue(operation + " loser should be interrupted", loser.isInterrupted());
+            assertNull(loser.getFinalException());
+            assertFalse(loser.completed);
+            if ("out".equals(operation)) {
+                assertFalse(node.in_nb(new Tuple(new KString("side-effect"))));
+            } else {
+                assertFalse(operation + " child should not start", loser.child.isAlive());
+                assertFalse(loser.child.executed);
+            }
+        }
+    }
+
+    public void testFailedOutAndEvalLeaveGuardAvailableForRetry() throws Exception {
+        for (String operation : List.of("out", "eval")) {
+            node.out(new Tuple(new KString("retry-" + operation)));
+            FailingGuardProcess winner = new FailingGuardProcess(operation);
+            InGuardProcess competitor = new InGuardProcess("absent-" + operation);
+            OrOrchestrator orchestrator = new OrOrchestrator(List.of(winner, competitor));
+            node.eval(orchestrator);
+            orchestrator.join(5000);
+
+            assertFalse(operation + " should finish", orchestrator.isAlive());
+            assertTrue(operation + " should throw", winner.failed);
+            assertTrue(operation + " should permit a later guard", winner.retried);
+            assertTrue(competitor.isInterrupted());
+        }
+    }
+
+    public void testFailedOutAndEvalAllowAnotherBranchToWin() throws Exception {
+        for (String operation : List.of("out", "eval")) {
+            CountDownLatch failed = new CountDownLatch(1);
+            KlavaOrProcess failing = new KlavaOrProcess() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void executeProcess() throws KlavaException {
+                    try {
+                        if ("out".equals(operation)) {
+                            out(new Tuple(new KString("failed")), new LogicalLocality("unmapped"));
+                        } else {
+                            eval(new ChildProcess(), new LogicalLocality("unmapped"));
+                        }
+                    } finally {
+                        failed.countDown();
+                    }
+                }
+            };
+            KlavaOrProcess succeeding = new KlavaOrProcess() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void executeProcess() throws KlavaException {
+                    try {
+                        failed.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new KlavaException(e);
+                    }
+                    in(new Tuple(new KString("available-" + operation)), self);
+                }
+            };
+            node.out(new Tuple(new KString("available-" + operation)));
+            OrOrchestrator orchestrator = new OrOrchestrator(List.of(failing, succeeding));
+            node.eval(orchestrator);
+            orchestrator.join(5000);
+
+            assertFalse(operation + " should finish", orchestrator.isAlive());
+            assertNotNull(operation + " failure should propagate", failing.getFinalException());
+            assertFalse(operation + " should not interrupt other branches", succeeding.isInterrupted());
+            assertFalse(node.in_nb(new Tuple(new KString("available-" + operation))));
+        }
+    }
+
+    public void testOperationsAfterWinningRetrievalBypassOrCompetition() throws Exception {
+        node.out(new Tuple(new KString("guard")));
+        KlavaOrProcess winner = new KlavaOrProcess() {
+            private static final long serialVersionUID = 1L;
+            private final ChildProcess child = new ChildProcess();
+
+            @Override
+            public void executeProcess() throws KlavaException {
+                in(new Tuple(new KString("guard")), self);
+                out(new Tuple(new KString("after-guard")), self);
+                eval(child, self);
+                executeNodeProcess(new ChildProcess());
+                try {
+                    child.join(5000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new KlavaException(e);
+                }
+                if (!child.executed) {
+                    throw new KlavaException("EVAL child did not execute");
+                }
+            }
+        };
+        InGuardProcess competitor = new InGuardProcess("absent");
+        OrOrchestrator orchestrator = new OrOrchestrator(List.of(winner, competitor));
+        node.eval(orchestrator);
+        orchestrator.join(5000);
+
+        assertFalse(orchestrator.isAlive());
+        assertNull(winner.getFinalException());
+        assertTrue(node.in_nb(new Tuple(new KString("after-guard"))));
+        assertTrue(competitor.isInterrupted());
+    }
 
     public void testBooleanRetrievalsOnlyClaimOrAfterSuccess() throws Exception {
         for (String operation : List.of("in_nb", "read_nb", "in_t", "read_t")) {

@@ -134,6 +134,12 @@ or(
 )
 ```
 
+The first successful operation in an `or` branch selects that branch and
+interrupts the others. Besides `in` and `read`, a branch may start with `out`,
+`eval`, or `executeNodeProcess`. An `out` or `eval` that throws an exception does
+not select the branch; another branch may still win. `executeNodeProcess`
+selects its branch before starting the child process.
+
 ## Variables And Pattern Matching
 
 Use `var` to declare formal tuple fields:

@@ -11,27 +11,22 @@ import klava.Tuple;
  * <h2>OR Operator Semantics</h2>
  * <p>
  * In the OR operator, several processes compete on their first successful
- * (guard) retrieval operation. Only the first process to complete its guard proceeds
+ * guard operation. Only the first process to complete its guard proceeds
  * with the rest of its body; all other processes are interrupted and terminate.
  * </p>
  *
- * <h2>Custom Behavior — First Successful Retrieval Only</h2>
+ * <h2>Custom Behavior — First Successful Operation Only</h2>
  * <p>
- * This class overrides blocking, non-blocking, and timed retrieval operations
- * to add OR synchronization logic. The custom behavior is applied <strong>only
- * to the first successful retrieval</strong> executed by the process (the guard).
- * An unsuccessful non-blocking or timed retrieval leaves the guard pending.
- * After the guard has succeeded, subsequent retrieval operations do not
- * trigger further OR synchronization.
+ * Retrievals claim the OR after succeeding; OUT and EVAL reserve the mutex
+ * while executing and claim it only if they return normally. A failed operation
+ * leaves the guard pending. executeNodeProcess claims before starting its child.
+ * Subsequent operations do not trigger further OR synchronization.
  * </p>
  *
  * <h2>Important Assumption</h2>
  * <p>
- * The guard operations of the processes in an OR are assumed to be
- * <strong>mutually exclusive</strong>: at most one process can have its guard
- * succeed at any given time. If two guards succeed simultaneously, the behavior
- * of the OR operator is undefined and it is not guaranteed that only one
- * process will proceed.
+ * Retrieval guards should be <strong>mutually exclusive</strong>. A retrieval
+ * may consume a tuple before checking the mutex, even if another branch wins.
  * </p>
  *
  * @see KlavaOrMutex
@@ -48,8 +43,8 @@ public abstract class KlavaOrProcess extends KlavaProcess {
     private transient KlavaOrMutex orMutex;
 
     /**
-     * Whether the first successful retrieval (the guard) is still pending. Set
-     * to {@code false} after the first retrieval succeeds, so that
+     * Whether the first successful operation (the guard) is still pending. Set
+     * to {@code false} after the guard succeeds, so that
      * subsequent operations proceed without OR synchronization.
      */
     private boolean isFirstOperation = true;
@@ -62,6 +57,38 @@ public abstract class KlavaOrProcess extends KlavaProcess {
      */
     void setOrMutex(KlavaOrMutex orMutex) {
         this.orMutex = orMutex;
+    }
+
+    @Override
+    protected void out(Tuple tuple, Locality destination) throws KlavaException {
+        if (isFirstOperation) {
+            orMutex.executeIfFirst(this, () -> super.out(tuple, destination));
+            isFirstOperation = false;
+        } else {
+            super.out(tuple, destination);
+        }
+    }
+
+    @Override
+    protected void eval(KlavaProcess klavaProcess, Locality destination) throws KlavaException {
+        if (isFirstOperation) {
+            orMutex.executeIfFirst(this, () -> super.eval(klavaProcess, destination));
+            isFirstOperation = false;
+        } else {
+            super.eval(klavaProcess, destination);
+        }
+    }
+
+    @Override
+    public void executeNodeProcess(KlavaProcess klavaProcess) throws KlavaException {
+        if (isFirstOperation) {
+            if (!orMutex.isFirst()) {
+                interruptAndTerminate();
+            }
+            isFirstOperation = false;
+            orMutex.interruptOthers(this);
+        }
+        super.executeNodeProcess(klavaProcess);
     }
 
     @Override
@@ -162,33 +189,31 @@ public abstract class KlavaOrProcess extends KlavaProcess {
      * guard). When called for the guard, it:
      * </p>
      * <ol>
-     * <li>Sets {@code isFirstOperation = false} so that subsequent retrievals do
-     * not go through this path.</li>
      * <li>Calls {@link KlavaOrMutex#isFirst()} to check atomically whether this
      * process is the first to succeed in its guard.</li>
      * <li>If first: calls {@link KlavaOrMutex#interruptOthers(KlavaOrProcess)} to
      * interrupt all competing processes, then returns so that this process
      * continues its body.</li>
+     * <li>Otherwise, interrupts this branch and terminates it.</li>
      * </ol>
      *
-     * <p>
-     * Note: if {@link KlavaOrMutex#isFirst()} returns {@code false} (which should
-     * not happen under the mutual exclusion assumption), this process simply
-     * continues. The other winning process will have already set the interrupt flag
-     * on this process's thread, but since the guard retrieval already completed,
-     * the interrupt will be observed by the next blocking operation (if any).
-     * </p>
      */
     private void handleOrRetrieval() {
         if (!isFirstOperation) {
             /* not the guard — no OR synchronization needed */
             return;
         }
-        /* mark the guard as consumed so subsequent retrievals are not affected */
-        isFirstOperation = false;
         if (orMutex.isFirst()) {
+            isFirstOperation = false;
             /* this process won the OR competition — interrupt all others */
             orMutex.interruptOthers(this);
+        } else {
+            interruptAndTerminate();
         }
+    }
+
+    private void interruptAndTerminate() {
+        interrupt();
+        throw new KlavaException(new InterruptedException("OR branch lost"));
     }
 }
