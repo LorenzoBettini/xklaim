@@ -664,8 +664,8 @@ public abstract class KlavaProcess extends NodeProcess {
      * Executes the given OR processes in parallel, implementing the OR operator.
      *
      * <p>The OR operator runs a set of {@link KlavaOrProcess}es concurrently.
-     * Each process blocks on its first retrieval operation (the "guard"). The
-     * first process to complete its guard interrupts all the others and then
+     * Each process competes on its first successful retrieval operation (the
+     * "guard"). The first process to complete its guard interrupts all the others and then
      * proceeds with the rest of its body. Interrupted processes preserve their
      * Java interrupt status and terminate without being treated as uncaught
      * failures.</p>

@@ -1,6 +1,8 @@
 package klava.tests.junit;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 import klava.KString;
@@ -95,6 +97,48 @@ public class KlavaOrProcessTest extends TestCase {
 
         boolean isBodyExecuted() {
             return bodyExecuted;
+        }
+    }
+
+    /** Tries a missing tuple, then waits for the test to supply a matching one. */
+    private static class RetryingGuardProcess extends KlavaOrProcess {
+
+        private static final long serialVersionUID = 1L;
+
+        private final String operation;
+        private final CountDownLatch firstAttemptDone = new CountDownLatch(1);
+        private final CountDownLatch tryAgain = new CountDownLatch(1);
+        private boolean firstResult;
+        private boolean secondResult;
+
+        RetryingGuardProcess(String operation) {
+            this.operation = operation;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            firstResult = retrieve(new Tuple(new KString("missing-" + operation)));
+            firstAttemptDone.countDown();
+            try {
+                tryAgain.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new KlavaException(e);
+            }
+            secondResult = retrieve(new Tuple(new KString("present-" + operation)));
+        }
+
+        private boolean retrieve(Tuple tuple) throws KlavaException {
+            if ("in_nb".equals(operation)) {
+                return in_nb(tuple, self);
+            }
+            if ("read_nb".equals(operation)) {
+                return read_nb(tuple, self);
+            }
+            if ("in_t".equals(operation)) {
+                return in_t(tuple, self, 1);
+            }
+            return read_t(tuple, self, 1);
         }
     }
 
@@ -201,6 +245,39 @@ public class KlavaOrProcessTest extends TestCase {
     // -----------------------------------------------------------------------
     // Tests
     // -----------------------------------------------------------------------
+
+    public void testBooleanRetrievalsOnlyClaimOrAfterSuccess() throws Exception {
+        for (String operation : List.of("in_nb", "read_nb", "in_t", "read_t")) {
+            RetryingGuardProcess process = new RetryingGuardProcess(operation);
+            InGuardProcess competitor = new InGuardProcess("competitor-" + operation);
+            OrOrchestrator orchestrator = new OrOrchestrator(List.of(process, competitor));
+            node.eval(orchestrator);
+            try {
+                assertTrue(operation + " first attempt should complete",
+                        process.firstAttemptDone.await(5, TimeUnit.SECONDS));
+                assertFalse(operation + " should return false for a missing tuple", process.firstResult);
+                assertFalse(operation + " must not interrupt the competitor on failure",
+                        competitor.isInterrupted());
+
+                node.out(new Tuple(new KString("present-" + operation)));
+                process.tryAgain.countDown();
+                orchestrator.join(5000);
+
+                assertFalse(operation + " orchestrator should complete", orchestrator.isAlive());
+                assertTrue(operation + " should return true for a matching tuple", process.secondResult);
+                assertFalse("Competitor body should not execute", competitor.isBodyExecuted());
+                assertTrue(operation + " should interrupt the competitor on success",
+                        competitor.isInterrupted());
+            } finally {
+                process.tryAgain.countDown();
+                process.interrupt();
+                competitor.interrupt();
+                process.join(5000);
+                competitor.join(5000);
+                orchestrator.join(5000);
+            }
+        }
+    }
 
     /**
      * Tests that when the first branch's IN guard succeeds, only that branch

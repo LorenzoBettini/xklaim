@@ -10,19 +10,19 @@ import klava.Tuple;
  *
  * <h2>OR Operator Semantics</h2>
  * <p>
- * In the OR operator, several processes compete on their first (guard)
- * retrieval operation. Only the first process to complete its guard proceeds
+ * In the OR operator, several processes compete on their first successful
+ * (guard) retrieval operation. Only the first process to complete its guard proceeds
  * with the rest of its body; all other processes are interrupted and terminate.
  * </p>
  *
- * <h2>Custom Behavior — First Retrieval Only</h2>
+ * <h2>Custom Behavior — First Successful Retrieval Only</h2>
  * <p>
- * This class overrides the blocking retrieval operations
- * ({@link #in(Tuple, Locality)} and {@link #read(Tuple, Locality)}) to add OR
- * synchronization logic. The custom behavior is applied <strong>only to the
- * first retrieval operation</strong> executed by the process (i.e., the guard).
- * After the guard has been executed, subsequent retrieval operations are
- * delegated directly to the superclass without any synchronization overhead.
+ * This class overrides blocking, non-blocking, and timed retrieval operations
+ * to add OR synchronization logic. The custom behavior is applied <strong>only
+ * to the first successful retrieval</strong> executed by the process (the guard).
+ * An unsuccessful non-blocking or timed retrieval leaves the guard pending.
+ * After the guard has succeeded, subsequent retrieval operations do not
+ * trigger further OR synchronization.
  * </p>
  *
  * <h2>Important Assumption</h2>
@@ -48,8 +48,8 @@ public abstract class KlavaOrProcess extends KlavaProcess {
     private transient KlavaOrMutex orMutex;
 
     /**
-     * Whether the next retrieval operation is still the first one (the guard). Set
-     * to {@code false} after the first retrieval operation completes, so that
+     * Whether the first successful retrieval (the guard) is still pending. Set
+     * to {@code false} after the first retrieval succeeds, so that
      * subsequent operations proceed without OR synchronization.
      */
     private boolean isFirstOperation = true;
@@ -62,6 +62,24 @@ public abstract class KlavaOrProcess extends KlavaProcess {
      */
     void setOrMutex(KlavaOrMutex orMutex) {
         this.orMutex = orMutex;
+    }
+
+    @Override
+    protected boolean in_nb(Tuple tuple, Locality destination) throws KlavaException { // NOSONAR: we want this name
+        boolean succeeded = super.in_nb(tuple, destination);
+        if (succeeded) {
+            handleOrRetrieval();
+        }
+        return succeeded;
+    }
+
+    @Override
+    protected boolean in_t(Tuple tuple, Locality destination, long timeout) throws KlavaException { // NOSONAR: we want this name
+        boolean succeeded = super.in_t(tuple, destination, timeout);
+        if (succeeded) {
+            handleOrRetrieval();
+        }
+        return succeeded;
     }
 
     /**
@@ -89,6 +107,24 @@ public abstract class KlavaOrProcess extends KlavaProcess {
     protected void in(Tuple tuple, Locality destination) throws KlavaException {
         super.in(tuple, destination);
         handleOrRetrieval();
+    }
+
+    @Override
+    protected boolean read_nb(Tuple tuple, Locality destination) throws KlavaException { // NOSONAR: we want this name
+        boolean succeeded = super.read_nb(tuple, destination);
+        if (succeeded) {
+            handleOrRetrieval();
+        }
+        return succeeded;
+    }
+
+    @Override
+    protected boolean read_t(Tuple tuple, Locality destination, long timeout) throws KlavaException { // NOSONAR: we want this name
+        boolean succeeded = super.read_t(tuple, destination, timeout);
+        if (succeeded) {
+            handleOrRetrieval();
+        }
+        return succeeded;
     }
 
     /**
@@ -119,7 +155,7 @@ public abstract class KlavaOrProcess extends KlavaProcess {
     }
 
     /**
-     * Handles OR synchronization after a guard retrieval operation completes.
+     * Handles OR synchronization after a retrieval operation succeeds.
      *
      * <p>
      * This method is a no-op unless the current retrieval is the first one (the
