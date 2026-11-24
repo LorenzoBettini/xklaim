@@ -99,11 +99,11 @@ public class KlavaOrMutex {
      * Interrupts all OR processes <em>except</em> the given winner process.
      *
      * <p>
-     * Called by the winning process (the first to complete its guard) to terminate
-     * all competitors. Each interrupted process will receive an
-     * {@link InterruptedException} from its blocking retrieval operation; the
-     * process wrapper restores the interrupt status and treats that as normal
-     * cancellation.
+     * Called by the winning process (the first to complete its guard) to
+     * interrupt all competitors. Plain Java code in a losing process can keep
+     * running until an interruptible wait or a guarded Klaim operation observes
+     * the interruption. An interruption propagated as a {@link KlavaException}
+     * is treated as normal cancellation by the process wrapper.
      * </p>
      *
      * @param winner the process that must <em>not</em> be interrupted

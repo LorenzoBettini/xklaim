@@ -1382,6 +1382,34 @@ public class XklaimCompilerTest {
 	}
 
 	@Test
+	public void testXklaimOrWithJavaBeforeFirstOperation() throws Exception {
+		compilationTestHelper.compile("""
+				package foo
+				proc TestProcess() {
+					or(
+						proc {
+							println("first branch started")
+							in("first")@self
+							println("first branch won")
+						},
+						proc {
+							println("second branch started")
+							in("second")@self
+							println("second branch won")
+						}
+					)
+				}
+				""", result -> {
+			assertNoValidationErrors(result);
+			String generated = result.getSingleGeneratedCode();
+			int firstPrint = generated.indexOf("println(\"first branch started\")");
+			Assert.assertTrue("The first branch must print before its retrieval",
+					firstPrint >= 0 && generated.indexOf("in(", firstPrint) > firstPrint);
+			assertGeneratedJavaCodeCompiles(result);
+		});
+	}
+
+	@Test
 	public void testXklaimInlineProcessWithSneakyThrow() throws Exception {
 		checkCompilation("""
 				package foo

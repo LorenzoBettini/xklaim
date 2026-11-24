@@ -134,11 +134,39 @@ or(
 )
 ```
 
-The first successful operation in an `or` branch selects that branch and
-interrupts the others. Besides `in` and `read`, a branch may start with `out`,
-`eval`, or `executeNodeProcess`. An `out` or `eval` that throws an exception does
-not select the branch; another branch may still win. `executeNodeProcess`
-selects its branch before starting the child process.
+All branches start concurrently. Java statements before the first Klaim
+operation run independently in each branch; the `or` competition starts when a
+branch reaches its first Klaim operation. The first successful operation selects
+the winning branch and Java-interrupts the others. This applies to `in`, `read`,
+`out`, `eval`, and `executeNodeProcess`, including blocking, timed, and
+nonblocking retrievals. An unsuccessful nonblocking or timed retrieval, or an
+`out` or `eval` that throws an exception, does not select a branch; its next
+successful Klaim operation can still win. `executeNodeProcess` selects its
+branch before starting the child process.
+
+For example, if the tuple `"choice"` is present, both branches print their
+`started` line, in either order, while only the winner prints `won`:
+
+```xklaim
+or(
+    proc {
+        println("first branch started")
+        in("choice")@self
+        println("first branch won")
+    },
+    proc {
+        println("second branch started")
+        in("choice")@self
+        println("second branch won")
+    }
+)
+```
+
+Interruption is cooperative. Plain Java statements do not automatically stop
+when their branch loses, and a losing branch can keep running until it reaches
+an interruptible wait or a Klaim operation that detects the loss. Code before
+the first Klaim operation can therefore have side effects even in a losing
+branch.
 
 ## Variables And Pattern Matching
 

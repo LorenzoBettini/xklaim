@@ -74,6 +74,32 @@ public class KlavaOrProcessTest extends TestCase {
         }
     }
 
+    /** Records ordinary Java work before competing on the first IN. */
+    private static class PreGuardProcess extends KlavaOrProcess {
+
+        private static final long serialVersionUID = 1L;
+
+        private final CountDownLatch started;
+        private volatile boolean passedGuard;
+
+        PreGuardProcess(CountDownLatch started) {
+            this.started = started;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            started.countDown();
+            try {
+                started.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new KlavaException(e);
+            }
+            in(new Tuple(new KString("A")), self);
+            passedGuard = true;
+        }
+    }
+
     /**
      * An OR process whose guard is {@code read(expectedValue)}. Records whether
      * the body was executed.
@@ -604,6 +630,24 @@ public class KlavaOrProcessTest extends TestCase {
         /* "A" was consumed by the IN operation */
         assertFalse("Tuple 'A' should have been consumed",
                 node.in_nb(new Tuple(new KString("A"))));
+    }
+
+    public void testBothBranchesRunJavaBeforeOnlyOnePassesFirstIn() throws Exception {
+        node.out(new Tuple(new KString("A")));
+
+        CountDownLatch started = new CountDownLatch(2);
+        PreGuardProcess first = new PreGuardProcess(started);
+        PreGuardProcess second = new PreGuardProcess(started);
+        OrOrchestrator orchestrator = new OrOrchestrator(List.of(first, second));
+        node.eval(orchestrator);
+        orchestrator.join(5000);
+
+        assertFalse("OR should finish", orchestrator.isAlive());
+        assertEquals("Both branches should run their Java prelude", 0, started.getCount());
+        assertTrue("Only one branch should pass IN", first.passedGuard ^ second.passedGuard);
+        assertTrue("The loser should be interrupted", first.isInterrupted() ^ second.isInterrupted());
+        assertNull(first.getFinalException());
+        assertNull(second.getFinalException());
     }
 
     /**

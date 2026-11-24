@@ -664,11 +664,12 @@ public abstract class KlavaProcess extends NodeProcess {
      * Executes the given OR processes in parallel, implementing the OR operator.
      *
      * <p>The OR operator runs a set of {@link KlavaOrProcess}es concurrently.
-     * Each process competes on its first successful guard operation.
-     * The first process to complete its guard interrupts all the others and then
-     * proceeds with the rest of its body. Interrupted processes preserve their
-     * Java interrupt status and terminate without being treated as uncaught
-     * failures.</p>
+     * Each process competes on its first successful Klaim operation. Java
+     * statements before that operation run independently. The winner interrupts
+     * all other branches and proceeds with its body. A losing branch can continue
+     * ordinary Java code until an interruptible wait or a guarded Klaim operation
+     * observes the interruption. Interruption-driven termination is not treated
+     * as an uncaught failure.</p>
      *
      * <p>This method performs the following steps:</p>
      * <ol>

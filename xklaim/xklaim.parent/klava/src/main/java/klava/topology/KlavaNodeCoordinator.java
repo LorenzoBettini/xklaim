@@ -484,11 +484,12 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      * Executes the given OR processes in parallel, implementing the OR operator.
      *
      * <p>The OR operator runs a set of {@link KlavaOrProcess}es concurrently.
-     * Each process competes on its first successful retrieval operation (the
-     * "guard"). The first process to complete its guard interrupts all the others and then
-     * proceeds with the rest of its body. Interrupted processes preserve their
-     * Java interrupt status and terminate without being treated as uncaught
-     * failures.</p>
+     * Each process competes on its first successful Klaim operation. Java
+     * statements before that operation run independently. The winner interrupts
+     * all other branches and proceeds with its body. A losing branch can continue
+     * ordinary Java code until an interruptible wait or a guarded Klaim operation
+     * observes the interruption. Interruption-driven termination is not treated
+     * as an uncaught failure.</p>
      *
      * <p>This method performs the following steps:</p>
      * <ol>
@@ -500,10 +501,9 @@ public abstract class KlavaNodeCoordinator extends NodeCoordinator {
      *       returning, ensuring the OR operation is fully resolved.</li>
      * </ol>
      *
-     * <p><strong>Important assumption</strong>: the guard operations of the
-     * processes in the OR must be mutually exclusive. If two guards can succeed
-     * simultaneously, the behavior is undefined and it is not guaranteed that
-     * only one process will proceed past its guard.</p>
+     * <p><strong>Important assumption</strong>: retrieval guards should be
+     * mutually exclusive. A retrieval may consume a tuple before checking the
+     * shared mutex, even if another branch has already won.</p>
      *
      * @param processes the collection of OR processes to run in parallel
      * @throws KlavaException if a process cannot be started

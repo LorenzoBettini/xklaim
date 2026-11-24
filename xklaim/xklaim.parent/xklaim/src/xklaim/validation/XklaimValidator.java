@@ -9,7 +9,6 @@ import org.eclipse.xtext.common.types.JvmTypeReference;
 import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.validation.ValidationMessageAcceptor;
 import org.eclipse.xtext.xbase.XBasicForLoopExpression;
-import org.eclipse.xtext.xbase.XBlockExpression;
 import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.XVariableDeclaration;
 import org.eclipse.xtext.xbase.XWhileExpression;
@@ -20,8 +19,6 @@ import com.google.inject.Inject;
 
 import xklaim.util.XklaimModelUtil;
 import xklaim.xklaim.XklaimAbstractOperation;
-import xklaim.xklaim.XklaimBlockingRetrieveOperation;
-import xklaim.xklaim.XklaimInlineProcess;
 import xklaim.xklaim.XklaimNodeEnvironmentEntry;
 import xklaim.xklaim.XklaimOrOperation;
 import xklaim.xklaim.XklaimPackage;
@@ -39,7 +36,6 @@ public class XklaimValidator extends AbstractXklaimValidator {
 	public static final String INVALID_PRIMITIVE_FORMAL_TYPE = XklaimValidator.PREFIX + "InvalidPrimitiveFormalType";
 	public static final String INVALID_FINAL_FORMAL = XklaimValidator.PREFIX + "InvalidFinalFormal";
 	public static final String OR_MUST_HAVE_AT_LEAST_TWO_PROCESSES = XklaimValidator.PREFIX + "OrMustHaveAtLeastTwoProcesses";
-	public static final String OR_PROCESS_FIRST_OPERATION_MUST_BE_RETRIEVAL = XklaimValidator.PREFIX + "OrProcessFirstOperationMustBeRetrieval";
 
 	@Inject
 	private XklaimModelUtil xklaimModelUtil;
@@ -118,27 +114,5 @@ public class XklaimValidator extends AbstractXklaimValidator {
 					ValidationMessageAcceptor.INSIGNIFICANT_INDEX,
 					XklaimValidator.OR_MUST_HAVE_AT_LEAST_TWO_PROCESSES);
 		}
-	}
-
-	@Check
-	public void checkOrProcessesFirstOperationIsRetrieval(final XklaimOrOperation e) {
-		for (XExpression arg : e.getArguments()) {
-			XklaimInlineProcess proc = (XklaimInlineProcess) arg;
-			XExpression firstExpr = getFirstExpression(proc.getBody());
-			if (!(firstExpr instanceof XklaimBlockingRetrieveOperation)) {
-				error("The first operation of a process in 'or' must be 'in' or 'read'",
-						proc,
-						XklaimPackage.Literals.XKLAIM_INLINE_PROCESS__BODY,
-						ValidationMessageAcceptor.INSIGNIFICANT_INDEX,
-						XklaimValidator.OR_PROCESS_FIRST_OPERATION_MUST_BE_RETRIEVAL);
-			}
-		}
-	}
-
-	private XExpression getFirstExpression(final XExpression body) {
-		if (body instanceof XBlockExpression block && !block.getExpressions().isEmpty()) {
-			return block.getExpressions().get(0);
-		}
-		return body;
 	}
 }

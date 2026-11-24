@@ -10,16 +10,19 @@ import klava.Tuple;
  *
  * <h2>OR Operator Semantics</h2>
  * <p>
- * In the OR operator, several processes compete on their first successful
- * guard operation. Only the first process to complete its guard proceeds
- * with the rest of its body; all other processes are interrupted and terminate.
+ * In the OR operator, several processes run concurrently and compete on their
+ * first successful Klaim operation. Java statements before that operation run
+ * independently in each branch. The winner interrupts all other processes;
+ * ordinary Java statements in a losing branch may continue until an
+ * interruptible wait or a guarded Klaim operation observes the interruption.
  * </p>
  *
  * <h2>Custom Behavior — First Successful Operation Only</h2>
  * <p>
- * Retrievals claim the OR after succeeding; OUT and EVAL reserve the mutex
- * while executing and claim it only if they return normally. A failed operation
- * leaves the guard pending. executeNodeProcess claims before starting its child.
+ * Blocking, timed, and nonblocking retrievals claim the OR after succeeding;
+ * OUT and EVAL reserve the mutex while executing and claim it only if they
+ * return normally. A failed operation leaves the guard pending.
+ * executeNodeProcess claims before starting its child.
  * Subsequent operations do not trigger further OR synchronization.
  * </p>
  *
