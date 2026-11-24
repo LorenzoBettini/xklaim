@@ -6,7 +6,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import junit.framework.TestCase;
 
-/** Tests that a tentative OUT or EVAL claim serializes other guard claims. */
+/**
+ * Tests the mutex independently of a node. The simulated Klaim branches are:
+ * <pre>{@code
+ * or(
+ *     proc { out(...)@destination }, // or eval(child)@destination
+ *     proc { in(template)@self }
+ * )
+ * }</pre>
+ * The first operation pauses before reporting success or failure. The retrieval
+ * has already found its tuple and is trying to claim the winner slot.
+ */
 public class KlavaOrMutexTest extends TestCase {
 
     private static class GuardProcess extends KlavaOrProcess {
@@ -18,10 +28,12 @@ public class KlavaOrMutexTest extends TestCase {
         }
     }
 
+    /** OUT/EVAL returns normally, so the waiting retrieval loses its claim. */
     public void testSuccessfulOperationCommitsBeforeRetrievalCanClaim() throws Exception {
         assertContendingClaim(false);
     }
 
+    /** OUT/EVAL throws, so the waiting retrieval can claim the free slot. */
     public void testFailedOperationReleasesSlotForRetrieval() throws Exception {
         assertContendingClaim(true);
     }
@@ -39,6 +51,7 @@ public class KlavaOrMutexTest extends TestCase {
         AtomicBoolean claimed = new AtomicBoolean();
         Thread operationThread = new Thread(() -> {
             try {
+                // executeIfFirst holds the mutex while the operation is paused.
                 mutex.executeIfFirst(operation, () -> {
                     entered.countDown();
                     try {
@@ -58,6 +71,7 @@ public class KlavaOrMutexTest extends TestCase {
             }
         });
         Thread retrievalThread = new Thread(() -> {
+            // This represents a retrieval that succeeded and now calls isFirst.
             claiming.countDown();
             claimed.set(mutex.isFirst());
             claimFinished.countDown();
@@ -67,6 +81,7 @@ public class KlavaOrMutexTest extends TestCase {
             assertTrue(entered.await(5, TimeUnit.SECONDS));
             retrievalThread.start();
             assertTrue(claiming.await(5, TimeUnit.SECONDS));
+            // The retrieval cannot decide while the other operation is pending.
             assertFalse("retrieval must wait for the operation",
                     claimFinished.await(50, TimeUnit.MILLISECONDS));
             release.countDown();
@@ -74,6 +89,7 @@ public class KlavaOrMutexTest extends TestCase {
             retrievalThread.join(5000);
             assertFalse(operationThread.isAlive());
             assertFalse(retrievalThread.isAlive());
+            // Success commits the first branch; failure leaves the slot free.
             assertEquals("claim should depend on operation success", fail, claimed.get());
         } finally {
             release.countDown();

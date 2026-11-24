@@ -242,6 +242,7 @@ public class KlavaOrProcessTest extends TestCase {
         }
     }
 
+    /** Child used by EVAL and executeNodeProcess; its flag records that it ran. */
     private static class ChildProcess extends KlavaProcess {
         private static final long serialVersionUID = 1L;
         private volatile boolean executed;
@@ -252,6 +253,12 @@ public class KlavaOrProcessTest extends TestCase {
         }
     }
 
+    /**
+     * The branch whose first operation is selected by the test parameter:
+     * {@code out("side-effect")@self}, {@code eval(child)@self}, or
+     * {@code executeNodeProcess(child)}. The optional latch parks this branch
+     * until another branch has won, so it can test rejection before execution.
+     */
     private static class OperationGuardProcess extends KlavaOrProcess {
         private static final long serialVersionUID = 1L;
         private final String operation;
@@ -268,8 +275,10 @@ public class KlavaOrProcessTest extends TestCase {
         @Override
         public void executeProcess() throws KlavaException {
             if (ready != null) {
+                // Tell the competing branch that this process has started.
                 ready.countDown();
                 try {
+                    // The competitor interrupts this wait after winning.
                     new CountDownLatch(1).await();
                 } catch (InterruptedException e) {
                     // The winning guard releases us; attempt the operation anyway.
@@ -295,6 +304,10 @@ public class KlavaOrProcessTest extends TestCase {
         }
     }
 
+    /**
+     * Tries OUT or EVAL at an unmapped locality, catches the failure, then
+     * retries with {@code in("retry-<operation>")@self} as its guard.
+     */
     private static class FailingGuardProcess extends KlavaOrProcess {
         private static final long serialVersionUID = 1L;
         private final String operation;
@@ -325,6 +338,18 @@ public class KlavaOrProcessTest extends TestCase {
     // Tests
     // -----------------------------------------------------------------------
 
+    /**
+     * Each iteration runs this OR, with {@code op} standing for OUT, EVAL, or
+     * executeNodeProcess (the last is the Java runtime operation):
+     * <pre>{@code
+     * or(
+     *     proc { op("side-effect" or child)@self },
+     *     proc { in("absent-<op>")@self }
+     * )
+     * }</pre>
+     * The second branch has no matching tuple. Verify both that the first
+     * branch ran and that it interrupted the waiting branch.
+     */
     public void testOutEvalAndExecuteNodeProcessCanWin() throws Exception {
         for (String operation : List.of("out", "eval", "executeNodeProcess")) {
             OperationGuardProcess winner = new OperationGuardProcess(operation, null);
@@ -345,6 +370,19 @@ public class KlavaOrProcessTest extends TestCase {
         }
     }
 
+    /**
+     * Runs the same OR with a READ guard that is guaranteed to win first:
+     * <pre>{@code
+     * or(
+     *     proc { op("side-effect" or child)@self },
+     *     proc { read("ready-<op>")@self }
+     * )
+     * }</pre>
+     * The loser announces that it has started, then waits. The READ branch
+     * waits for that announcement before claiming the mutex. Its interrupt
+     * releases the loser, which deliberately attempts its operation anyway.
+     * That attempt must throw before producing a tuple or starting a child.
+     */
     public void testOutEvalAndExecuteNodeProcessLoseBeforeExecution() throws Exception {
         for (String operation : List.of("out", "eval", "executeNodeProcess")) {
             CountDownLatch ready = new CountDownLatch(1);
@@ -382,6 +420,17 @@ public class KlavaOrProcessTest extends TestCase {
         }
     }
 
+    /**
+     * An exception must leave the same branch's guard pending:
+     * <pre>{@code
+     * or(
+     *     proc { try { op(...)@unmapped } catch (KlavaException e) {}
+     *            in("retry-<op>")@self },
+     *     proc { in("absent-<op>")@self }
+     * )
+     * }</pre>
+     * Only the retry tuple exists. It must let the first branch claim the OR.
+     */
     public void testFailedOutAndEvalLeaveGuardAvailableForRetry() throws Exception {
         for (String operation : List.of("out", "eval")) {
             node.out(new Tuple(new KString("retry-" + operation)));
@@ -398,6 +447,18 @@ public class KlavaOrProcessTest extends TestCase {
         }
     }
 
+    /**
+     * A failed OUT or EVAL must also leave the mutex available to a different
+     * branch:
+     * <pre>{@code
+     * or(
+     *     proc { op(...)@unmapped },
+     *     proc { in("available-<op>")@self }
+     * )
+     * }</pre>
+     * The second branch waits until the first call has returned or thrown;
+     * otherwise it could win before the failure and miss the behavior under test.
+     */
     public void testFailedOutAndEvalAllowAnotherBranchToWin() throws Exception {
         for (String operation : List.of("out", "eval")) {
             CountDownLatch failed = new CountDownLatch(1);
@@ -413,6 +474,7 @@ public class KlavaOrProcessTest extends TestCase {
                             eval(new ChildProcess(), new LogicalLocality("unmapped"));
                         }
                     } finally {
+                        // Permit the other branch to claim only after this attempt.
                         failed.countDown();
                     }
                 }
@@ -443,6 +505,17 @@ public class KlavaOrProcessTest extends TestCase {
         }
     }
 
+    /**
+     * Once IN wins, later operations in that branch run as ordinary operations:
+     * <pre>{@code
+     * or(
+     *     proc { in("guard")@self; out("after-guard")@self;
+     *            eval(child)@self; executeNodeProcess(child) },
+     *     proc { in("absent")@self }
+     * )
+     * }</pre>
+     * This verifies that the new overrides do not try to claim the mutex again.
+     */
     public void testOperationsAfterWinningRetrievalBypassOrCompetition() throws Exception {
         node.out(new Tuple(new KString("guard")));
         KlavaOrProcess winner = new KlavaOrProcess() {
