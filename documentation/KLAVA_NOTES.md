@@ -143,8 +143,11 @@ synchronized (tuples):
   return true
 ```
 
-**Timeout variants** (`in_t`, `read_t`): track elapsed time; throw
-`KlavaTimeOutException` if time expires before a match.
+**Timeout variants** (`in_t`, `read_t`): negative returns `false` immediately,
+zero performs one non-blocking match, and positive values wait up to the given
+number of milliseconds. The timed `TupleSpaceVector.read` and `in` overloads
+also use these rules; a positive timeout that expires throws
+`KlavaTimeOutException`, which `read_t` and `in_t` convert to `false`.
 
 **Non-blocking variants** (`in_nb`, `read_nb`): single scan; return `false`
 immediately if no match.
@@ -433,7 +436,7 @@ TuplePacket
   operation : String               // one of the constants below
   tuple     : Tuple
   blocking  : boolean              // true → receiver blocks until match
-  timeout   : long                 // ms; -1 = infinite
+  timeout   : long                 // ms; -1 marks an untimed internal request
 ```
 
 Operation constants:

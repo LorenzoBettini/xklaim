@@ -171,6 +171,10 @@ public class TupleSpaceKeyboard extends PanelWithTitle implements TupleSpace {
      * @see klava.TupleSpace#in_t(klava.Tuple, long)
      */
     public boolean in_t(Tuple t, long TimeOut) throws InterruptedException {
+        if (TimeOut < 0)
+            return false;
+        if (TimeOut == 0)
+            return in_nb(t);
         if (!execInputCommand(t, true)) {
             /*
              * if the in succeds, also clear the text field, since this is a
@@ -229,6 +233,10 @@ public class TupleSpaceKeyboard extends PanelWithTitle implements TupleSpace {
      * @see klava.TupleSpace#read_t(klava.Tuple, long)
      */
     public boolean read_t(Tuple t, long TimeOut) throws InterruptedException {
+        if (TimeOut < 0)
+            return false;
+        if (TimeOut == 0)
+            return read_nb(t);
         return execInputCommand(t, false) || tupleSpace.read_t(t, TimeOut);
     }
 
