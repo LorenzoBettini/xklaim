@@ -879,6 +879,9 @@ public class KlavaNode extends Node {
      */
     public boolean in_t(Tuple tuple, long timeout) throws KlavaException {
         LOGGER.atDebug().setMessage(() -> "in_t" + tuple + "@self").log();
+        if (timeout < 0) {
+            return false;
+        }
         boolean result = inTLocalImpl(tuple, timeout);
         if (result) {
             LOGGER.atDebug()
@@ -956,13 +959,17 @@ public class KlavaNode extends Node {
      * @param tuple
      * @param destination
      * @param timeout
-     *            Must be > 0
+     *            Negative fails immediately; zero tries once without blocking;
+     *            positive values wait up to this many milliseconds
      * @return true if the operation completed successfully or false if it
      *         completed for a timeout
      * @throws KlavaException
      */
     public boolean in_t(Tuple tuple, Locality destination, long timeout)
             throws KlavaException {
+        if (timeout < 0) {
+            return false;
+        }
         PhysicalLocality realDestination = new PhysicalLocality();
         if (checkLocalDestination(destination, realDestination)) {
             /* this is a local operation */
@@ -986,7 +993,7 @@ public class KlavaNode extends Node {
         String locStr = formatLocality(destination, realDestination);
         LOGGER.atDebug().setMessage(() -> "in_t" + tuple + "@" + locStr).log();
         boolean result = operationInRead(TuplePacket.IN_S, tuple,
-                realDestination, true, timeout);
+                realDestination, timeout != 0, timeout);
         if (result) {
             LOGGER.atDebug()
                     .setMessage(() -> "in_t" + tuple.getOriginalTemplate() + "@"
@@ -1034,6 +1041,9 @@ public class KlavaNode extends Node {
      */
     public boolean read_t(Tuple tuple, long timeout) throws KlavaException {
         LOGGER.atDebug().setMessage(() -> "read_t" + tuple + "@self").log();
+        if (timeout < 0) {
+            return false;
+        }
         boolean result = readTLocalImpl(tuple, timeout);
         if (result) {
             LOGGER.atDebug()
@@ -1112,13 +1122,17 @@ public class KlavaNode extends Node {
      * @param tuple
      * @param destination
      * @param timeout
-     *            Must be > 0
+     *            Negative fails immediately; zero tries once without blocking;
+     *            positive values wait up to this many milliseconds
      * @return true if the operation completed successfully or false if it
      *         completed for a timeout
      * @throws KlavaException
      */
     public boolean read_t(Tuple tuple, Locality destination, long timeout)
             throws KlavaException {
+        if (timeout < 0) {
+            return false;
+        }
         PhysicalLocality realDestination = new PhysicalLocality();
         if (checkLocalDestination(destination, realDestination)) {
             /* this is a local operation */
@@ -1143,7 +1157,7 @@ public class KlavaNode extends Node {
         LOGGER.atDebug().setMessage(() -> "read_t" + tuple + "@" + locStr)
                 .log();
         boolean result = operationInRead(TuplePacket.READ_S, tuple,
-                realDestination, true, timeout);
+                realDestination, timeout != 0, timeout);
         if (result) {
             LOGGER.atDebug()
                     .setMessage(() -> "read_t" + tuple.getOriginalTemplate()

@@ -86,17 +86,19 @@ public class TupleSpaceVector extends EventGeneratorAdapter implements
     public boolean read(Tuple t, long TimeOut) throws KlavaTimeOutException,
             InterruptedException {
         if (TimeOut < 0)
-            return read(t);
-        else
-            return ReadIn(t, false, TimeOut);
+            return false;
+        if (TimeOut == 0)
+            return read_nb(t);
+        return ReadIn(t, false, TimeOut);
     }
 
     public boolean in(Tuple t, long TimeOut) throws KlavaTimeOutException,
             InterruptedException {
         if (TimeOut < 0)
-            return in(t);
-        else
-            return ReadIn(t, true, TimeOut);
+            return false;
+        if (TimeOut == 0)
+            return in_nb(t);
+        return ReadIn(t, true, TimeOut);
     }
 
     /** 

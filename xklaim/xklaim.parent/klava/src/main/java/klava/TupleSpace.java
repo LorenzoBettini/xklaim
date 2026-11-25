@@ -21,7 +21,8 @@ public interface TupleSpace extends EventGenerator {
 
     public abstract boolean in(Tuple t) throws InterruptedException;
 
-    // Timeout boolean versions
+    // Timed retrievals: negative fails immediately, zero tries once without
+    // blocking, and positive values wait up to the specified milliseconds.
     public abstract boolean read_t(Tuple t, long TimeOut)
             throws InterruptedException;
 

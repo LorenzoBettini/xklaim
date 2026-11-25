@@ -100,6 +100,11 @@ in(var Integer i)@self within 1000
 read("message", var String s)@self within timeout
 ```
 
+For `within`, a negative timeout fails immediately and returns `false`, even
+if a tuple matches. Zero makes one non-blocking attempt and returns whether a
+tuple matched. A positive timeout waits for a match for up to that many
+milliseconds.
+
 Single-field tuples are valid and useful for small examples. In larger
 protocols, it is often clearer to use more than one field, for example a first
 tag field such as `"message"`, `"result"`, or `"done"` followed by the payload.
