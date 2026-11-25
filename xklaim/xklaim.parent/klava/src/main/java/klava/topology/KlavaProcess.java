@@ -681,9 +681,9 @@ public abstract class KlavaProcess extends NodeProcess {
      *       returning, ensuring the OR operation is fully resolved.</li>
      * </ol>
      *
-     * <p><strong>Important assumption</strong>: retrieval guards should be
-     * mutually exclusive. A retrieval may consume a tuple before checking the
-     * shared mutex, even if another branch has already won.</p>
+     * <p>If multiple retrieval guards succeed, a losing IN branch restores its
+     * matched tuple to the original locality before terminating. A losing READ
+     * branch terminates without changing the tuple space.</p>
      *
      * @param processes the collection of OR processes to run in parallel
      * @throws KlavaException if a process cannot be started

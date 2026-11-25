@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import junit.framework.TestCase;
 import klava.KString;
 import klava.KlavaException;
+import klava.Locality;
 import klava.LogicalLocality;
 import klava.Tuple;
 import klava.topology.KlavaNode;
@@ -23,8 +24,8 @@ import klava.topology.KlavaProcess;
  * the orchestrator terminates (detected via {@link Thread#join()}), the test
  * inspects the recorded state of each process.</p>
  *
- * <p>Retrieval guard tests generally provide only the winner's tuple before
- * starting the OR. The non-retrieval tests also exercise competing guards.</p>
+ * <p>Retrieval guard tests cover both a single matching tuple and guards that
+ * both succeed before the OR winner is selected.</p>
  */
 public class KlavaOrProcessTest extends TestCase {
 
@@ -123,6 +124,130 @@ public class KlavaOrProcessTest extends TestCase {
 
         boolean isBodyExecuted() {
             return bodyExecuted;
+        }
+    }
+
+    /** Pauses one branch after its retrieval has succeeded, before the OR claim. */
+    private static class PausingRetrievalNode extends KlavaNode {
+        private volatile Thread pausedBranch;
+        private final CountDownLatch retrieved = new CountDownLatch(1);
+        private final CountDownLatch resume = new CountDownLatch(1);
+
+        void pauseAfterRetrieval(Thread branch) {
+            pausedBranch = branch;
+        }
+
+        private void afterRetrieval() {
+            if (Thread.currentThread() != pausedBranch) {
+                return;
+            }
+            retrieved.countDown();
+            boolean interrupted = false;
+            for (;;) {
+                try {
+                    resume.await();
+                    break;
+                } catch (InterruptedException e) {
+                    // Keep the branch paused even when the winner interrupts it.
+                    interrupted = true;
+                }
+            }
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        @Override
+        public void in(Tuple tuple, Locality destination) throws KlavaException {
+            super.in(tuple, destination);
+            afterRetrieval();
+        }
+
+        @Override
+        public boolean in_nb(Tuple tuple, Locality destination) throws KlavaException {
+            boolean succeeded = super.in_nb(tuple, destination);
+            if (succeeded) {
+                afterRetrieval();
+            }
+            return succeeded;
+        }
+
+        @Override
+        public boolean in_t(Tuple tuple, Locality destination, long timeout) throws KlavaException {
+            boolean succeeded = super.in_t(tuple, destination, timeout);
+            if (succeeded) {
+                afterRetrieval();
+            }
+            return succeeded;
+        }
+
+        @Override
+        public void read(Tuple tuple, Locality destination) throws KlavaException {
+            super.read(tuple, destination);
+            afterRetrieval();
+        }
+
+        @Override
+        public boolean read_nb(Tuple tuple, Locality destination) throws KlavaException {
+            boolean succeeded = super.read_nb(tuple, destination);
+            if (succeeded) {
+                afterRetrieval();
+            }
+            return succeeded;
+        }
+
+        @Override
+        public boolean read_t(Tuple tuple, Locality destination, long timeout) throws KlavaException {
+            boolean succeeded = super.read_t(tuple, destination, timeout);
+            if (succeeded) {
+                afterRetrieval();
+            }
+            return succeeded;
+        }
+    }
+
+    private static class RacingRetrievalProcess extends KlavaOrProcess {
+        private static final long serialVersionUID = 1L;
+        private final String operation;
+        private final String expected;
+        private final CountDownLatch startAfter;
+        private final CountDownLatch bodyDone = new CountDownLatch(1);
+        private volatile boolean bodyExecuted;
+
+        RacingRetrievalProcess(String operation, String expected, CountDownLatch startAfter) {
+            this.operation = operation;
+            this.expected = expected;
+            this.startAfter = startAfter;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            if (startAfter != null) {
+                try {
+                    startAfter.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new KlavaException(e);
+                }
+            }
+            Tuple template = new Tuple(new KString(expected), new KString());
+            switch (operation) {
+                case "in" -> in(template, self);
+                case "in_nb" -> assertSuccessful(in_nb(template, self));
+                case "in_t" -> assertSuccessful(in_t(template, self, 5000));
+                case "read" -> read(template, self);
+                case "read_nb" -> assertSuccessful(read_nb(template, self));
+                case "read_t" -> assertSuccessful(read_t(template, self, 5000));
+                default -> throw new IllegalArgumentException(operation);
+            }
+            bodyExecuted = true;
+            bodyDone.countDown();
+        }
+
+        private void assertSuccessful(boolean succeeded) {
+            if (!succeeded) {
+                throw new AssertionError(operation + " did not retrieve the available tuple");
+            }
         }
     }
 
@@ -648,6 +773,69 @@ public class KlavaOrProcessTest extends TestCase {
         assertTrue("The loser should be interrupted", first.isInterrupted() ^ second.isInterrupted());
         assertNull(first.getFinalException());
         assertNull(second.getFinalException());
+    }
+
+    public void testLosingInRestoresTheExactRemovedTuple() throws Exception {
+        for (String operation : List.of("in", "in_nb", "in_t")) {
+            assertTwoSuccessfulRetrievals(operation, true);
+        }
+    }
+
+    public void testLosingReadTerminatesBeforeItsBody() throws Exception {
+        for (String operation : List.of("read", "read_nb", "read_t")) {
+            assertTwoSuccessfulRetrievals(operation, false);
+        }
+    }
+
+    private void assertTwoSuccessfulRetrievals(String operation, boolean consuming) throws Exception {
+        node.close();
+        PausingRetrievalNode pausingNode = new PausingRetrievalNode();
+        node = pausingNode;
+        String loserValue = consuming ? "loser" : "shared";
+        String winnerValue = consuming ? "winner" : "shared";
+        Tuple loserTuple = new Tuple(new KString(loserValue), new KString("payload"));
+        pausingNode.out(loserTuple);
+        if (consuming) {
+            pausingNode.out(new Tuple(new KString(winnerValue), new KString("winner-payload")));
+        }
+
+        RacingRetrievalProcess loser = new RacingRetrievalProcess(operation, loserValue, null);
+        RacingRetrievalProcess winner = new RacingRetrievalProcess(operation, winnerValue, pausingNode.retrieved);
+        pausingNode.pauseAfterRetrieval(loser);
+        OrOrchestrator orchestrator = new OrOrchestrator(List.of(loser, winner));
+        pausingNode.eval(orchestrator);
+        try {
+            assertTrue(operation + ": loser should retrieve before claiming",
+                    pausingNode.retrieved.await(5, TimeUnit.SECONDS));
+            assertTrue(operation + ": winner should complete its guard and body",
+                    winner.bodyDone.await(5, TimeUnit.SECONDS));
+            pausingNode.resume.countDown();
+            orchestrator.join(5000);
+            assertFalse(operation + ": OR should finish", orchestrator.isAlive());
+            assertFalse(operation + ": loser must not run its body", loser.bodyExecuted);
+            assertTrue(operation + ": winner should run its body", winner.bodyExecuted);
+            assertTrue(operation + ": loser should be interrupted", loser.isInterrupted());
+            assertNull(operation + ": loser termination should be normal", loser.getFinalException());
+
+            Tuple restored = new Tuple(new KString(loserValue), new KString());
+            assertTrue(operation + ": the loser's tuple should be present", pausingNode.in_nb(restored));
+            assertEquals(operation + ": original tuple identity should be preserved",
+                    loserTuple.getTupleId(), restored.getMatched().getTupleId());
+            assertEquals("payload", restored.getItem(1).toString());
+            assertFalse(operation + ": tuple should occur only once",
+                    pausingNode.in_nb(new Tuple(new KString(loserValue), new KString())));
+            if (consuming) {
+                assertFalse(operation + ": winner's tuple should remain consumed",
+                        pausingNode.in_nb(new Tuple(new KString(winnerValue), new KString())));
+            }
+        } finally {
+            pausingNode.resume.countDown();
+            loser.interrupt();
+            winner.interrupt();
+            loser.join(5000);
+            winner.join(5000);
+            orchestrator.join(5000);
+        }
     }
 
     /**

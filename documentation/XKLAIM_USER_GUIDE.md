@@ -195,6 +195,12 @@ an interruptible wait or a Klaim operation that detects the loss. Code before
 the first Klaim operation can therefore have side effects even in a losing
 branch.
 
+Multiple retrieval guards may find tuples before one branch claims the `or`.
+If a losing branch has completed an `in`, it puts the tuple it removed back at
+the same locality before terminating. A losing branch that completed a `read`
+terminates without running its body; the tuple remains in place. This recovery
+applies after the retrieval has returned successfully to the branch.
+
 ## Variables And Pattern Matching
 
 Use `var` to declare formal tuple fields:

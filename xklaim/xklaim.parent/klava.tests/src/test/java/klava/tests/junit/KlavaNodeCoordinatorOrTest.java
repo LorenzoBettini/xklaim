@@ -1,10 +1,13 @@
 package klava.tests.junit;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 import klava.KString;
 import klava.KlavaException;
+import klava.Locality;
 import klava.Tuple;
 import klava.topology.KlavaNode;
 import klava.topology.KlavaNodeCoordinator;
@@ -21,9 +24,8 @@ import klava.topology.KlavaOrProcess;
  * After the coordinator terminates (detected via {@link Thread#join()}), the
  * test inspects the recorded state of each process.</p>
  *
- * <p>The mutual exclusion assumption for guard operations is honoured in all
- * tests: only the tuple required by the winning process is inserted into the
- * tuple space before the OR is started.</p>
+ * <p>The tests cover both single retrieval successes and branches that have
+ * both removed tuples before the OR winner is selected.</p>
  */
 public class KlavaNodeCoordinatorOrTest extends TestCase {
 
@@ -96,6 +98,60 @@ public class KlavaNodeCoordinatorOrTest extends TestCase {
 
         boolean isBodyExecuted() {
             return bodyExecuted;
+        }
+    }
+
+    private static class PausingInNode extends KlavaNode {
+        private volatile Thread pausedBranch;
+        private final CountDownLatch removed = new CountDownLatch(1);
+        private final CountDownLatch resume = new CountDownLatch(1);
+
+        @Override
+        public void in(Tuple tuple, Locality destination) throws KlavaException {
+            super.in(tuple, destination);
+            if (Thread.currentThread() == pausedBranch) {
+                removed.countDown();
+                boolean interrupted = false;
+                for (;;) {
+                    try {
+                        resume.await();
+                        break;
+                    } catch (InterruptedException e) {
+                        interrupted = true;
+                    }
+                }
+                if (interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+    }
+
+    private static class RacingInProcess extends KlavaOrProcess {
+        private static final long serialVersionUID = 1L;
+        private final String expected;
+        private final CountDownLatch startAfter;
+        private final CountDownLatch bodyDone = new CountDownLatch(1);
+        private volatile boolean bodyExecuted;
+
+        RacingInProcess(String expected, CountDownLatch startAfter) {
+            this.expected = expected;
+            this.startAfter = startAfter;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            if (startAfter != null) {
+                try {
+                    startAfter.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new KlavaException(e);
+                }
+            }
+            in(new Tuple(new KString(expected)), self);
+            bodyExecuted = true;
+            bodyDone.countDown();
         }
     }
 
@@ -191,6 +247,46 @@ public class KlavaNodeCoordinatorOrTest extends TestCase {
         /* "A" was consumed by the IN operation */
         assertFalse("Tuple 'A' should have been consumed",
                 node.in_nb(new Tuple(new KString("A"))));
+    }
+
+    public void testCoordinatorRestoresTupleRemovedByLosingInGuard() throws Exception {
+        node.close();
+        PausingInNode pausingNode = new PausingInNode();
+        node = pausingNode;
+        Tuple removedByLoser = new Tuple(new KString("loser"));
+        pausingNode.out(removedByLoser);
+        pausingNode.out(new Tuple(new KString("winner")));
+
+        RacingInProcess loser = new RacingInProcess("loser", null);
+        RacingInProcess winner = new RacingInProcess("winner", pausingNode.removed);
+        pausingNode.pausedBranch = loser;
+        OrCoordinator coordinator = new OrCoordinator(List.of(loser, winner));
+        pausingNode.addNodeCoordinator(coordinator);
+        try {
+            assertTrue(pausingNode.removed.await(5, TimeUnit.SECONDS));
+            assertTrue(winner.bodyDone.await(5, TimeUnit.SECONDS));
+            pausingNode.resume.countDown();
+            coordinator.join(5000);
+
+            assertFalse("Coordinator should finish", coordinator.isAlive());
+            assertNull("Coordinator should not fail", coordinator.caughtKlavaException);
+            assertFalse("Losing body should not run", loser.bodyExecuted);
+            assertTrue("Winning body should run", winner.bodyExecuted);
+            assertTrue("Losing branch should be interrupted", loser.isInterrupted());
+            assertNull("Losing branch should terminate normally", loser.getFinalException());
+            Tuple template = new Tuple(new KString("loser"));
+            assertTrue("Losing branch should restore its tuple", pausingNode.in_nb(template));
+            assertEquals(removedByLoser.getTupleId(), template.getMatched().getTupleId());
+            assertFalse(pausingNode.in_nb(new Tuple(new KString("loser"))));
+            assertFalse(pausingNode.in_nb(new Tuple(new KString("winner"))));
+        } finally {
+            pausingNode.resume.countDown();
+            loser.interrupt();
+            winner.interrupt();
+            loser.join(5000);
+            winner.join(5000);
+            coordinator.join(5000);
+        }
     }
 
     /**

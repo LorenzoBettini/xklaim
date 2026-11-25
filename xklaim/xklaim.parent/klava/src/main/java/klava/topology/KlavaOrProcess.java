@@ -26,10 +26,10 @@ import klava.Tuple;
  * Subsequent operations do not trigger further OR synchronization.
  * </p>
  *
- * <h2>Important Assumption</h2>
  * <p>
- * Retrieval guards should be <strong>mutually exclusive</strong>. A retrieval
- * may consume a tuple before checking the mutex, even if another branch wins.
+ * When multiple retrieval guards succeed, a losing IN branch returns its
+ * matched tuple to the same locality before terminating. A losing READ branch
+ * terminates without changing the tuple space.
  * </p>
  *
  * @see KlavaOrMutex
@@ -98,7 +98,7 @@ public abstract class KlavaOrProcess extends KlavaProcess {
     protected boolean in_nb(Tuple tuple, Locality destination) throws KlavaException { // NOSONAR: we want this name
         boolean succeeded = super.in_nb(tuple, destination);
         if (succeeded) {
-            handleOrRetrieval();
+            handleOrRetrieval(tuple, destination);
         }
         return succeeded;
     }
@@ -107,7 +107,7 @@ public abstract class KlavaOrProcess extends KlavaProcess {
     protected boolean in_t(Tuple tuple, Locality destination, long timeout) throws KlavaException { // NOSONAR: we want this name
         boolean succeeded = super.in_t(tuple, destination, timeout);
         if (succeeded) {
-            handleOrRetrieval();
+            handleOrRetrieval(tuple, destination);
         }
         return succeeded;
     }
@@ -118,17 +118,16 @@ public abstract class KlavaOrProcess extends KlavaProcess {
      *
      * <p>
      * If this is the first retrieval operation (the guard): after the {@code in}
-     * completes, {@link #handleOrRetrieval()} is called. If this process is the
-     * first OR process to succeed, it interrupts all the others. Subsequent calls
-     * bypass the OR synchronization entirely.
+     * completes, the branch attempts to claim the OR. If it wins, it interrupts
+     * the others. If it loses, it restores the matched tuple before terminating.
+     * Subsequent calls bypass the OR synchronization entirely.
      * </p>
      *
      * <p>
      * If the underlying {@code in} is interrupted (because another process won the
      * OR competition), the resulting {@link KlavaException} propagates to the
-     * process wrapper, terminating this process without calling
-     * {@link #handleOrRetrieval()} and without treating the interruption as an
-     * uncaught failure.
+     * process wrapper, terminating this process before the OR claim check and
+     * without treating the interruption as an uncaught failure.
      * </p>
      *
      * {@inheritDoc}
@@ -136,7 +135,7 @@ public abstract class KlavaOrProcess extends KlavaProcess {
     @Override
     protected void in(Tuple tuple, Locality destination) throws KlavaException {
         super.in(tuple, destination);
-        handleOrRetrieval();
+        handleOrRetrieval(tuple, destination);
     }
 
     @Override
@@ -197,11 +196,16 @@ public abstract class KlavaOrProcess extends KlavaProcess {
      * <li>If first: calls {@link KlavaOrMutex#interruptOthers(KlavaOrProcess)} to
      * interrupt all competing processes, then returns so that this process
      * continues its body.</li>
-     * <li>Otherwise, interrupts this branch and terminates it.</li>
+     * <li>Otherwise, restores a consumed IN tuple, if any, then interrupts this
+     * branch and terminates it.</li>
      * </ol>
      *
      */
     private void handleOrRetrieval() {
+        handleOrRetrieval(null, null);
+    }
+
+    private void handleOrRetrieval(Tuple consumed, Locality destination) {
         if (!isFirstOperation) {
             /* not the guard — no OR synchronization needed */
             return;
@@ -211,6 +215,18 @@ public abstract class KlavaOrProcess extends KlavaProcess {
             /* this process won the OR competition — interrupt all others */
             orMutex.interruptOthers(this);
         } else {
+            if (consumed != null) {
+                Tuple matched = consumed.getMatched();
+                if (matched == null) {
+                    throw new KlavaException("IN succeeded without a matched tuple to restore");
+                }
+                /* The winner may have interrupted us already, or may do so while
+                 * OUT waits for a remote acknowledgement. Replay that interrupt
+                 * only after the tuple has been restored. */
+                try (InterruptDeferral ignored = deferInterruptsForCurrentProcess()) {
+                    super.out(matched, destination);
+                }
+            }
             interruptAndTerminate();
         }
     }
