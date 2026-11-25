@@ -11,7 +11,7 @@ import klava.KlavaException;
  *
  * <p>
  * The OR operator allows a set of {@link KlavaOrProcess} instances to compete
- * for the first successful retrieval operation (the "guard"). This mutex
+ * for the first successful guard operation. This mutex
  * coordinates the competition:
  * </p>
  * <ul>
@@ -31,7 +31,7 @@ import klava.KlavaException;
 public class KlavaOrMutex {
 
     /**
-     * Whether the first successful retrieval has not yet happened. Starts as
+     * Whether the first successful guard has not yet happened. Starts as
      * {@code true}; set to {@code false} atomically by the first call to
      * {@link #isFirst()}.
      */
@@ -45,7 +45,7 @@ public class KlavaOrMutex {
 
     /**
      * Returns {@code true} if the calling process is the first to succeed in its
-     * guard retrieval operation, and atomically marks the slot as taken so that all
+     * guard operation, and atomically marks the slot as taken so that all
      * subsequent callers receive {@code false}.
      *
      * <p>
@@ -62,6 +62,22 @@ public class KlavaOrMutex {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Runs an OUT or EVAL guard while holding the winner slot. A failed operation
+     * leaves the slot available for another branch; a successful one commits the
+     * winner before releasing the lock. Retrieval guards use the same lock through
+     * {@link #isFirst()}.
+     */
+    synchronized void executeIfFirst(KlavaOrProcess process, Runnable operation) {
+        if (!first || process.isInterrupted()) {
+            process.interrupt();
+            throw new KlavaException(new InterruptedException("OR branch lost"));
+        }
+        operation.run();
+        first = false;
+        interruptOthers(process);
     }
 
     /**
@@ -83,11 +99,11 @@ public class KlavaOrMutex {
      * Interrupts all OR processes <em>except</em> the given winner process.
      *
      * <p>
-     * Called by the winning process (the first to complete its guard) to terminate
-     * all competitors. Each interrupted process will receive an
-     * {@link InterruptedException} from its blocking retrieval operation; the
-     * process wrapper restores the interrupt status and treats that as normal
-     * cancellation.
+     * Called by the winning process (the first to complete its guard) to
+     * interrupt all competitors. Plain Java code in a losing process can keep
+     * running until an interruptible wait or a guarded Klaim operation observes
+     * the interruption. An interruption propagated as a {@link KlavaException}
+     * is treated as normal cancellation by the process wrapper.
      * </p>
      *
      * @param winner the process that must <em>not</em> be interrupted

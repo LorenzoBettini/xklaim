@@ -10,28 +10,26 @@ import klava.Tuple;
  *
  * <h2>OR Operator Semantics</h2>
  * <p>
- * In the OR operator, several processes compete on their first (guard)
- * retrieval operation. Only the first process to complete its guard proceeds
- * with the rest of its body; all other processes are interrupted and terminate.
+ * In the OR operator, several processes run concurrently and compete on their
+ * first successful Klaim operation. Java statements before that operation run
+ * independently in each branch. The winner interrupts all other processes;
+ * ordinary Java statements in a losing branch may continue until an
+ * interruptible wait or a guarded Klaim operation observes the interruption.
  * </p>
  *
- * <h2>Custom Behavior — First Retrieval Only</h2>
+ * <h2>Custom Behavior — First Successful Operation Only</h2>
  * <p>
- * This class overrides the blocking retrieval operations
- * ({@link #in(Tuple, Locality)} and {@link #read(Tuple, Locality)}) to add OR
- * synchronization logic. The custom behavior is applied <strong>only to the
- * first retrieval operation</strong> executed by the process (i.e., the guard).
- * After the guard has been executed, subsequent retrieval operations are
- * delegated directly to the superclass without any synchronization overhead.
+ * Blocking, timed, and nonblocking retrievals claim the OR after succeeding;
+ * OUT and EVAL reserve the mutex while executing and claim it only if they
+ * return normally. A failed operation leaves the guard pending.
+ * executeNodeProcess claims before starting its child.
+ * Subsequent operations do not trigger further OR synchronization.
  * </p>
  *
- * <h2>Important Assumption</h2>
  * <p>
- * The guard operations of the processes in an OR are assumed to be
- * <strong>mutually exclusive</strong>: at most one process can have its guard
- * succeed at any given time. If two guards succeed simultaneously, the behavior
- * of the OR operator is undefined and it is not guaranteed that only one
- * process will proceed.
+ * When multiple retrieval guards succeed, a losing IN branch returns its
+ * matched tuple to the same locality before terminating. A losing READ branch
+ * terminates without changing the tuple space.
  * </p>
  *
  * @see KlavaOrMutex
@@ -48,8 +46,8 @@ public abstract class KlavaOrProcess extends KlavaProcess {
     private transient KlavaOrMutex orMutex;
 
     /**
-     * Whether the next retrieval operation is still the first one (the guard). Set
-     * to {@code false} after the first retrieval operation completes, so that
+     * Whether the first successful operation (the guard) is still pending. Set
+     * to {@code false} after the guard succeeds, so that
      * subsequent operations proceed without OR synchronization.
      */
     private boolean isFirstOperation = true;
@@ -64,23 +62,72 @@ public abstract class KlavaOrProcess extends KlavaProcess {
         this.orMutex = orMutex;
     }
 
+    @Override
+    protected void out(Tuple tuple, Locality destination) throws KlavaException {
+        if (isFirstOperation) {
+            orMutex.executeIfFirst(this, () -> super.out(tuple, destination));
+            isFirstOperation = false;
+        } else {
+            super.out(tuple, destination);
+        }
+    }
+
+    @Override
+    protected void eval(KlavaProcess klavaProcess, Locality destination) throws KlavaException {
+        if (isFirstOperation) {
+            orMutex.executeIfFirst(this, () -> super.eval(klavaProcess, destination));
+            isFirstOperation = false;
+        } else {
+            super.eval(klavaProcess, destination);
+        }
+    }
+
+    @Override
+    public void executeNodeProcess(KlavaProcess klavaProcess) throws KlavaException {
+        if (isFirstOperation) {
+            if (!orMutex.isFirst()) {
+                interruptAndTerminate();
+            }
+            isFirstOperation = false;
+            orMutex.interruptOthers(this);
+        }
+        super.executeNodeProcess(klavaProcess);
+    }
+
+    @Override
+    protected boolean in_nb(Tuple tuple, Locality destination) throws KlavaException { // NOSONAR: we want this name
+        boolean succeeded = super.in_nb(tuple, destination);
+        if (succeeded) {
+            handleOrRetrieval(tuple, destination);
+        }
+        return succeeded;
+    }
+
+    @Override
+    protected boolean in_t(Tuple tuple, Locality destination, long timeout) throws KlavaException { // NOSONAR: we want this name
+        boolean succeeded = super.in_t(tuple, destination, timeout);
+        if (succeeded) {
+            handleOrRetrieval(tuple, destination);
+        }
+        return succeeded;
+    }
+
     /**
      * Performs an IN retrieval at the given destination, with OR synchronization
      * for the first (guard) retrieval only.
      *
      * <p>
      * If this is the first retrieval operation (the guard): after the {@code in}
-     * completes, {@link #handleOrRetrieval()} is called. If this process is the
-     * first OR process to succeed, it interrupts all the others. Subsequent calls
-     * bypass the OR synchronization entirely.
+     * completes, the branch attempts to claim the OR. If it wins, it interrupts
+     * the others. If it loses, it restores the matched tuple before terminating.
+     * Subsequent calls bypass the OR synchronization entirely.
      * </p>
      *
      * <p>
      * If the underlying {@code in} is interrupted (because another process won the
      * OR competition), the resulting {@link KlavaException} propagates to the
-     * process wrapper, terminating this process without calling
-     * {@link #handleOrRetrieval()} and without treating the interruption as an
-     * uncaught failure.
+     * process wrapper, terminating this process before the OR claim check and
+     * without treating the interruption as an uncaught failure.
      * </p>
      *
      * {@inheritDoc}
@@ -88,7 +135,25 @@ public abstract class KlavaOrProcess extends KlavaProcess {
     @Override
     protected void in(Tuple tuple, Locality destination) throws KlavaException {
         super.in(tuple, destination);
-        handleOrRetrieval();
+        handleOrRetrieval(tuple, destination);
+    }
+
+    @Override
+    protected boolean read_nb(Tuple tuple, Locality destination) throws KlavaException { // NOSONAR: we want this name
+        boolean succeeded = super.read_nb(tuple, destination);
+        if (succeeded) {
+            handleOrRetrieval();
+        }
+        return succeeded;
+    }
+
+    @Override
+    protected boolean read_t(Tuple tuple, Locality destination, long timeout) throws KlavaException { // NOSONAR: we want this name
+        boolean succeeded = super.read_t(tuple, destination, timeout);
+        if (succeeded) {
+            handleOrRetrieval();
+        }
+        return succeeded;
     }
 
     /**
@@ -119,40 +184,55 @@ public abstract class KlavaOrProcess extends KlavaProcess {
     }
 
     /**
-     * Handles OR synchronization after a guard retrieval operation completes.
+     * Handles OR synchronization after a retrieval operation succeeds.
      *
      * <p>
      * This method is a no-op unless the current retrieval is the first one (the
      * guard). When called for the guard, it:
      * </p>
      * <ol>
-     * <li>Sets {@code isFirstOperation = false} so that subsequent retrievals do
-     * not go through this path.</li>
      * <li>Calls {@link KlavaOrMutex#isFirst()} to check atomically whether this
      * process is the first to succeed in its guard.</li>
      * <li>If first: calls {@link KlavaOrMutex#interruptOthers(KlavaOrProcess)} to
      * interrupt all competing processes, then returns so that this process
      * continues its body.</li>
+     * <li>Otherwise, restores a consumed IN tuple, if any, then interrupts this
+     * branch and terminates it.</li>
      * </ol>
      *
-     * <p>
-     * Note: if {@link KlavaOrMutex#isFirst()} returns {@code false} (which should
-     * not happen under the mutual exclusion assumption), this process simply
-     * continues. The other winning process will have already set the interrupt flag
-     * on this process's thread, but since the guard retrieval already completed,
-     * the interrupt will be observed by the next blocking operation (if any).
-     * </p>
      */
     private void handleOrRetrieval() {
+        handleOrRetrieval(null, null);
+    }
+
+    private void handleOrRetrieval(Tuple consumed, Locality destination) {
         if (!isFirstOperation) {
             /* not the guard — no OR synchronization needed */
             return;
         }
-        /* mark the guard as consumed so subsequent retrievals are not affected */
-        isFirstOperation = false;
         if (orMutex.isFirst()) {
+            isFirstOperation = false;
             /* this process won the OR competition — interrupt all others */
             orMutex.interruptOthers(this);
+        } else {
+            if (consumed != null) {
+                Tuple matched = consumed.getMatched();
+                if (matched == null) {
+                    throw new KlavaException("IN succeeded without a matched tuple to restore");
+                }
+                /* The winner may have interrupted us already, or may do so while
+                 * OUT waits for a remote acknowledgement. Replay that interrupt
+                 * only after the tuple has been restored. */
+                try (InterruptDeferral ignored = deferInterruptsForCurrentProcess()) {
+                    super.out(matched, destination);
+                }
+            }
+            interruptAndTerminate();
         }
+    }
+
+    private void interruptAndTerminate() {
+        interrupt();
+        throw new KlavaException(new InterruptedException("OR branch lost"));
     }
 }

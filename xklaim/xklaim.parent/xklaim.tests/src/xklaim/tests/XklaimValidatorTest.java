@@ -482,31 +482,46 @@ public class XklaimValidatorTest {
 	}
 
 	@Test
-	public void testOrOperationWithNonRetrievalFirstOperationIsInvalid() throws Exception {
-		assertErrorsAsStrings(parseHelper.parse("""
+	public void testOrOperationWithOutFirstIsValid() throws Exception {
+		validationTestHelper.assertNoIssues(parseHelper.parse("""
 				package foo
 				proc TestProcess(String s) {
 					or(proc out(s)@self, proc read(var String s2)@self)
 				}
-				"""),
-				"The first operation of a process in 'or' must be 'in' or 'read'");
+				"""));
 	}
 
 	@Test
-	public void testOrOperationWithBlockBodyNonRetrievalFirstOperationIsInvalid() throws Exception {
-		assertErrorsAsStrings(parseHelper.parse("""
+	public void testOrOperationWithJavaBeforeRetrievalIsValid() throws Exception {
+		validationTestHelper.assertNoIssues(parseHelper.parse("""
 				package foo
 				proc TestProcess(String s) {
 					or(
 						proc {
-							out(s)@self
+							println("first branch started")
 							in(var Integer i)@self
+							println("first branch won")
 						},
-						proc read(var String s2)@self
+						proc {
+							println("second branch started")
+							read(var String s2)@self
+						}
 					)
 				}
-				"""),
-				"The first operation of a process in 'or' must be 'in' or 'read'");
+				"""));
+	}
+
+	@Test
+	public void testOrOperationWithNonBlockingAndTimedRetrievalsIsValid() throws Exception {
+		validationTestHelper.assertNoIssues(parseHelper.parse("""
+				package foo
+				proc TestProcess() {
+					or(
+						proc in_nb(var Integer i)@self,
+						proc read(var String s)@self within 10
+					)
+				}
+				"""));
 	}
 
 	private void assertErrorsAsStrings(EObject o, CharSequence expected) {

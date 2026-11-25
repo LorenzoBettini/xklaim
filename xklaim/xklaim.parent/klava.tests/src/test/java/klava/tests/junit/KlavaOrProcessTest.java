@@ -1,10 +1,14 @@
 package klava.tests.junit;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 import klava.KString;
 import klava.KlavaException;
+import klava.Locality;
+import klava.LogicalLocality;
 import klava.Tuple;
 import klava.topology.KlavaNode;
 import klava.topology.KlavaOrProcess;
@@ -20,9 +24,8 @@ import klava.topology.KlavaProcess;
  * the orchestrator terminates (detected via {@link Thread#join()}), the test
  * inspects the recorded state of each process.</p>
  *
- * <p>The mutual exclusion assumption for guard operations is honoured in all
- * tests: only the tuple required by the winning process is inserted into the
- * tuple space before the OR is started.</p>
+ * <p>Retrieval guard tests cover both a single matching tuple and guards that
+ * both succeed before the OR winner is selected.</p>
  */
 public class KlavaOrProcessTest extends TestCase {
 
@@ -72,6 +75,32 @@ public class KlavaOrProcessTest extends TestCase {
         }
     }
 
+    /** Records ordinary Java work before competing on the first IN. */
+    private static class PreGuardProcess extends KlavaOrProcess {
+
+        private static final long serialVersionUID = 1L;
+
+        private final CountDownLatch started;
+        private volatile boolean passedGuard;
+
+        PreGuardProcess(CountDownLatch started) {
+            this.started = started;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            started.countDown();
+            try {
+                started.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new KlavaException(e);
+            }
+            in(new Tuple(new KString("A")), self);
+            passedGuard = true;
+        }
+    }
+
     /**
      * An OR process whose guard is {@code read(expectedValue)}. Records whether
      * the body was executed.
@@ -95,6 +124,172 @@ public class KlavaOrProcessTest extends TestCase {
 
         boolean isBodyExecuted() {
             return bodyExecuted;
+        }
+    }
+
+    /** Pauses one branch after its retrieval has succeeded, before the OR claim. */
+    private static class PausingRetrievalNode extends KlavaNode {
+        private volatile Thread pausedBranch;
+        private final CountDownLatch retrieved = new CountDownLatch(1);
+        private final CountDownLatch resume = new CountDownLatch(1);
+
+        void pauseAfterRetrieval(Thread branch) {
+            pausedBranch = branch;
+        }
+
+        private void afterRetrieval() {
+            if (Thread.currentThread() != pausedBranch) {
+                return;
+            }
+            retrieved.countDown();
+            boolean interrupted = false;
+            for (;;) {
+                try {
+                    resume.await();
+                    break;
+                } catch (InterruptedException e) {
+                    // Keep the branch paused even when the winner interrupts it.
+                    interrupted = true;
+                }
+            }
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        @Override
+        public void in(Tuple tuple, Locality destination) throws KlavaException {
+            super.in(tuple, destination);
+            afterRetrieval();
+        }
+
+        @Override
+        public boolean in_nb(Tuple tuple, Locality destination) throws KlavaException {
+            boolean succeeded = super.in_nb(tuple, destination);
+            if (succeeded) {
+                afterRetrieval();
+            }
+            return succeeded;
+        }
+
+        @Override
+        public boolean in_t(Tuple tuple, Locality destination, long timeout) throws KlavaException {
+            boolean succeeded = super.in_t(tuple, destination, timeout);
+            if (succeeded) {
+                afterRetrieval();
+            }
+            return succeeded;
+        }
+
+        @Override
+        public void read(Tuple tuple, Locality destination) throws KlavaException {
+            super.read(tuple, destination);
+            afterRetrieval();
+        }
+
+        @Override
+        public boolean read_nb(Tuple tuple, Locality destination) throws KlavaException {
+            boolean succeeded = super.read_nb(tuple, destination);
+            if (succeeded) {
+                afterRetrieval();
+            }
+            return succeeded;
+        }
+
+        @Override
+        public boolean read_t(Tuple tuple, Locality destination, long timeout) throws KlavaException {
+            boolean succeeded = super.read_t(tuple, destination, timeout);
+            if (succeeded) {
+                afterRetrieval();
+            }
+            return succeeded;
+        }
+    }
+
+    private static class RacingRetrievalProcess extends KlavaOrProcess {
+        private static final long serialVersionUID = 1L;
+        private final String operation;
+        private final String expected;
+        private final CountDownLatch startAfter;
+        private final CountDownLatch bodyDone = new CountDownLatch(1);
+        private volatile boolean bodyExecuted;
+
+        RacingRetrievalProcess(String operation, String expected, CountDownLatch startAfter) {
+            this.operation = operation;
+            this.expected = expected;
+            this.startAfter = startAfter;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            if (startAfter != null) {
+                try {
+                    startAfter.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new KlavaException(e);
+                }
+            }
+            Tuple template = new Tuple(new KString(expected), new KString());
+            switch (operation) {
+                case "in" -> in(template, self);
+                case "in_nb" -> assertSuccessful(in_nb(template, self));
+                case "in_t" -> assertSuccessful(in_t(template, self, 5000));
+                case "read" -> read(template, self);
+                case "read_nb" -> assertSuccessful(read_nb(template, self));
+                case "read_t" -> assertSuccessful(read_t(template, self, 5000));
+                default -> throw new IllegalArgumentException(operation);
+            }
+            bodyExecuted = true;
+            bodyDone.countDown();
+        }
+
+        private void assertSuccessful(boolean succeeded) {
+            if (!succeeded) {
+                throw new AssertionError(operation + " did not retrieve the available tuple");
+            }
+        }
+    }
+
+    /** Tries a missing tuple, then waits for the test to supply a matching one. */
+    private static class RetryingGuardProcess extends KlavaOrProcess {
+
+        private static final long serialVersionUID = 1L;
+
+        private final String operation;
+        private final CountDownLatch firstAttemptDone = new CountDownLatch(1);
+        private final CountDownLatch tryAgain = new CountDownLatch(1);
+        private boolean firstResult;
+        private boolean secondResult;
+
+        RetryingGuardProcess(String operation) {
+            this.operation = operation;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            firstResult = retrieve(new Tuple(new KString("missing-" + operation)));
+            firstAttemptDone.countDown();
+            try {
+                tryAgain.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new KlavaException(e);
+            }
+            secondResult = retrieve(new Tuple(new KString("present-" + operation)));
+        }
+
+        private boolean retrieve(Tuple tuple) throws KlavaException {
+            if ("in_nb".equals(operation)) {
+                return in_nb(tuple, self);
+            }
+            if ("read_nb".equals(operation)) {
+                return read_nb(tuple, self);
+            }
+            if ("in_t".equals(operation)) {
+                return in_t(tuple, self, 1);
+            }
+            return read_t(tuple, self, 1);
         }
     }
 
@@ -198,9 +393,346 @@ public class KlavaOrProcessTest extends TestCase {
         }
     }
 
+    /** Child used by EVAL and executeNodeProcess; its flag records that it ran. */
+    private static class ChildProcess extends KlavaProcess {
+        private static final long serialVersionUID = 1L;
+        private volatile boolean executed;
+
+        @Override
+        public void executeProcess() {
+            executed = true;
+        }
+    }
+
+    /**
+     * The branch whose first operation is selected by the test parameter:
+     * {@code out("side-effect")@self}, {@code eval(child)@self}, or
+     * {@code executeNodeProcess(child)}. The optional latch parks this branch
+     * until another branch has won, so it can test rejection before execution.
+     */
+    private static class OperationGuardProcess extends KlavaOrProcess {
+        private static final long serialVersionUID = 1L;
+        private final String operation;
+        private final ChildProcess child = new ChildProcess();
+        private final CountDownLatch ready;
+        private volatile boolean completed;
+        private volatile boolean rejected;
+
+        OperationGuardProcess(String operation, CountDownLatch ready) {
+            this.operation = operation;
+            this.ready = ready;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            if (ready != null) {
+                // Tell the competing branch that this process has started.
+                ready.countDown();
+                try {
+                    // The competitor interrupts this wait after winning.
+                    new CountDownLatch(1).await();
+                } catch (InterruptedException e) {
+                    // The winning guard releases us; attempt the operation anyway.
+                }
+            }
+            try {
+                performOperation();
+                completed = true;
+            } catch (KlavaException e) {
+                rejected = e.wasCausedByInterruptedException();
+                throw e;
+            }
+        }
+
+        private void performOperation() throws KlavaException {
+            if ("out".equals(operation)) {
+                out(new Tuple(new KString("side-effect")), self);
+            } else if ("eval".equals(operation)) {
+                eval(child, self);
+            } else {
+                executeNodeProcess(child);
+            }
+        }
+    }
+
+    /**
+     * Tries OUT or EVAL at an unmapped locality, catches the failure, then
+     * retries with {@code in("retry-<operation>")@self} as its guard.
+     */
+    private static class FailingGuardProcess extends KlavaOrProcess {
+        private static final long serialVersionUID = 1L;
+        private final String operation;
+        private volatile boolean failed;
+        private volatile boolean retried;
+
+        FailingGuardProcess(String operation) {
+            this.operation = operation;
+        }
+
+        @Override
+        public void executeProcess() throws KlavaException {
+            try {
+                if ("out".equals(operation)) {
+                    out(new Tuple(new KString("failed")), new LogicalLocality("unmapped"));
+                } else {
+                    eval(new ChildProcess(), new LogicalLocality("unmapped"));
+                }
+            } catch (KlavaException e) {
+                failed = true;
+            }
+            in(new Tuple(new KString("retry-" + operation)), self);
+            retried = true;
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Tests
     // -----------------------------------------------------------------------
+
+    /**
+     * Each iteration runs this OR, with {@code op} standing for OUT, EVAL, or
+     * executeNodeProcess (the last is the Java runtime operation):
+     * <pre>{@code
+     * or(
+     *     proc { op("side-effect" or child)@self },
+     *     proc { in("absent-<op>")@self }
+     * )
+     * }</pre>
+     * The second branch has no matching tuple. Verify both that the first
+     * branch ran and that it interrupted the waiting branch.
+     */
+    public void testOutEvalAndExecuteNodeProcessCanWin() throws Exception {
+        for (String operation : List.of("out", "eval", "executeNodeProcess")) {
+            OperationGuardProcess winner = new OperationGuardProcess(operation, null);
+            InGuardProcess competitor = new InGuardProcess("absent-" + operation);
+            OrOrchestrator orchestrator = new OrOrchestrator(List.of(winner, competitor));
+            node.eval(orchestrator);
+            orchestrator.join(5000);
+
+            assertFalse(operation + " should finish", orchestrator.isAlive());
+            assertTrue(operation + " should complete", winner.completed);
+            assertTrue(operation + " should interrupt the competitor", competitor.isInterrupted());
+            if ("out".equals(operation)) {
+                assertTrue(node.in_nb(new Tuple(new KString("side-effect"))));
+            } else {
+                winner.child.join(5000);
+                assertTrue(operation + " child should execute", winner.child.executed);
+            }
+        }
+    }
+
+    /**
+     * Runs the same OR with a READ guard that is guaranteed to win first:
+     * <pre>{@code
+     * or(
+     *     proc { op("side-effect" or child)@self },
+     *     proc { read("ready-<op>")@self }
+     * )
+     * }</pre>
+     * The loser announces that it has started, then waits. The READ branch
+     * waits for that announcement before claiming the mutex. Its interrupt
+     * releases the loser, which deliberately attempts its operation anyway.
+     * That attempt must throw before producing a tuple or starting a child.
+     */
+    public void testOutEvalAndExecuteNodeProcessLoseBeforeExecution() throws Exception {
+        for (String operation : List.of("out", "eval", "executeNodeProcess")) {
+            CountDownLatch ready = new CountDownLatch(1);
+            OperationGuardProcess loser = new OperationGuardProcess(operation, ready);
+            KlavaOrProcess winner = new KlavaOrProcess() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void executeProcess() throws KlavaException {
+                    try {
+                        ready.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new KlavaException(e);
+                    }
+                    read(new Tuple(new KString("ready-" + operation)), self);
+                }
+            };
+            node.out(new Tuple(new KString("ready-" + operation)));
+            OrOrchestrator orchestrator = new OrOrchestrator(List.of(loser, winner));
+            node.eval(orchestrator);
+            orchestrator.join(5000);
+
+            assertFalse(operation + " should finish", orchestrator.isAlive());
+            assertTrue(operation + " should be rejected", loser.rejected);
+            assertTrue(operation + " loser should be interrupted", loser.isInterrupted());
+            assertNull(loser.getFinalException());
+            assertFalse(loser.completed);
+            if ("out".equals(operation)) {
+                assertFalse(node.in_nb(new Tuple(new KString("side-effect"))));
+            } else {
+                assertFalse(operation + " child should not start", loser.child.isAlive());
+                assertFalse(loser.child.executed);
+            }
+        }
+    }
+
+    /**
+     * An exception must leave the same branch's guard pending:
+     * <pre>{@code
+     * or(
+     *     proc { try { op(...)@unmapped } catch (KlavaException e) {}
+     *            in("retry-<op>")@self },
+     *     proc { in("absent-<op>")@self }
+     * )
+     * }</pre>
+     * Only the retry tuple exists. It must let the first branch claim the OR.
+     */
+    public void testFailedOutAndEvalLeaveGuardAvailableForRetry() throws Exception {
+        for (String operation : List.of("out", "eval")) {
+            node.out(new Tuple(new KString("retry-" + operation)));
+            FailingGuardProcess winner = new FailingGuardProcess(operation);
+            InGuardProcess competitor = new InGuardProcess("absent-" + operation);
+            OrOrchestrator orchestrator = new OrOrchestrator(List.of(winner, competitor));
+            node.eval(orchestrator);
+            orchestrator.join(5000);
+
+            assertFalse(operation + " should finish", orchestrator.isAlive());
+            assertTrue(operation + " should throw", winner.failed);
+            assertTrue(operation + " should permit a later guard", winner.retried);
+            assertTrue(competitor.isInterrupted());
+        }
+    }
+
+    /**
+     * A failed OUT or EVAL must also leave the mutex available to a different
+     * branch:
+     * <pre>{@code
+     * or(
+     *     proc { op(...)@unmapped },
+     *     proc { in("available-<op>")@self }
+     * )
+     * }</pre>
+     * The second branch waits until the first call has returned or thrown;
+     * otherwise it could win before the failure and miss the behavior under test.
+     */
+    public void testFailedOutAndEvalAllowAnotherBranchToWin() throws Exception {
+        for (String operation : List.of("out", "eval")) {
+            CountDownLatch failed = new CountDownLatch(1);
+            KlavaOrProcess failing = new KlavaOrProcess() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void executeProcess() throws KlavaException {
+                    try {
+                        if ("out".equals(operation)) {
+                            out(new Tuple(new KString("failed")), new LogicalLocality("unmapped"));
+                        } else {
+                            eval(new ChildProcess(), new LogicalLocality("unmapped"));
+                        }
+                    } finally {
+                        // Permit the other branch to claim only after this attempt.
+                        failed.countDown();
+                    }
+                }
+            };
+            KlavaOrProcess succeeding = new KlavaOrProcess() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void executeProcess() throws KlavaException {
+                    try {
+                        failed.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new KlavaException(e);
+                    }
+                    in(new Tuple(new KString("available-" + operation)), self);
+                }
+            };
+            node.out(new Tuple(new KString("available-" + operation)));
+            OrOrchestrator orchestrator = new OrOrchestrator(List.of(failing, succeeding));
+            node.eval(orchestrator);
+            orchestrator.join(5000);
+
+            assertFalse(operation + " should finish", orchestrator.isAlive());
+            assertNotNull(operation + " failure should propagate", failing.getFinalException());
+            assertFalse(operation + " should not interrupt other branches", succeeding.isInterrupted());
+            assertFalse(node.in_nb(new Tuple(new KString("available-" + operation))));
+        }
+    }
+
+    /**
+     * Once IN wins, later operations in that branch run as ordinary operations:
+     * <pre>{@code
+     * or(
+     *     proc { in("guard")@self; out("after-guard")@self;
+     *            eval(child)@self; executeNodeProcess(child) },
+     *     proc { in("absent")@self }
+     * )
+     * }</pre>
+     * This verifies that the new overrides do not try to claim the mutex again.
+     */
+    public void testOperationsAfterWinningRetrievalBypassOrCompetition() throws Exception {
+        node.out(new Tuple(new KString("guard")));
+        KlavaOrProcess winner = new KlavaOrProcess() {
+            private static final long serialVersionUID = 1L;
+            private final ChildProcess child = new ChildProcess();
+
+            @Override
+            public void executeProcess() throws KlavaException {
+                in(new Tuple(new KString("guard")), self);
+                out(new Tuple(new KString("after-guard")), self);
+                eval(child, self);
+                executeNodeProcess(new ChildProcess());
+                try {
+                    child.join(5000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new KlavaException(e);
+                }
+                if (!child.executed) {
+                    throw new KlavaException("EVAL child did not execute");
+                }
+            }
+        };
+        InGuardProcess competitor = new InGuardProcess("absent");
+        OrOrchestrator orchestrator = new OrOrchestrator(List.of(winner, competitor));
+        node.eval(orchestrator);
+        orchestrator.join(5000);
+
+        assertFalse(orchestrator.isAlive());
+        assertNull(winner.getFinalException());
+        assertTrue(node.in_nb(new Tuple(new KString("after-guard"))));
+        assertTrue(competitor.isInterrupted());
+    }
+
+    public void testBooleanRetrievalsOnlyClaimOrAfterSuccess() throws Exception {
+        for (String operation : List.of("in_nb", "read_nb", "in_t", "read_t")) {
+            RetryingGuardProcess process = new RetryingGuardProcess(operation);
+            InGuardProcess competitor = new InGuardProcess("competitor-" + operation);
+            OrOrchestrator orchestrator = new OrOrchestrator(List.of(process, competitor));
+            node.eval(orchestrator);
+            try {
+                assertTrue(operation + " first attempt should complete",
+                        process.firstAttemptDone.await(5, TimeUnit.SECONDS));
+                assertFalse(operation + " should return false for a missing tuple", process.firstResult);
+                assertFalse(operation + " must not interrupt the competitor on failure",
+                        competitor.isInterrupted());
+
+                node.out(new Tuple(new KString("present-" + operation)));
+                process.tryAgain.countDown();
+                orchestrator.join(5000);
+
+                assertFalse(operation + " orchestrator should complete", orchestrator.isAlive());
+                assertTrue(operation + " should return true for a matching tuple", process.secondResult);
+                assertFalse("Competitor body should not execute", competitor.isBodyExecuted());
+                assertTrue(operation + " should interrupt the competitor on success",
+                        competitor.isInterrupted());
+            } finally {
+                process.tryAgain.countDown();
+                process.interrupt();
+                competitor.interrupt();
+                process.join(5000);
+                competitor.join(5000);
+                orchestrator.join(5000);
+            }
+        }
+    }
 
     /**
      * Tests that when the first branch's IN guard succeeds, only that branch
@@ -223,6 +755,87 @@ public class KlavaOrProcessTest extends TestCase {
         /* "A" was consumed by the IN operation */
         assertFalse("Tuple 'A' should have been consumed",
                 node.in_nb(new Tuple(new KString("A"))));
+    }
+
+    public void testBothBranchesRunJavaBeforeOnlyOnePassesFirstIn() throws Exception {
+        node.out(new Tuple(new KString("A")));
+
+        CountDownLatch started = new CountDownLatch(2);
+        PreGuardProcess first = new PreGuardProcess(started);
+        PreGuardProcess second = new PreGuardProcess(started);
+        OrOrchestrator orchestrator = new OrOrchestrator(List.of(first, second));
+        node.eval(orchestrator);
+        orchestrator.join(5000);
+
+        assertFalse("OR should finish", orchestrator.isAlive());
+        assertEquals("Both branches should run their Java prelude", 0, started.getCount());
+        assertTrue("Only one branch should pass IN", first.passedGuard ^ second.passedGuard);
+        assertTrue("The loser should be interrupted", first.isInterrupted() ^ second.isInterrupted());
+        assertNull(first.getFinalException());
+        assertNull(second.getFinalException());
+    }
+
+    public void testLosingInRestoresTheExactRemovedTuple() throws Exception {
+        for (String operation : List.of("in", "in_nb", "in_t")) {
+            assertTwoSuccessfulRetrievals(operation, true);
+        }
+    }
+
+    public void testLosingReadTerminatesBeforeItsBody() throws Exception {
+        for (String operation : List.of("read", "read_nb", "read_t")) {
+            assertTwoSuccessfulRetrievals(operation, false);
+        }
+    }
+
+    private void assertTwoSuccessfulRetrievals(String operation, boolean consuming) throws Exception {
+        node.close();
+        PausingRetrievalNode pausingNode = new PausingRetrievalNode();
+        node = pausingNode;
+        String loserValue = consuming ? "loser" : "shared";
+        String winnerValue = consuming ? "winner" : "shared";
+        Tuple loserTuple = new Tuple(new KString(loserValue), new KString("payload"));
+        pausingNode.out(loserTuple);
+        if (consuming) {
+            pausingNode.out(new Tuple(new KString(winnerValue), new KString("winner-payload")));
+        }
+
+        RacingRetrievalProcess loser = new RacingRetrievalProcess(operation, loserValue, null);
+        RacingRetrievalProcess winner = new RacingRetrievalProcess(operation, winnerValue, pausingNode.retrieved);
+        pausingNode.pauseAfterRetrieval(loser);
+        OrOrchestrator orchestrator = new OrOrchestrator(List.of(loser, winner));
+        pausingNode.eval(orchestrator);
+        try {
+            assertTrue(operation + ": loser should retrieve before claiming",
+                    pausingNode.retrieved.await(5, TimeUnit.SECONDS));
+            assertTrue(operation + ": winner should complete its guard and body",
+                    winner.bodyDone.await(5, TimeUnit.SECONDS));
+            pausingNode.resume.countDown();
+            orchestrator.join(5000);
+            assertFalse(operation + ": OR should finish", orchestrator.isAlive());
+            assertFalse(operation + ": loser must not run its body", loser.bodyExecuted);
+            assertTrue(operation + ": winner should run its body", winner.bodyExecuted);
+            assertTrue(operation + ": loser should be interrupted", loser.isInterrupted());
+            assertNull(operation + ": loser termination should be normal", loser.getFinalException());
+
+            Tuple restored = new Tuple(new KString(loserValue), new KString());
+            assertTrue(operation + ": the loser's tuple should be present", pausingNode.in_nb(restored));
+            assertEquals(operation + ": original tuple identity should be preserved",
+                    loserTuple.getTupleId(), restored.getMatched().getTupleId());
+            assertEquals("payload", restored.getItem(1).toString());
+            assertFalse(operation + ": tuple should occur only once",
+                    pausingNode.in_nb(new Tuple(new KString(loserValue), new KString())));
+            if (consuming) {
+                assertFalse(operation + ": winner's tuple should remain consumed",
+                        pausingNode.in_nb(new Tuple(new KString(winnerValue), new KString())));
+            }
+        } finally {
+            pausingNode.resume.countDown();
+            loser.interrupt();
+            winner.interrupt();
+            loser.join(5000);
+            winner.join(5000);
+            orchestrator.join(5000);
+        }
     }
 
     /**

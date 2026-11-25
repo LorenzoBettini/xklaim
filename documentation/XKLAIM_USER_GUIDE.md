@@ -134,6 +134,73 @@ or(
 )
 ```
 
+All branches start concurrently. Java statements before the first Klaim
+operation run independently in each branch; the `or` competition starts when a
+branch reaches its first Klaim operation. The first successful operation selects
+the winning branch and Java-interrupts the others. This applies to `in`, `read`,
+`out`, `eval`, and `executeNodeProcess`, including blocking, timed, and
+nonblocking retrievals. An unsuccessful nonblocking or timed retrieval, or an
+`out` or `eval` that throws an exception, does not select a branch; its next
+successful Klaim operation can still win. `executeNodeProcess` selects its
+branch before starting the child process.
+
+For example, if the tuple `"choice"` is present, both branches print their
+`started` line, in either order, while only the winner prints `won`:
+
+```xklaim
+or(
+    proc {
+        println("first branch started")
+        in("choice")@self
+        println("first branch won")
+    },
+    proc {
+        println("second branch started")
+        in("choice")@self
+        println("second branch won")
+    }
+)
+```
+
+An unsuccessful timed retrieval does not claim the `or`. If the first `in`
+times out below, the following `read` still competes with the other branch.
+If that also times out, `out` can claim the `or` as the fallback. The same rule
+applies when `in_nb` or `read_nb` returns `false`.
+
+```xklaim
+or(
+    proc {
+        if (in("first")@self within 1000) {
+            println("first won")
+        } else if (read("second")@self within 2000) {
+            println("second won")
+        } else {
+            out("fallback")@self
+            println("fallback won")
+        }
+    },
+    proc {
+        in("alternative")@self
+        println("alternative won")
+    }
+)
+```
+
+The later operations have a chance to win only while no other branch has
+already claimed the `or`.
+
+Interruption is cooperative. Plain Java statements do not automatically stop
+when their branch loses, and a losing branch can keep running until it reaches
+an interruptible wait or a Klaim operation that detects the loss. Code before
+the first Klaim operation can therefore have side effects even in a losing
+branch.
+
+Multiple retrieval guards may find tuples before one branch claims the `or`.
+If a losing branch has completed an `in`, it puts the tuple it removed back at
+the same locality before terminating. A losing branch that completed a `read`
+terminates without running its body; the tuple remains in place. This recovery
+applies after the retrieval has returned successfully to the branch.
+
 ## Variables And Pattern Matching
 
 Use `var` to declare formal tuple fields:
